@@ -9,6 +9,7 @@
 // Les methodes
 QString doubleSlash(QString s);
 QString supprimeSlash(QString s);
+float* vector2float(QVector<float>& tableau); // fonction retournant un pointeur vers un tableau de float
 
 // Les classes
 class CoordVector
@@ -17,19 +18,14 @@ class CoordVector
     Classe CoordVector : simple vecteur de coordonnées XYZ
     */
     public:
-        CoordVector(float px=0,float py=0,float pz=0);
-        /* CoordVector(float px=0,float py=0,float pz=0,float pa=0);
-           Constructeur, prend en paramètres des flottants correspondant respectivement à x, y, z et a.
-        */
-        ~CoordVector();
-        /* ~CoordVector();
-           Destructeur, totalement inutile.
-        */
+        CoordVector(float px=0,float py=0,float pz=0); // Constructeur
+        ~CoordVector();// Destructeur
         CoordVector operator=(const CoordVector &fv);
-        /* CoordVector operator=(const CoordVector &fv);
+        /*
            Affecte au vecteur courant le contenu du vecteur passé en argument.
            Retourne le vecteur courant ainsi modifié.
         */
+
         float x,y,z;
 };
 
@@ -37,7 +33,6 @@ class CoordVector
 // Classe Source : vecteur XYZ des coordonnees du point d'emission
 class Source
 {
-
     public:
         Source();// Constructeur
         ~Source();// Destructeur
@@ -54,14 +49,13 @@ class Listener
       public:
         Listener();// Constructeur
         ~Listener();// Destructeur
-        void chargerListener(CoordVector cs, float r);
-        QString afficher();
+        void chargerListener(CoordVector cs, float r); // affecte une valeur aux attribus
+        QString afficher(); // pour afficher les coordonnées du centre et le rayon dans une fenetre
+
     private:
         CoordVector m_centreListener;
         float m_rayon;
-
 };
-
 
 
 // pas utile pour l'instant
@@ -95,7 +89,7 @@ class MeshObj
     */
     public:
         MeshObj(QString s);
-        /* MeshObj(std::string,MeshObj *first=NULL);
+        /* Anciennement : MeshObj(std::string,MeshObj *first=NULL);
            Constructeur, prend en arguments le nom du modèle à charger et le pointeur de la première frame si le modèle appartient à une animation (sinon laissez-le à NULL).
         */
         ~MeshObj();
@@ -117,8 +111,8 @@ class MeshObj
 
     private:
         //int n_data;
-        float *vertice,*normals,*textures,*colours;
-        QVector<Material*> materiaux;
+        float *m_vertice,*m_normals;
+        QVector<Material*> m_materiaux;
         Source m_source;
         Listener m_listener;
         //int m_rayonListener;
