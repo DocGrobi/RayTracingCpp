@@ -1,15 +1,15 @@
 #ifndef OBJREADER_H
 #define OBJREADER_H
 
-#endif // OBJREADER_H
 
 #include <QString>
 #include <QVector>
 
 // Les methodes
-QString doubleSlash(QString s);
-QString supprimeSlash(QString s);
-float* vector2float(QVector<float>& tableau); // fonction retournant un pointeur vers un tableau de float
+QString doubleSlash(QString s); // fonction qui remplace // par /1/
+QString supprimeSlash(QString s); // fonction qui supprime les slashs d'un string
+float* vector2float(std::vector<float>& tableau); // fonction retournant un pointeur vers un tableau de float
+int* vector2int(std::vector<int>& tableau);
 
 // Les classes
 class CoordVector
@@ -21,6 +21,7 @@ class CoordVector
         CoordVector(float px=0,float py=0,float pz=0); // Constructeur
         ~CoordVector();// Destructeur
         CoordVector operator=(const CoordVector &fv);
+        QVector<float> CoordVector2Qvector(CoordVector coord);
         /*
            Affecte au vecteur courant le contenu du vecteur passé en argument.
            Retourne le vecteur courant ainsi modifié.
@@ -57,30 +58,28 @@ class Listener
         float m_rayon;
 };
 
-
+/*
 // pas utile pour l'instant
 class Material
 {
-    /*
-    Classe Material : définition d'un matériau, composé d'une couleur et d'un nom spécifique.
-    */
+
+    //Classe Material : définition d'un matériau, composé d'une couleur et d'un nom spécifique.
+
     public:
         Material(float r,float g,float b,QString n);
-        /* Material(float r,float g,float b,std::string n);
-           Constructeur, les trois premiers arguments représentent la couleur RGB du matériau et n est son nom.
-        */
+        //Constructeur, les trois premiers arguments représentent la couleur RGB du matériau et n est son nom.
+
         Material(Material *mat);
-        /* Material(Material *mat);
-           Constructeur alternatif, affecte au matériau courant le contenu du matériau passé en argument.
-        */
+        // Constructeur alternatif, affecte au matériau courant le contenu du matériau passé en argument.
+
         ~Material();
-        /* ~Material();
-           Destructeur, totalement inutile.
-        */
+         //Destructeur, totalement inutile.
 
         CoordVector coul;
         QString name;
 };
+*/
+
 
 class MeshObj
 {
@@ -108,14 +107,24 @@ class MeshObj
         */
         Source getSource() const; //accesseur aux parametres de source
         Listener getListener()const; //accesseur aux parametres du listener
+        float* getVertex() const; //accesseur au pointeur de vertex
+        float* getNormals() const;
+        int* getIndMat() const;
+        int getNb_data() const;
 
     private:
-        //int n_data;
+        int m_nbData;
         float *m_vertice,*m_normals;
-        QVector<Material*> m_materiaux;
+        int *m_indicesMateriaux; // Pointeurs vers les tableaux de stockages des vertex, des normales et des materiaux.
         Source m_source;
         Listener m_listener;
-        //int m_rayonListener;
+        QVector<QString> m_materiaux;
+
+
 };
 
+
+
+
+#endif // OBJREADER_H
 

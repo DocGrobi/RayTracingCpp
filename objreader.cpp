@@ -21,6 +21,16 @@ CoordVector CoordVector::operator=(const CoordVector &fv)
     return *this;
 }
 
+QVector<float> CoordVector::CoordVector2Qvector(CoordVector coord)
+{
+    QVector<float> vect;
+    vect.push_back(coord.x);
+    vect.push_back(coord.y);
+    vect.push_back(coord.z);
+
+    return vect;
+}
+
 Source::Source()
 {
     //m_centreSource = new CoordVector(0,0,0);
@@ -82,6 +92,7 @@ QString Listener::afficher()
 
 }
 
+/* // pas utile
 Material::Material(float r,float g,float b,QString n):name(n)
 {
     coul.x=r;
@@ -93,15 +104,33 @@ Material::Material(Material *mat)
     coul=mat->coul;
     name=mat->name;
 }
+*/
 
-MeshObj::MeshObj(QString s)
+MeshObj::MeshObj(QString s) : m_nbData(1)// : m_vertice(NULL), m_normals(NULL), m_indicesMateriaux(NULL)
 {
+
+/*
+    m_vertice = (float*)malloc(sizeof(float));
+    m_normals = (float*)malloc(sizeof(float));
+    m_indicesMateriaux = (int*) malloc(sizeof(int));
+
+    qDebug() << "constructeur : " << m_vertice;
+*/
     charger_obj(s);
+
+
+   /*
+    m_vertice = 0;
+    m_normals = 0;
+    m_indicesMateriaux = 0;
+    */
 }
 MeshObj::~MeshObj()
 {
+
     free(m_vertice);
     free(m_normals);
+    free(m_indicesMateriaux);
 
    /* for(unsigned int i=0;i<materiaux.size();i++)
         delete materiaux[i];
@@ -114,21 +143,45 @@ Source MeshObj::getSource() const //accesseur aux parametres de source
     return m_source;
 }
 
+
 Listener MeshObj::getListener() const //accesseur aux parametres du listener
 {
     return m_listener;
 }
 
+
+float* MeshObj::getVertex() const //accesseur au pointeur de vertex
+{
+    return m_vertice;
+}
+
+
+float* MeshObj::getNormals() const //accesseur au pointeur de vertex
+{
+    return m_normals;
+}
+
+int* MeshObj::getIndMat() const //accesseur au pointeur de vertex
+{
+
+    return m_indicesMateriaux;
+}
+int MeshObj::getNb_data() const //accesseur au pointeur de vertex
+{
+    return m_nbData;
+}
+
 void MeshObj::charger_obj(QString file_obj)
 {
-    QVector<CoordVector> ver, nor, tex, col; // vecteurs de coordonnees
-    QVector<unsigned int> iv, in, imat; // indice des points à assembler
-    QVector<QString> mat; // Vecteur de materiaux
+    std::vector<CoordVector> ver, nor; // vecteurs de coordonnees
+    std::vector<unsigned int> iv, in, imat; // indice des points à assembler
     int indiceMat = 0, indiceMat_Curr =0; // Indice du materiaux
     bool lecture_source = false, lecture_listener = false;
     CoordVector coordFloat (0,0,0);
     int nb_ver = 0, nb_verSource = 0, nb_verListener = 0, nb_norSource = 0, nb_norListener = 0;
     float x_max = 0, rayon = 0;
+
+
 
     QFile fichier(file_obj); // fichier .obj
 
@@ -209,7 +262,7 @@ void MeshObj::charger_obj(QString file_obj)
                         y = coord[2].toFloat();
                         z = coord[3].toFloat();
 
-                        ver.push_back(CoordVector(x,y,z)); // C'est un QVector rempli avec les CoordVector de coordonnees des vertex
+                        ver.push_back(CoordVector(x,y,z)); // C'est un std::vector rempli avec les CoordVector de coordonnees des vertex
 
                     }
 
@@ -221,7 +274,7 @@ void MeshObj::charger_obj(QString file_obj)
                         x = coord[1].toFloat();
                         y = coord[2].toFloat();
 
-                        tex.push_back(CoordVector(x,y)); // C'est un QVector rempli avec les CoordVector de coordonnees de textures
+                        tex.push_back(CoordVector(x,y)); // C'est un std::vector rempli avec les CoordVector de coordonnees de textures
 
                     }
                     */
@@ -234,7 +287,7 @@ void MeshObj::charger_obj(QString file_obj)
                         y = coord[2].toFloat();
                         z = coord[3].toFloat();
 
-                        nor.push_back(CoordVector(x,y,z)); // C'est un QVector rempli avec les CoordVector de coordonnees de normales
+                        nor.push_back(CoordVector(x,y,z)); // C'est un std::vector rempli avec les CoordVector de coordonnees de normales
                     }
                 }
 
@@ -242,13 +295,14 @@ void MeshObj::charger_obj(QString file_obj)
                 if(ligne[0]=='u')
                 {
                     QStringList materiau = ligne.split(" ");
-                    int i = mat.indexOf(materiau[1]);
+                    int i = m_materiaux.indexOf(materiau[1]);
 
                     if(i == -1) // si c'est la première fois qu'on rencontre ce materiau
                     {
-                       indiceMat++; // on incremente l'indice du materiau
+
                        indiceMat_Curr = indiceMat; // on affecte ce numero à l'indice courant
-                       mat.push_back(materiau[1]); // on sauvegarde son nom dans le vecteur mat
+                       indiceMat++; // on incremente l'indice du materiau
+                       m_materiaux.push_back(materiau[1]); // on sauvegarde son nom dans le vecteur mat
                     }
                     else
                     {
@@ -304,8 +358,8 @@ void MeshObj::charger_obj(QString file_obj)
         fichier.close();
     }
 
-    QVector<float> tv(0), tn(0);
-    QVector<int> tmat(0); // on construit ensuite les tableaux de faces x1 y1 z1 x2 y2 z2 ...
+    std::vector<float> tv(0), tn(0);
+    std::vector<int> tmat(0); // on construit ensuite les tableaux de faces x1 y1 z1 x2 y2 z2 ...
 
     for(int i=0; i<iv.size(); i++) // vertex
     {
@@ -315,9 +369,6 @@ void MeshObj::charger_obj(QString file_obj)
             tv.push_back(ver[iv[i]].y);
             tv.push_back(ver[iv[i]].z);
 
-            tmat.push_back(imat[i]); // dupliqué trois fois pour que l'indice du materiaux soit associé à chaque coordonée de vertice
-            tmat.push_back(imat[i]);
-            tmat.push_back(imat[i]);
         }
     }
     for(int i=0; i<in.size(); i++) //normales - pour ne prendre qu'une normale par face on prendrai comme increment i =i+3
@@ -327,25 +378,49 @@ void MeshObj::charger_obj(QString file_obj)
             tn.push_back(nor[in[i]].x);
             tn.push_back(nor[in[i]].y);
             tn.push_back(nor[in[i]].z);
+
+            tmat.push_back(imat[i]); // dupliqué trois fois pour que l'indice du materiaux soit associé à chaque coordonée de vertice
+            tmat.push_back(imat[i]);
+            tmat.push_back(imat[i]);
         }
     }
 
+    /*
     // test
-    for(int i =0; i<tv.size()-2; i=i+3)
+    for(int i =0; i<tv.size()-3; i=i+3)
     {
-        qDebug() << "Vertex : " << tv[i] << " "<< tv[i+1]<< " "<< tv[i+2] << " " << "Materiaux : " << tmat[i] <<" -> "<< mat[tmat[i]];
+        qDebug() << "Vertex : " << tv[i] << " "<< tv[i+1]<< " "<< tv[i+2] << " " << "Materiaux : " << tmat[i] <<" -> "<< m_materiaux[tmat[i]];
 
     }
-    //qDebug() << tmat;
+    */
+
     // attributs : pointeurs vers les tableaux
-    m_vertice = vector2float(tv);
+    m_vertice = vector2float(tv); // adresse du premier element
     m_normals = vector2float(tn);
+    m_indicesMateriaux = vector2int(tmat);
+    m_nbData = tv.size();
+/*
+    qDebug() << "tv : " << tv;
+    qDebug() << "m_nbData : " << m_nbData;
+    qDebug() << "vertice: " << m_vertice;
+    qDebug() << "vertices 1 : " << m_vertice[1]; // valeur du deuxième element
+    qDebug() << "*vertices : " << *m_vertice; // valeur du premier element
+    qDebug() << "*vertices 1 : :" << m_vertice[0]; // valeur du premier element
+*/
+
+    // nettoyage
+    ver.clear();
+    nor.clear();
+
+    iv.clear();
+    in.clear();
+    imat.clear();
 
 
 }
 
-
-float* vector2float(QVector<float>& tableau)
+// fonction retournant un pointeur vers un tableau de float
+float* vector2float(std::vector<float>& tableau)
 {
     float* t=NULL;
     t=(float*)malloc(tableau.size()*sizeof(float));
@@ -361,6 +436,25 @@ float* vector2float(QVector<float>& tableau)
         t[i]=tableau[i];
     return t;
 }
+
+// fonction retournant un pointeur vers un tableau de float
+int* vector2int(std::vector<int>& tableau)
+{
+    int* t=NULL;
+    t=(int*)malloc(tableau.size()*sizeof(int));
+    if(t==NULL||tableau.empty())
+    {
+        int *t1=(int*)malloc(sizeof(int)*3);
+        for(int i=0;i<3;i++)
+            t1[i]=0.;
+        return t1;
+    }
+
+    for(unsigned int i=0;i<tableau.size();i++)
+        t[i]=tableau[i];
+    return t;
+}
+
 
 
 QString doubleSlash(QString s) // On remplace les // correspondant à l'absence de texture par des /1/ pour avoir un numero de texture

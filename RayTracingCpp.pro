@@ -14,11 +14,15 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    objreader.cpp
+    objreader.cpp \
+    objwriter.cpp \
+    raytracing.cpp
 
 
 HEADERS  += mainwindow.h \
-    objreader.h
+    objreader.h \
+    objwriter.h \
+    raytracing.h
 
 
 FORMS    += mainwindow.ui
