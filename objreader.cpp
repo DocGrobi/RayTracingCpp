@@ -47,6 +47,13 @@ void Source::chargerSource(CoordVector cs)
     //m_centreSource = new CoordVector(cs);
     m_centreSource = cs;
     //qDebug() << "Centre source: " << m_centreSource.x << m_centreSource.y << m_centreSource.z;
+
+
+}
+
+CoordVector Source::centre()
+{
+    return m_centreSource;
 }
 
 QString Source::afficher() const

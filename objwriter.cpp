@@ -114,3 +114,40 @@ void ObjWriter::display_normales(float *vertex, float *normals, int nData)
 
     fichier.close(); // ferme le fichier
 }
+
+void ObjWriter::display_ray(Source source, float *ray, int nbRay)
+{
+    QFile fichier(m_chemin);
+
+    fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
+
+    // creation d'un entete
+    QString text("o Rayons \n");
+    fichier.write(text.toLatin1());
+
+    // ecriture des vertex du centre et du vecteur de rayon
+    for (int i = 0 ; i < (3*nbRay) ; i=i+3)
+    {
+        CoordVector rayCoord(ray[i], ray[i+1], ray[i+2]);
+        text = "v " + CoordVector2QString(source.centre()) + "\n" + "v "+ CoordVector2QString(rayCoord) + "\n";
+        fichier.write(text.toLatin1());
+
+    }
+
+    // ecriture des lignes commençant par l pour relier les vertex
+    QString ligne("");
+    for(int i=0 ; i < (2*nbRay) ; i=i+2)
+    {
+        ligne = "l " + QString::number(i+1) + " " + QString::number(i+2) + "\n";
+        fichier.write(ligne.toLatin1());
+    }
+
+    fichier.close(); // ferme le fichier
+}
+
+
+QString ObjWriter::CoordVector2QString(CoordVector coord)
+{
+    QString text = QString::number(coord.x) + " " + QString::number(coord.y) + " " + QString::number(coord.z);
+     return text;
+}

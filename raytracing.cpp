@@ -33,16 +33,17 @@ Ray::Ray(float phy, int N, CoordVector S)
     {
         theta = theta + 2*M_PI/N;
         CoordVector coord(sph2cart(ro,theta,phi));
-        m_dirTot.push_back(coord.x);
-        m_dirTot.push_back(coord.y);
-        m_dirTot.push_back(coord.z);
+        m_dirTot.push_back(coord.x + S.x);
+        m_dirTot.push_back(coord.y + S.y);
+        m_dirTot.push_back(coord.z + S.z);
     }
+
 
     //pour le debug
     QVector<float> vector = QVector<float>::fromStdVector(m_dirTot);
-    qDebug() << vector;
+    //qDebug() << vector;
 
-
+    m_ray = vector2float(m_dirTot); // poiteur vers le tableau de vecteurs rayon
 
 
     // OPTION 2 : Discretisation des rayons sur une grille uniforme de Fibonacci
@@ -71,4 +72,10 @@ Ray::Ray(float phy, int N, CoordVector S)
 
 Ray::~Ray()
 {
+    free(m_ray);
+}
+
+float* Ray::getRay() const // Accesseur au vecteur de rayons
+{
+    return m_ray;
 }

@@ -38,6 +38,7 @@ class Source
         Source();// Constructeur
         ~Source();// Destructeur
         void chargerSource(CoordVector cs);
+        CoordVector centre();
         QString afficher() const;
 
     private:

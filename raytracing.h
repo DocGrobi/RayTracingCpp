@@ -16,6 +16,7 @@ class Ray
 public:
     Ray(float phy, int N, CoordVector S);   //Constructeur
     ~Ray();                                 //Destructeur
+    float* getRay() const;
 
 private:
     int m_Nray;                 // Nombre de rayon
@@ -28,6 +29,7 @@ private:
     CoordVector m_src;          // Position absolue de la source
 
     std::vector<float> m_dirTot; // Vecteur des directions des rayons
+    float *m_ray;                // Poiteur vers le tableau de stockage des vecteurs rayons
 
 };
 
