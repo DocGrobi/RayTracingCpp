@@ -22,28 +22,28 @@ Ray::Ray(float phy, int N, CoordVector S)
 {
     m_Nray = N;
     //m_col(0);
-    //m_dist(0);
+    //m_dist(0)
     m_dMax = 0;
     m_src = S;
     float ro(1), theta(0), phi(0);
 
-
+    m_ray.clear();
     // OPTION 1 : Repartition uniforme des rayons (2D pour l'instant)
     for (int i = 0; i<N ; i++)
     {
         theta = theta + 2*M_PI/N;
         CoordVector coord(sph2cart(ro,theta,phi));
-        m_dirTot.push_back(coord.x + S.x);
-        m_dirTot.push_back(coord.y + S.y);
-        m_dirTot.push_back(coord.z + S.z);
+        m_ray.push_back(coord.x + S.x);
+        m_ray.push_back(coord.y + S.y);
+        m_ray.push_back(coord.z + S.z);
     }
 
 
     //pour le debug
-    QVector<float> vector = QVector<float>::fromStdVector(m_dirTot);
+    //QVector<float> vector = QVector<float>::fromStdVector(m_dirTot);
     //qDebug() << vector;
 
-    m_ray = vector2float(m_dirTot); // poiteur vers le tableau de vecteurs rayon
+    //m_ray = vector2float(m_dirTot); // poiteur vers le tableau de vecteurs rayon
 
 
     // OPTION 2 : Discretisation des rayons sur une grille uniforme de Fibonacci
@@ -72,10 +72,11 @@ Ray::Ray(float phy, int N, CoordVector S)
 
 Ray::~Ray()
 {
-    free(m_ray);
+    //free(m_ray);
 }
 
-float* Ray::getRay() const // Accesseur au vecteur de rayons
+std::vector<float> Ray::getRay() const // Accesseur au vecteur de rayons
 {
     return m_ray;
 }
+

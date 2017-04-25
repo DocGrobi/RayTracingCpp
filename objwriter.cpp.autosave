@@ -68,7 +68,6 @@ void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> n
         vertices= "v";
 
 
-
         // OPTION 1 - Utilisation des normales dans le fichier .obj
         /*
         for (int j = 0; j <3 ; j++) // incrementation par coordonnée du bout de la normale
@@ -79,7 +78,6 @@ void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> n
             vertices = vertices + " " + QString::number(nor);
         }
         */
-
 
 
         // OPTION 2 - Utilisation de l'ordre des vertices pour créer les normales
@@ -103,8 +101,6 @@ void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> n
         }
         // */
 
-
-
         vertices = vertices + "\n"; // retour la la ligne
         fichier.write(vertices.toLatin1()); // ecriture d'une ligne : v x1 y1 z1
     }
@@ -121,10 +117,14 @@ void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> n
     fichier.close(); // ferme le fichier
 
 
-    //pour le debug : si 0 alors
+    //pour le debug
     if (*std::max_element(difference.begin(),difference.end()) < 0,000001)
     {
         qDebug() << "Les normales sont dans le bon sens";
+    }
+    else
+    {
+        qDebug() << "Erreur calcul de normales";
     }
 }
 

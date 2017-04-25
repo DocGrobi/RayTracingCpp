@@ -20,6 +20,10 @@ private slots:
 
     void on_bouton_rayons_clicked();
 
+    void on_bouton_source_clicked();
+
+    void on_bouton_listener_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

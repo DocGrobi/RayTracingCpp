@@ -44,11 +44,8 @@ Source::~Source()
 
 void Source::chargerSource(CoordVector cs)
 {
-    //m_centreSource = new CoordVector(cs);
     m_centreSource = cs;
-    //qDebug() << "Centre source: " << m_centreSource.x << m_centreSource.y << m_centreSource.z;
-
-
+    qDebug() << cs.x << cs.y << cs.z;
 }
 
 CoordVector Source::centre()
@@ -68,6 +65,12 @@ QString Source::afficher() const
     return centre;
 
 }
+
+Source MeshObj::getSource() const //accesseur aux parametres de source
+{
+    return m_source;
+}
+
 
 Listener::Listener()
 {
@@ -97,6 +100,12 @@ QString Listener::afficher()
 
     return info;
 
+}
+
+
+Listener MeshObj::getListener() const //accesseur aux parametres du listener
+{
+    return m_listener;
 }
 
 /* // pas utile
@@ -135,9 +144,11 @@ MeshObj::MeshObj(QString s) : m_nbData(1)// : m_vertice(NULL), m_normals(NULL), 
 MeshObj::~MeshObj()
 {
 
+    /*
     free(m_vertice);
     free(m_normals);
     free(m_indicesMateriaux);
+    */
 
    /* for(unsigned int i=0;i<materiaux.size();i++)
         delete materiaux[i];
@@ -145,18 +156,9 @@ MeshObj::~MeshObj()
     */
 }
 
-Source MeshObj::getSource() const //accesseur aux parametres de source
-{
-    return m_source;
-}
 
 
-Listener MeshObj::getListener() const //accesseur aux parametres du listener
-{
-    return m_listener;
-}
-
-
+/*
 float* MeshObj::getVertex() const //accesseur au pointeur de vertex
 {
     return m_vertice;
@@ -177,6 +179,31 @@ int MeshObj::getNb_data() const //accesseur au pointeur de vertex
 {
     return m_nbData;
 }
+*/
+
+std::vector<float> MeshObj::getVertex() const //accesseur au pointeur de vertex
+{
+    return m_vert;
+}
+
+
+std::vector<float> MeshObj::getNormals() const //accesseur au pointeur de vertex
+{
+    return m_norm;
+}
+
+std::vector<int> MeshObj::getIndMat() const //accesseur au pointeur de vertex
+{
+
+    return m_indMat;
+}
+
+
+int MeshObj::getNb_data() const //accesseur au pointeur de vertex
+{
+    return m_nbData;
+}
+
 
 void MeshObj::charger_obj(QString file_obj)
 {
@@ -186,7 +213,8 @@ void MeshObj::charger_obj(QString file_obj)
     bool lecture_source = false, lecture_listener = false;
     CoordVector coordFloat (0,0,0);
     int nb_ver = 0, nb_verSource = 0, nb_verListener = 0, nb_norSource = 0, nb_norListener = 0;
-    float x_max = 0, rayon = 0;
+    float x_max = -10000000, rayon = 0;
+
 
 
 
@@ -201,6 +229,7 @@ void MeshObj::charger_obj(QString file_obj)
 
             if(lecture_source || lecture_listener) // Si l'objet lu est la source ou le listener
             {
+
                 if(ligne[0]=='v' && ligne[1]==' ') //Vertex
                 {
                     QStringList coord = ligne.split(" ");
@@ -228,8 +257,8 @@ void MeshObj::charger_obj(QString file_obj)
                     {
                         nb_norListener++;
                     }
-                }
-                else if(ligne[0]=='o') // nouvel objet
+                }                                
+                else if(ligne[0]=='o') // fin des vertices et des normales
                 {
                     // le centre de la source et la moyenne de ses coordonnées
                     coordFloat.x = coordFloat.x/nb_ver;
@@ -253,6 +282,7 @@ void MeshObj::charger_obj(QString file_obj)
                     nb_ver = 0; //remsie à 0 du compteur de vertex
                     coordFloat = (0,0,0); //remsie à 0 de la somme des coordonnees
                 }
+
 
             }
 
@@ -363,18 +393,55 @@ void MeshObj::charger_obj(QString file_obj)
 
         }
         fichier.close();
-    }
 
-    std::vector<float> tv(0), tn(0);
-    std::vector<int> tmat(0); // on construit ensuite les tableaux de faces x1 y1 z1 x2 y2 z2 ...
+        //si on n'est pas sortie du mode source/listener car il n'y a que des sources ou des listeners
+        if(lecture_source || lecture_listener)
+        {
+            // le centre de la source et la moyenne de ses coordonnées
+            coordFloat.x = coordFloat.x/nb_ver;
+            coordFloat.y = coordFloat.y/nb_ver;
+            coordFloat.z = coordFloat.z/nb_ver;
+
+            if(lecture_source)
+            {
+                m_source.chargerSource(coordFloat);// on affecte à la source les coordonnées du centre recupérés
+                lecture_source = false; // on sort du mode lecture source
+                nb_verSource = nb_ver; // ici il faut enlever le nombre d'elements de source aux indices car dans les vecteurs i.. on n'enregistre pas les element de source
+            }
+            if(lecture_listener)
+            {
+                rayon = x_max - coordFloat.x; // VALABLE QUE POUR UNE SPHERE - calcul du rayon par coordonnee x max moins centre sur x
+                m_listener.chargerListener(coordFloat, rayon);// on affecte au listener les coordonnées du centre recupérés
+                lecture_listener = false; // on sort du mode lecture listener
+                nb_verListener = nb_ver;
+            }
+
+            nb_ver = 0; //remsie à 0 du compteur de vertex
+            coordFloat = (0,0,0); //remsie à 0 de la somme des coordonnees
+            qDebug() << x_max;
+        }
+        }
+
+
+//    std::vector<float> tv(0), tn(0);
+  //  std::vector<int> tmat(0); // on construit ensuite les tableaux de faces x1 y1 z1 x2 y2 z2 ...
+
+    m_vert.clear();
+    m_norm.clear();
+    m_indMat.clear();
 
     for(int i=0; i<iv.size(); i++) // vertex
     {
         if(iv[i]<ver.size())
         {
+            /*
             tv.push_back(ver[iv[i]].x);
             tv.push_back(ver[iv[i]].y);
             tv.push_back(ver[iv[i]].z);
+            */
+            m_vert.push_back(ver[iv[i]].x);
+            m_vert.push_back(ver[iv[i]].y);
+            m_vert.push_back(ver[iv[i]].z);
 
         }
     }
@@ -382,38 +449,36 @@ void MeshObj::charger_obj(QString file_obj)
     {
         if(in[i]<nor.size())
         {
+
+            /*
             tn.push_back(nor[in[i]].x);
             tn.push_back(nor[in[i]].y);
             tn.push_back(nor[in[i]].z);
 
             tmat.push_back(imat[i]); // dupliqué trois fois pour que l'indice du materiaux soit associé à chaque coordonée de vertice
             tmat.push_back(imat[i]);
-            tmat.push_back(imat[i]);
+            tmat.push_back(imat[i]);           
+            */
+
+            m_norm.push_back(nor[in[i]].x);
+            m_norm.push_back(nor[in[i]].y);
+            m_norm.push_back(nor[in[i]].z);
+
+            m_indMat.push_back(imat[i]); // dupliqué trois fois pour que l'indice du materiaux soit associé à chaque coordonée de vertice
+            m_indMat.push_back(imat[i]);
+            m_indMat.push_back(imat[i]);
+
         }
     }
 
-    /*
-    // test
-    for(int i =0; i<tv.size()-3; i=i+3)
-    {
-        qDebug() << "Vertex : " << tv[i] << " "<< tv[i+1]<< " "<< tv[i+2] << " " << "Materiaux : " << tmat[i] <<" -> "<< m_materiaux[tmat[i]];
-
-    }
-    */
 
     // attributs : pointeurs vers les tableaux
+    /*
     m_vertice = vector2float(tv); // adresse du premier element
     m_normals = vector2float(tn);
     m_indicesMateriaux = vector2int(tmat);
-    m_nbData = tv.size();
-/*
-    qDebug() << "tv : " << tv;
-    qDebug() << "m_nbData : " << m_nbData;
-    qDebug() << "vertice: " << m_vertice;
-    qDebug() << "vertices 1 : " << m_vertice[1]; // valeur du deuxième element
-    qDebug() << "*vertices : " << *m_vertice; // valeur du premier element
-    qDebug() << "*vertices 1 : :" << m_vertice[0]; // valeur du premier element
-*/
+    */
+    m_nbData = m_vert.size();
 
     // nettoyage
     ver.clear();
@@ -426,6 +491,7 @@ void MeshObj::charger_obj(QString file_obj)
 
 }
 
+/*
 // fonction retournant un pointeur vers un tableau de float
 float* vector2float(std::vector<float>& tableau)
 {
@@ -442,6 +508,8 @@ float* vector2float(std::vector<float>& tableau)
     for(unsigned int i=0;i<tableau.size();i++)
         t[i]=tableau[i];
     return t;
+
+    //return tableau.data()
 }
 
 // fonction retournant un pointeur vers un tableau de float
@@ -461,7 +529,7 @@ int* vector2int(std::vector<int>& tableau)
         t[i]=tableau[i];
     return t;
 }
-
+*/
 
 
 QString doubleSlash(QString s) // On remplace les // correspondant à l'absence de texture par des /1/ pour avoir un numero de texture

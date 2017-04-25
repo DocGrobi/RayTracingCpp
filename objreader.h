@@ -8,8 +8,8 @@
 // Les methodes
 QString doubleSlash(QString s); // fonction qui remplace // par /1/
 QString supprimeSlash(QString s); // fonction qui supprime les slashs d'un string
-float* vector2float(std::vector<float>& tableau); // fonction retournant un pointeur vers un tableau de float
-int* vector2int(std::vector<int>& tableau);
+//float* vector2float(std::vector<float>& tableau); // fonction retournant un pointeur vers un tableau de float
+//int* vector2int(std::vector<int>& tableau);
 
 // Les classes
 class CoordVector
@@ -108,15 +108,21 @@ class MeshObj
         */
         Source getSource() const; //accesseur aux parametres de source
         Listener getListener()const; //accesseur aux parametres du listener
-        float* getVertex() const; //accesseur au pointeur de vertex
-        float* getNormals() const;
-        int* getIndMat() const;
+        std::vector<float> getVertex() const; //accesseur au pointeur de vertex
+        std::vector<float> getNormals() const;
+        std::vector<int> getIndMat() const;
         int getNb_data() const;
 
     private:
+
+        std::vector<float> m_vert;
+        std::vector<float> m_norm;
+        std::vector<int> m_indMat;
+
+
         int m_nbData;
-        float *m_vertice,*m_normals;
-        int *m_indicesMateriaux; // Pointeurs vers les tableaux de stockages des vertex, des normales et des materiaux.
+        //float *m_vertice,*m_normals;
+        //int *m_indicesMateriaux; // Pointeurs vers les tableaux de stockages des vertex, des normales et des materiaux.
         Source m_source;
         Listener m_listener;
         QVector<QString> m_materiaux;
