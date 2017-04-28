@@ -16,13 +16,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     objreader.cpp \
     objwriter.cpp \
-    raytracing.cpp
+    raytracing.cpp \
+    fonction.cpp
 
 
 HEADERS  += mainwindow.h \
     objreader.h \
     objwriter.h \
-    raytracing.h
+    raytracing.h \
+    fonction.h
 
 
 FORMS    += mainwindow.ui

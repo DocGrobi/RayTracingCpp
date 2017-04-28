@@ -1,9 +1,9 @@
 #ifndef OBJREADER_H
 #define OBJREADER_H
 
-
+#include "fonction.h"
 #include <QString>
-#include <QVector>
+
 
 // Les methodes
 QString doubleSlash(QString s); // fonction qui remplace // par /1/
@@ -12,25 +12,6 @@ QString supprimeSlash(QString s); // fonction qui supprime les slashs d'un strin
 //int* vector2int(std::vector<int>& tableau);
 
 // Les classes
-class CoordVector
-{
-    /*
-    Classe CoordVector : simple vecteur de coordonnées XYZ
-    */
-    public:
-        CoordVector(float px=0,float py=0,float pz=0); // Constructeur
-        ~CoordVector();// Destructeur
-        CoordVector operator=(const CoordVector &fv);
-        QVector<float> CoordVector2Qvector(CoordVector coord);
-        void debug();
-        /*
-           Affecte au vecteur courant le contenu du vecteur passé en argument.
-           Retourne le vecteur courant ainsi modifié.
-        */
-
-        float x,y,z;
-};
-
 
 // Classe Source : vecteur XYZ des coordonnees du point d'emission
 class Source

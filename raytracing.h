@@ -1,22 +1,11 @@
 #ifndef RAYTRACING_H
 #define RAYTRACING_H
 
-
-
 #include "objreader.h"
-#include <vector>
 
 
 // Méthodes
-CoordVector sph2cart(float ro, float theta, float phi); // convertion coordonnée spherique à cartesiens
-CoordVector vecteur(CoordVector a, CoordVector b);
-float produitScalaire(CoordVector a, CoordVector b);
-CoordVector produitVectoriel(CoordVector a, CoordVector b);
-float norme(CoordVector a);
-float angle(float prdScalaire, CoordVector a, CoordVector b);
 CoordVector intersection(CoordVector point_ray, CoordVector vect_dir, CoordVector vect_norm, float k);
-void debugStdVect(std::vector<float> vect); // permet d'afficher un std::vector dans la console
-CoordVector coord_New_Base(CoordVector point, std::vector<float> mat );
 bool appartient_face(CoordVector point, std::vector<float> face);
 
 // Les classes

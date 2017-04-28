@@ -5,42 +5,6 @@
 #include "QDebug"
 
 
-CoordVector::CoordVector(float px,float py,float pz):x(px),y(py),z(pz)
-{
-}
-CoordVector::~CoordVector()
-{
-}
-CoordVector CoordVector::operator=(const CoordVector &fv)
-{
-    x=fv.x;
-    y=fv.y;
-    z=fv.z;
-    //a=fv.a;
-
-    return *this;
-}
-
-QVector<float> CoordVector::CoordVector2Qvector(CoordVector coord)
-{
-    QVector<float> vect;
-    vect.push_back(coord.x);
-    vect.push_back(coord.y);
-    vect.push_back(coord.z);
-
-    return vect;
-}
-
-void CoordVector::debug()
-{
-
-    QString Mx,My,Mz;
-    Mx.setNum(x);
-    My.setNum(y);
-    Mz.setNum(z);
-    qDebug() << "(" + Mx + "," + My + "," + Mz +")";
-}
-
 Source::Source()
 {
     //m_centreSource = new CoordVector(0,0,0);
