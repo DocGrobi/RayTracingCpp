@@ -31,6 +31,16 @@ QVector<float> CoordVector::CoordVector2Qvector(CoordVector coord)
     return vect;
 }
 
+void CoordVector::debug()
+{
+
+    QString Mx,My,Mz;
+    Mx.setNum(x);
+    My.setNum(y);
+    Mz.setNum(z);
+    qDebug() << "(" + Mx + "," + My + "," + Mz +")";
+}
+
 Source::Source()
 {
     //m_centreSource = new CoordVector(0,0,0);
@@ -48,9 +58,19 @@ void Source::chargerSource(CoordVector cs)
     qDebug() << cs.x << cs.y << cs.z;
 }
 
+void Source::chargerVertSource(float coord)
+{
+    m_vertSource.push_back(coord);
+}
+
 CoordVector Source::centre()
 {
     return m_centreSource;
+}
+
+std::vector<float> Source::vert()
+{
+    return m_vertSource;
 }
 
 QString Source::afficher() const
@@ -234,6 +254,14 @@ void MeshObj::charger_obj(QString file_obj)
                 {
                     QStringList coord = ligne.split(" ");
 
+                    if(lecture_source)
+                    {
+                        for(int i=0; i<3;i++)
+                        {
+                            m_source.chargerVertSource(coord[i+1].toFloat());
+                        }
+                    }
+
                     coordFloat.x = coordFloat.x + coord[1].toFloat();
                     coordFloat.y = coordFloat.y + coord[2].toFloat();
                     coordFloat.z = coordFloat.z + coord[3].toFloat();
@@ -270,6 +298,7 @@ void MeshObj::charger_obj(QString file_obj)
                         m_source.chargerSource(coordFloat);// on affecte à la source les coordonnées du centre recupérés
                         lecture_source = false; // on sort du mode lecture source
                         nb_verSource = nb_ver; // ici il faut enlever le nombre d'elements de source aux indices car dans les vecteurs i.. on n'enregistre pas les element de source
+
                     }
                     if(lecture_listener)
                     {
@@ -470,6 +499,11 @@ void MeshObj::charger_obj(QString file_obj)
 
         }
     }
+
+
+    // création de des vecteur normales dans le repere absolu
+
+
 
 
     // attributs : pointeurs vers les tableaux

@@ -22,6 +22,7 @@ class CoordVector
         ~CoordVector();// Destructeur
         CoordVector operator=(const CoordVector &fv);
         QVector<float> CoordVector2Qvector(CoordVector coord);
+        void debug();
         /*
            Affecte au vecteur courant le contenu du vecteur passé en argument.
            Retourne le vecteur courant ainsi modifié.
@@ -38,11 +39,14 @@ class Source
         Source();// Constructeur
         ~Source();// Destructeur
         void chargerSource(CoordVector cs);
+        void chargerVertSource(float coord);
         CoordVector centre();
+        std::vector<float> vert();
         QString afficher() const;
 
     private:
         CoordVector m_centreSource;
+        std::vector<float> m_vertSource;
 };
 
 // Classe Listener : vecteur XYZ des coordonnees du point de reception et le rayon de mesure

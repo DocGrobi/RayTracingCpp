@@ -68,7 +68,6 @@ void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> n
         vertices= "v";
 
 
-
         // OPTION 1 - Utilisation des normales dans le fichier .obj
         /*
         for (int j = 0; j <3 ; j++) // incrementation par coordonnée du bout de la normale
@@ -79,7 +78,6 @@ void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> n
             vertices = vertices + " " + QString::number(nor);
         }
         */
-
 
 
         // OPTION 2 - Utilisation de l'ordre des vertices pour créer les normales
@@ -103,8 +101,6 @@ void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> n
         }
         // */
 
-
-
         vertices = vertices + "\n"; // retour la la ligne
         fichier.write(vertices.toLatin1()); // ecriture d'une ligne : v x1 y1 z1
     }
@@ -121,11 +117,17 @@ void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> n
     fichier.close(); // ferme le fichier
 
 
-    //pour le debug : si 0 alors
+    //pour le debug
     if (*std::max_element(difference.begin(),difference.end()) < 0,000001)
     {
         qDebug() << "Les normales sont dans le bon sens";
     }
+    else
+    {
+        qDebug() << "Erreur calcul de normales";
+    }
+
+    difference.clear();
 }
 
 void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay)
@@ -139,17 +141,21 @@ void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay)
     fichier.write(text.toLatin1());
 
     // ecriture des vertex du centre et du vecteur de rayon
-    for (int i = 0 ; i < (3*nbRay) ; i=i+3)
+    for (int i = 0 ; i < ray.size() ; i=i+6) //(i<6*nbRay)
     {
-        CoordVector rayCoord(ray[i], ray[i+1], ray[i+2]);
-        text = "v " + CoordVector2QString(source.centre()) + "\n" + "v "+ CoordVector2QString(rayCoord) + "\n";
+
+        CoordVector sourceCoord(ray[i], ray[i+1], ray[i+2]);
+        CoordVector rayCoord(ray[i+3], ray[i+4], ray[i+5]);
+        text = "v " + CoordVector2QString(sourceCoord) + "\n" + "v "+ CoordVector2QString(rayCoord) + "\n";
         fichier.write(text.toLatin1());
 
     }
 
+
+
     // ecriture des lignes commençant par l pour relier les vertex
     QString ligne("");
-    for(int i=0 ; i < (2*nbRay) ; i=i+2)
+    for(int i=0 ; i < (ray.size()/3) ; i=i+2) // ray.size()/3 car c'est 2*ray.size()/6
     {
         ligne = "l " + QString::number(i+1) + " " + QString::number(i+2) + "\n";
         fichier.write(ligne.toLatin1());

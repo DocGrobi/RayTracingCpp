@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include <QApplication>
-#include "OBJlib.h"
+
 
 int main(int argc, char *argv[])
 {

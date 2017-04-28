@@ -1,20 +1,21 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 //#include "objreader.h"
-#include "objwriter.h"
 #include "QDebug"
-#include "raytracing.h"
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow), m_meshObj(QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj")
 {
 
    // IMPORT
-   QString fichierObj = QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj";
-   MeshObj monMeshObj(fichierObj);
-   Listener monListener = monMeshObj.getListener();
-   Source maSource = monMeshObj.getSource();
+   //QString fichierObj = QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj";
+   //MeshObj monMeshObj(fichierObj);
+   //m_meshObj(fichierObj);
+   //MeshObj monMeshObj = m_meshObj;
+   m_listener = m_meshObj.getListener();
+   m_source = m_meshObj.getSource();
 
    // Recuperation des pointeurs de donnée
    /*
@@ -29,8 +30,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
    // AFFICHAGE FENETRE
    ui->setupUi(this);
-   ui->label_source->setText(maSource.afficher());
-   ui->label_listener->setText(monListener.afficher());
+   ui->label_source->setText(m_source.afficher());
+   ui->label_listener->setText(m_listener.afficher());
 
 
 }
@@ -46,38 +47,30 @@ MainWindow::~MainWindow()
 void MainWindow::on_bouton_normales_clicked()
 {
 
-    // IMPORT
-    QString fichierObj = QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj";
-
-    MeshObj monMeshObj(fichierObj);
-
     // EXPORT
     QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
     ObjWriter monObjWriter(fichierObj_2);
 
-    monObjWriter.display_normales(monMeshObj.getVertex(), monMeshObj.getNormals(), monMeshObj.getNb_data());
+    monObjWriter.display_normales(m_meshObj.getVertex(), m_meshObj.getNormals(), m_meshObj.getNb_data());
 }
 
 void MainWindow::on_bouton_rayons_clicked()
 {
-
-    // IMPORT
-    QString fichierObj = QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj";
-
-    MeshObj monMeshObj(fichierObj);
-    Source maSource = monMeshObj.getSource();
-
     // RAYONS
     int nbRayons = 30;
-    Ray monRay(1,nbRayons,maSource.centre());
+    Ray monRay(1,nbRayons,m_source);
     /*float *ptrRay(0);
     ptrRay = monRay.getRay();
 */
+
+    //CALCUL DES REBONDS
+    monRay.rebond(m_meshObj,1);
+
     // EXPORT
     QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
     ObjWriter monObjWriter(fichierObj_2);
 
-    monObjWriter.display_ray(maSource,monRay.getRay(), nbRayons);
+    monObjWriter.display_ray(m_source,monRay.getRay(), nbRayons);
 }
 
 void MainWindow::on_bouton_source_clicked()
@@ -85,9 +78,9 @@ void MainWindow::on_bouton_source_clicked()
     // IMPORT
     QString fichierObj = QCoreApplication::applicationDirPath() + "/srcForRayTracing.obj";
     MeshObj monMeshObj(fichierObj);
-    Source maSource = monMeshObj.getSource();
+    m_source = monMeshObj.getSource();
 
-    ui->label_source->setText(maSource.afficher());
+    ui->label_source->setText(m_source.afficher());
 
 }
 
@@ -96,7 +89,7 @@ void MainWindow::on_bouton_listener_clicked()
     // IMPORT
     QString fichierObj = QCoreApplication::applicationDirPath() + "/listenerForRayTracing.obj";
     MeshObj monMeshObj(fichierObj);
-    Listener monListener = monMeshObj.getListener();
+    m_listener = monMeshObj.getListener();
 
-    ui->label_listener->setText(monListener.afficher());
+    ui->label_listener->setText(m_listener.afficher());
 }
