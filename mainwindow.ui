@@ -169,7 +169,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QSpinBox" name="spinBox">
+   <widget class="QSpinBox" name="spinBox_nbRay">
     <property name="geometry">
      <rect>
       <x>480</x>

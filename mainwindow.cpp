@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-//#include "objreader.h"
 #include "QDebug"
 
 
@@ -10,29 +9,16 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
    // IMPORT
-   //QString fichierObj = QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj";
-   //MeshObj monMeshObj(fichierObj);
-   //m_meshObj(fichierObj);
-   //MeshObj monMeshObj = m_meshObj;
    m_listener = m_meshObj.getListener();
    m_source = m_meshObj.getSource();
-
-   // Recuperation des pointeurs de donnée
-   /*
-   float *ptrVertex(0), *ptrNormals(0); //ptrVertex = new float; ptrNormals = new float;
-   ptrVertex = monMeshObj.getVertex();
-   ptrNormals = monMeshObj.getNormals();
-   */
-
-   //int nb_data(monMeshObj.getNb_data());
-
-
 
    // AFFICHAGE FENETRE
    ui->setupUi(this);
    ui->label_source->setText(m_source.afficher());
    ui->label_listener->setText(m_listener.afficher());
 
+   // CHARGEMENT PARAMETRES
+   m_nbRebond = ui->spinBox_nbRay->value();
 
 }
 
@@ -43,7 +29,9 @@ MainWindow::~MainWindow()
 }
 
 
-// LES BOUTONS --> il faudra par la suite eviter de refaire le calcul en utilisant des attributs
+
+////// LES BOUTONS
+
 void MainWindow::on_bouton_normales_clicked()
 {
 
@@ -57,16 +45,16 @@ void MainWindow::on_bouton_normales_clicked()
 void MainWindow::on_bouton_rayons_clicked()
 {
     // RAYONS
-    int nbRayons = 30;
-    int nbRebond = 3;
+    int nbRayons = 30; // Si on n'utilise pas les vertex de la source comme rayons
     Ray monRay(1,nbRayons,m_source);
 
 
-
     //CALCUL DES REBONDS
+    int nbRebond = m_nbRebond;
     monRay.rebond(m_meshObj,nbRebond);
 
     nbRayons = monRay.getRay().size()/3/(nbRebond+2); // on divise par 3 coordonnées et par le nombre de rebond + 2 car pour 1 rebond on crée le point 0, le point d'intersection et le nouveau vecteur directeur
+
     // EXPORT
     QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
     ObjWriter monObjWriter(fichierObj_2);
@@ -94,4 +82,9 @@ void MainWindow::on_bouton_listener_clicked()
     m_listener = monMeshObj.getListener();
 
     ui->label_listener->setText(m_listener.afficher());
+}
+
+void MainWindow::on_spinBox_nbRay_valueChanged(int arg1)
+{
+    m_nbRebond = arg1;
 }

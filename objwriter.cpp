@@ -140,21 +140,10 @@ void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay, in
     QString text("o Rayons \n");
     fichier.write(text.toLatin1());
 
-    /*
-    // ecriture des vertex du centre et du vecteur de rayon
-    for (int i = 0 ; i < ray.size() ; i=i+6) //(i<6*nbRay)
-    {
-
-        CoordVector sourceCoord(ray[i], ray[i+1], ray[i+2]);
-        CoordVector rayCoord(ray[i+3], ray[i+4], ray[i+5]);
-        text = "v " + CoordVector2QString(sourceCoord) + "\n" + "v "+ CoordVector2QString(rayCoord) + "\n";
-        fichier.write(text.toLatin1());
-
-    }
-    */
     int nbCoord = nbRay*3; // nombre de données pour un ordre (ordre 0, ordre 1, etc)
     int ordre = nb_rebond + 1;
 
+    // ecriture des vertex par "étage" : source, puis rebond 1, etc
     for (int i = 0; i < nbCoord*ordre ; i=i+3)
     {
         CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
@@ -173,13 +162,6 @@ void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay, in
             fichier.write(ligne.toLatin1());
         }
     }
-
-   /* for(int i=0 ; i < (ray.size()/3) ; i=i+2) // ray.size()/3 car c'est 2*ray.size()/6
-    {
-        ligne = "l " + QString::number(i+1) + " " + QString::number(i+2) + "\n";
-        fichier.write(ligne.toLatin1());
-    }
-    */
 
     fichier.close(); // ferme le fichier
 }

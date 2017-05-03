@@ -73,18 +73,15 @@ CoordVector vecteur_reflechi(CoordVector i, CoordVector n)
 Ray::Ray(float phy, int Nray, Source S)
 {
     m_Nray = S.vert().size();
-    //m_col(0);
-    //m_dist(0)
+
     m_dMax = 0;
-    m_src = S.centre();
+    m_src = S.centre();    
 
-    float ro(1);
-
-    m_ray.clear();
+    m_ray.clear(); //facultatif à priori
 
     /*
     // OPTION 1 : Repartition uniforme des rayons (2D pour l'instant)
-    float theta(0), phi(0);
+    float theta(0), phi(0), ro(1);;
     for (int i = 0; i<Nray ; i++)
     {
         // creation des vecteurs directeur
@@ -104,19 +101,8 @@ Ray::Ray(float phy, int Nray, Source S)
 
 
     // OPTION 2 : Repartition des rayons sur chaque vertex de la sphere
-    /*for (int i=0; i<m_Nray; i=i+3)
-    {
-    // creation des vecteurs directeur
-        m_ray.push_back(m_src.x);
-        m_ray.push_back(m_src.y);
-        m_ray.push_back(m_src.z);
 
-        for(int j=0;j<3;j++)
-        {
-            m_ray.push_back(S.vert()[i+j]);
-        }
-    }*/
-
+    // étage 0 : source
     for (int i=0; i<m_Nray; i=i+3)
     {
     // creation des vecteurs directeur
@@ -125,6 +111,7 @@ Ray::Ray(float phy, int Nray, Source S)
         m_ray.push_back(m_src.z);
     }
 
+    // étage 1 : coordonnées des vertex
     for (int i=0; i<m_Nray; i=i+3)
     {
         for(int j=0;j<3;j++)
@@ -162,11 +149,10 @@ Ray::~Ray()
 }
 
 // Accesseur
-std::vector<float> Ray::getRay() const // Accesseur au vecteur de rayons
+std::vector<float> Ray::getRay() const
 {
     return m_ray;
 }
-
 
 
 void Ray::rebond(MeshObj mesh, int nb_rebond)
@@ -176,23 +162,13 @@ void Ray::rebond(MeshObj mesh, int nb_rebond)
 
     for (int i=0; i<(nb_rebond*m_Nray); i=i+m_Nray)// pour chaque ordre de rebond
     {
-
-        //for(int j=0; j<m_Nray*6;j=j+6) // pour chaque rayon
-        for(int j=0; j<m_Nray;j=j+3)
+        for(int j=0; j<m_Nray;j=j+3) // pour chaque rayon
         {
             // recuperation d'un point et du vecteur directeur
-            /*
-            CoordVector point(m_ray[i+j], m_ray[i+j+1] , m_ray[i+j+2]);
-            CoordVector vect_dir(m_ray[i+j+3]-m_ray[i+j],m_ray[i+j+4]-m_ray[i+j+1] ,m_ray[i+j+5]-m_ray[i+j+2]);
-            */
-            //vect_dir.debug();
-
             CoordVector point(m_ray[i+j], m_ray[i+j+1] , m_ray[i+j+2]);
             CoordVector vect_dir(m_ray[i+j+m_Nray]-m_ray[i+j],m_ray[i+j+m_Nray+1]-m_ray[i+j+1] ,m_ray[i+j+m_Nray+2]-m_ray[i+j+2]);
 
-            //bool cherche_face = true; // a enlever
-
-            // ICI : Stockage de la longeur du nouveau rayon et de son sens
+            // Stockage de la longeur du nouveau rayon
             float longueur_ray(1000000);
 
             // On rajoute un etage à m_ray
@@ -202,12 +178,8 @@ void Ray::rebond(MeshObj mesh, int nb_rebond)
 
             for (int k=0; k < vertex.size(); k = k+9) // pour chaque face
             {
-            //if(cherche_face) // a enlever
-            //{
                 // Recuperation du vecteur normale
                 CoordVector vect_norm(normales[k], normales[k+1], normales[k+2]);
-                //qDebug() << "vecteur normal: ";
-                //vect_norm.debug();
 
                 if (produitScalaire(vect_dir,vect_norm)<0) // test non-parralelisme des vecteurs et sens opposé
                 {
@@ -236,27 +208,22 @@ void Ray::rebond(MeshObj mesh, int nb_rebond)
                         // s'il s'agit du plus petit rayon et qu'il est dans le sens du vecteur directeur
                         if(norme(vecteur(point,intersec))<longueur_ray && produitScalaire(vect_dir,vecteur(point,intersec))>0)
                         {
+                            // on garde la longueur min
                             longueur_ray = norme(vecteur(point,intersec));
+
                             // on remplace le bout du rayon par le point d'intersection
-                            /*m_ray[i+j+3] = intersec.x;
-                            m_ray[i+j+4] = intersec.y;
-                            m_ray[i+j+5] = intersec.z;
-                            */
                             m_ray[i+j+m_Nray] = intersec.x;
                             m_ray[i+j+m_Nray+1] = intersec.y;
                             m_ray[i+j+m_Nray+2] = intersec.z;
 
-                            // ICI : nouveau rebond -> ecriture du nouveau vecteur directeur
+                            // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
                             m_ray[i+j+2*m_Nray] = vecteur_reflechi(vect_dir,vect_norm).x+intersec.x;
                             m_ray[i+j+2*m_Nray+1] = vecteur_reflechi(vect_dir,vect_norm).y+intersec.y;
                             m_ray[i+j+2*m_Nray+2] = vecteur_reflechi(vect_dir,vect_norm).z+intersec.z;
 
-
                         }
-                        //cherche_face = false;
                     }
                 }
-            //}
             }
         }
     }
