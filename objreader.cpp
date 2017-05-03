@@ -19,7 +19,7 @@ Source::~Source()
 void Source::chargerSource(CoordVector cs)
 {
     m_centreSource = cs;
-    qDebug() << cs.x << cs.y << cs.z;
+    //qDebug() << cs.x << cs.y << cs.z;
 }
 
 void Source::chargerVertSource(float coord)
@@ -34,6 +34,7 @@ CoordVector Source::centre()
 
 std::vector<float> Source::vert()
 {
+
     return m_vertSource;
 }
 
@@ -411,7 +412,7 @@ void MeshObj::charger_obj(QString file_obj)
 
             nb_ver = 0; //remsie à 0 du compteur de vertex
             coordFloat = (0,0,0); //remsie à 0 de la somme des coordonnees
-            qDebug() << x_max;
+
         }
         }
 

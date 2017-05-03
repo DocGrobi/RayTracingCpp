@@ -130,7 +130,7 @@ void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> n
     difference.clear();
 }
 
-void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay)
+void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay, int nb_rebond)
 {
     QFile fichier(m_chemin);
 
@@ -140,6 +140,7 @@ void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay)
     QString text("o Rayons \n");
     fichier.write(text.toLatin1());
 
+    /*
     // ecriture des vertex du centre et du vecteur de rayon
     for (int i = 0 ; i < ray.size() ; i=i+6) //(i<6*nbRay)
     {
@@ -150,19 +151,39 @@ void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay)
         fichier.write(text.toLatin1());
 
     }
+    */
+    int nbCoord = nbRay*3; // nombre de données pour un ordre (ordre 0, ordre 1, etc)
+    int ordre = nb_rebond + 1;
 
-
+    for (int i = 0; i < nbCoord*ordre ; i=i+3)
+    {
+        CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
+        text = "v "+ CoordVector2QString(vertCoord) + "\n";
+        fichier.write(text.toLatin1());
+    }
 
     // ecriture des lignes commençant par l pour relier les vertex
     QString ligne("");
-    for(int i=0 ; i < (ray.size()/3) ; i=i+2) // ray.size()/3 car c'est 2*ray.size()/6
+
+    for(int j = 0 ; j < nb_rebond ; j++) // on décale du nb rayon pour executer la boucle suivante à l'ordre +1
+    {
+        for(int i = 1; i<= nbRay ; i++) // on lit les ligne de vertex dans l'ordre pour chaque rayon
+        {
+            ligne = "l " + QString::number(nbRay*j+i) + " " + QString::number(nbRay*(j+1)+i) + "\n";
+            fichier.write(ligne.toLatin1());
+        }
+    }
+
+   /* for(int i=0 ; i < (ray.size()/3) ; i=i+2) // ray.size()/3 car c'est 2*ray.size()/6
     {
         ligne = "l " + QString::number(i+1) + " " + QString::number(i+2) + "\n";
         fichier.write(ligne.toLatin1());
     }
+    */
 
     fichier.close(); // ferme le fichier
 }
+
 
 
 QString ObjWriter::CoordVector2QString(CoordVector coord)

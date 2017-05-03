@@ -55,9 +55,21 @@ CoordVector intersection(CoordVector point_ray, CoordVector vect_dir, CoordVecto
     return resultat;
 }
 
+// vecteur reflechi par rapport au rayon incident et au vecteur normale de la face
+CoordVector vecteur_reflechi(CoordVector i, CoordVector n)
+{
+    CoordVector resultat;
+    resultat.x = -2*produitScalaire(i,n)*n.x + i.x;
+    resultat.y = -2*produitScalaire(i,n)*n.y + i.y;
+    resultat.z = -2*produitScalaire(i,n)*n.z + i.z;
+
+    return resultat;
+}
 
 
 // Les classes
+
+// Constructeur
 Ray::Ray(float phy, int Nray, Source S)
 {
     m_Nray = S.vert().size();
@@ -90,9 +102,9 @@ Ray::Ray(float phy, int Nray, Source S)
 
     */
 
- qDebug() << S.vert().size();
+
     // OPTION 2 : Repartition des rayons sur chaque vertex de la sphere
-    for (int i=0; i<(m_Nray-3); i=i+3)
+    /*for (int i=0; i<m_Nray; i=i+3)
     {
     // creation des vecteurs directeur
         m_ray.push_back(m_src.x);
@@ -103,8 +115,23 @@ Ray::Ray(float phy, int Nray, Source S)
         {
             m_ray.push_back(S.vert()[i+j]);
         }
+    }*/
+
+    for (int i=0; i<m_Nray; i=i+3)
+    {
+    // creation des vecteurs directeur
+        m_ray.push_back(m_src.x);
+        m_ray.push_back(m_src.y);
+        m_ray.push_back(m_src.z);
     }
 
+    for (int i=0; i<m_Nray; i=i+3)
+    {
+        for(int j=0;j<3;j++)
+        {
+            m_ray.push_back(S.vert()[i+j]);
+        }
+    }
 
 
     // OPTION 3 : Discretisation des rayons sur une grille uniforme de Fibonacci
@@ -129,11 +156,12 @@ Ray::Ray(float phy, int Nray, Source S)
     */
 }
 
+// Destructeur
 Ray::~Ray()
 {
-    //free(m_ray);
 }
 
+// Accesseur
 std::vector<float> Ray::getRay() const // Accesseur au vecteur de rayons
 {
     return m_ray;
@@ -146,59 +174,89 @@ void Ray::rebond(MeshObj mesh, int nb_rebond)
     std::vector<float> normales(mesh.getNormals());
     std::vector<float> vertex(mesh.getVertex());
 
-    for (int i=0; i<nb_rebond; i++)// pour chaque ordre de rebond
+    for (int i=0; i<(nb_rebond*m_Nray); i=i+m_Nray)// pour chaque ordre de rebond
     {
-        for(int j=0; j<m_Nray*6;j=j+6) // pour chaque rayon
-        {
-            // pour l'ordre deux on prendra j+4 pour le vecteur directeur et j pour le point
-            CoordVector point(m_ray[j], m_ray[j+1] , m_ray[j+2]);
-            CoordVector vect_dir(m_ray[j+3]-m_ray[j],m_ray[j+4]-m_ray[j+1] ,m_ray[j+5]-m_ray[j+2]);
-            //vect_dir.debug();
-            bool cherche_face = true;
 
+        //for(int j=0; j<m_Nray*6;j=j+6) // pour chaque rayon
+        for(int j=0; j<m_Nray;j=j+3)
+        {
+            // recuperation d'un point et du vecteur directeur
+            /*
+            CoordVector point(m_ray[i+j], m_ray[i+j+1] , m_ray[i+j+2]);
+            CoordVector vect_dir(m_ray[i+j+3]-m_ray[i+j],m_ray[i+j+4]-m_ray[i+j+1] ,m_ray[i+j+5]-m_ray[i+j+2]);
+            */
+            //vect_dir.debug();
+
+            CoordVector point(m_ray[i+j], m_ray[i+j+1] , m_ray[i+j+2]);
+            CoordVector vect_dir(m_ray[i+j+m_Nray]-m_ray[i+j],m_ray[i+j+m_Nray+1]-m_ray[i+j+1] ,m_ray[i+j+m_Nray+2]-m_ray[i+j+2]);
+
+            //bool cherche_face = true; // a enlever
+
+            // ICI : Stockage de la longeur du nouveau rayon et de son sens
+            float longueur_ray(1000000);
+
+            // On rajoute un etage à m_ray
+            m_ray.push_back(0);
+            m_ray.push_back(0);
+            m_ray.push_back(0);
 
             for (int k=0; k < vertex.size(); k = k+9) // pour chaque face
             {
-                if(cherche_face)
+            //if(cherche_face) // a enlever
+            //{
+                // Recuperation du vecteur normale
+                CoordVector vect_norm(normales[k], normales[k+1], normales[k+2]);
+                //qDebug() << "vecteur normal: ";
+                //vect_norm.debug();
+
+                if (produitScalaire(vect_dir,vect_norm)<0) // test non-parralelisme des vecteurs et sens opposé
                 {
-                    CoordVector vect_norm(normales[k], normales[k+1], normales[k+2]);
-                    //qDebug() << "vecteur normal: ";
-                    //vect_norm.debug();
-
-                    if (produitScalaire(vect_dir,vect_norm)<0) // test non-parralelisme des vecteurs et sens opposé
+                    //calcul de la constante de l'équation du plan
+                    float cons(0);
+                    for (int ind=0;ind<3; ind++)
                     {
+                        cons = cons - (vertex[k+ind]*normales[k+ind]);
+                    }
 
-                        //calcul de la constante de l'équation du plan
-                        float cons(0);
-                        for (int ind=0;ind<3; ind++)
+                    // point d'intersection de la droite portée par vect-dir et du plan de normale vect_norm
+                    CoordVector intersec = intersection(point, vect_dir, vect_norm, cons);
+                    //intersec.debug();
+
+
+                    // matrice prenant en colonne les coordonnées des trois vertex de la face
+                    std::vector<float> mat_coordFace;
+                    for (int l=0; l<9; l++)
+                    {
+                        mat_coordFace.push_back(vertex[k+l]);
+                    }
+
+                    // si le point d'intersection appartient à la face
+                    if (appartient_face(intersec, mat_coordFace))
+                    {
+                        // s'il s'agit du plus petit rayon et qu'il est dans le sens du vecteur directeur
+                        if(norme(vecteur(point,intersec))<longueur_ray && produitScalaire(vect_dir,vecteur(point,intersec))>0)
                         {
-                            cons = cons - (vertex[k+ind]*normales[k+ind]);
+                            longueur_ray = norme(vecteur(point,intersec));
+                            // on remplace le bout du rayon par le point d'intersection
+                            /*m_ray[i+j+3] = intersec.x;
+                            m_ray[i+j+4] = intersec.y;
+                            m_ray[i+j+5] = intersec.z;
+                            */
+                            m_ray[i+j+m_Nray] = intersec.x;
+                            m_ray[i+j+m_Nray+1] = intersec.y;
+                            m_ray[i+j+m_Nray+2] = intersec.z;
+
+                            // ICI : nouveau rebond -> ecriture du nouveau vecteur directeur
+                            m_ray[i+j+2*m_Nray] = vecteur_reflechi(vect_dir,vect_norm).x+intersec.x;
+                            m_ray[i+j+2*m_Nray+1] = vecteur_reflechi(vect_dir,vect_norm).y+intersec.y;
+                            m_ray[i+j+2*m_Nray+2] = vecteur_reflechi(vect_dir,vect_norm).z+intersec.z;
+
+
                         }
-
-                        // point d'intersection de la droite portée par vect-dir et du plan de normal vect_norm
-                        CoordVector intersec = intersection(point, vect_dir, vect_norm, cons);
-                        //intersec.debug();
-
-                        // matrice prenant en colonne les coordonnées des trois vertex de la face
-                        std::vector<float> mat_coordFace;
-                        for (int l=0; l<9; l++)
-                        {
-                            mat_coordFace.push_back(vertex[k+l]);
-                        }
-
-                        // si le point est appartient à la face donc si x et y (dans la nouvelle base) sont compris entre 0 et 1
-                        if (appartient_face(intersec, mat_coordFace))
-                        {
-                           //m_ray.push_back(intersec.x);m_ray.push_back(intersec.y);m_ray.push_back(intersec.z);
-
-                            m_ray[j+3] = intersec.x;
-                            m_ray[j+4] = intersec.y;
-                            m_ray[j+5] = intersec.z;
-
-                            cherche_face = false;
-                        }
+                        //cherche_face = false;
                     }
                 }
+            //}
             }
         }
     }

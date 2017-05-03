@@ -7,6 +7,7 @@
 // Méthodes
 CoordVector intersection(CoordVector point_ray, CoordVector vect_dir, CoordVector vect_norm, float k);
 bool appartient_face(CoordVector point, std::vector<float> face);
+CoordVector vecteur_reflechi(CoordVector i, CoordVector n);
 
 // Les classes
 class Ray

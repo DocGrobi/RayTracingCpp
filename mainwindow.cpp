@@ -58,19 +58,20 @@ void MainWindow::on_bouton_rayons_clicked()
 {
     // RAYONS
     int nbRayons = 30;
+    int nbRebond = 3;
     Ray monRay(1,nbRayons,m_source);
-    /*float *ptrRay(0);
-    ptrRay = monRay.getRay();
-*/
+
+
 
     //CALCUL DES REBONDS
-    monRay.rebond(m_meshObj,1);
+    monRay.rebond(m_meshObj,nbRebond);
 
+    nbRayons = monRay.getRay().size()/3/(nbRebond+2); // on divise par 3 coordonnées et par le nombre de rebond + 2 car pour 1 rebond on crée le point 0, le point d'intersection et le nouveau vecteur directeur
     // EXPORT
     QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
     ObjWriter monObjWriter(fichierObj_2);
 
-    monObjWriter.display_ray(m_source,monRay.getRay(), nbRayons);
+    monObjWriter.display_ray(m_source,monRay.getRay(), nbRayons,nbRebond);
 }
 
 void MainWindow::on_bouton_source_clicked()
@@ -79,6 +80,7 @@ void MainWindow::on_bouton_source_clicked()
     QString fichierObj = QCoreApplication::applicationDirPath() + "/srcForRayTracing.obj";
     MeshObj monMeshObj(fichierObj);
     m_source = monMeshObj.getSource();
+
 
     ui->label_source->setText(m_source.afficher());
 
