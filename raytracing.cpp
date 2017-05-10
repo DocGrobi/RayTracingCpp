@@ -75,7 +75,10 @@ Ray::Ray(float phy, int Nray, Source S)
     m_Nray = S.vert().size();
 
     m_dMax = 0;
-    m_src = S.centre();    
+    m_src = S.centre();        
+    m_dist.resize(m_Nray, 0);
+    m_nrg.resize(m_Nray, 1);
+
 
     m_ray.clear(); //facultatif à priori
 
@@ -117,6 +120,7 @@ Ray::Ray(float phy, int Nray, Source S)
         for(int j=0;j<3;j++)
         {
             m_ray.push_back(S.vert()[i+j]);
+
         }
     }
 
@@ -220,6 +224,83 @@ void Ray::rebond(MeshObj mesh, int nb_rebond)
                             m_ray[i+j+2*m_Nray] = vecteur_reflechi(vect_dir,vect_norm).x+intersec.x;
                             m_ray[i+j+2*m_Nray+1] = vecteur_reflechi(vect_dir,vect_norm).y+intersec.y;
                             m_ray[i+j+2*m_Nray+2] = vecteur_reflechi(vect_dir,vect_norm).z+intersec.z;
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+void Ray::rebondSansMemoire(MeshObj mesh)
+{
+    std::vector<float> normales(mesh.getNormals());
+    std::vector<float> vertex(mesh.getVertex());
+    std::vector<float> indiceMat(mesh.getIndMat());
+
+    //for (int i=0; i<(nb_rebond*m_Nray); i=i+m_Nray)// pour chaque ordre de rebond
+    {
+        for(int j=0; j<m_Nray;j=j+3) // pour chaque rayon
+        {
+            // recuperation d'un point et du vecteur directeur
+            CoordVector point(m_ray[j], m_ray[j+1] , m_ray[j+2]);
+            CoordVector vect_dir(m_ray[j+m_Nray]-m_ray[j],m_ray[j+m_Nray+1]-m_ray[j+1] ,m_ray[j+m_Nray+2]-m_ray[j+2]);
+
+            // Stockage de la longeur du nouveau rayon
+            float longueur_ray(1000000);
+
+            for (int k=0; k < vertex.size(); k = k+9) // pour chaque face
+            {
+                // Recuperation du vecteur normale
+                CoordVector vect_norm(normales[k], normales[k+1], normales[k+2]);
+
+                if (produitScalaire(vect_dir,vect_norm)<0) // test non-parralelisme des vecteurs et sens opposé
+                {
+                    //calcul de la constante de l'équation du plan
+                    float cons(0);
+                    for (int ind=0;ind<3; ind++)
+                    {
+                        cons = cons - (vertex[k+ind]*normales[k+ind]);
+                    }
+
+                    // point d'intersection de la droite portée par vect-dir et du plan de normale vect_norm
+                    CoordVector intersec = intersection(point, vect_dir, vect_norm, cons);
+                    //intersec.debug();
+
+
+                    // matrice prenant en colonne les coordonnées des trois vertex de la face
+                    std::vector<float> mat_coordFace;
+                    for (int l=0; l<9; l++)
+                    {
+                        mat_coordFace.push_back(vertex[k+l]);
+                    }
+
+                    // si le point d'intersection appartient à la face
+                    if (appartient_face(intersec, mat_coordFace))
+                    {
+                        // s'il s'agit du plus petit rayon et qu'il est dans le sens du vecteur directeur
+                        if(norme(vecteur(point,intersec))<longueur_ray && produitScalaire(vect_dir,vecteur(point,intersec))>0)
+                        {
+                            // on garde la longueur min
+                            longueur_ray = norme(vecteur(point,intersec));
+                            // et on l'ajoute à la longueur totale
+                            m_dist[j] = m_dist[j] + longueur_ray;
+
+                            // on remplace le bout du rayon par le point d'intersection
+                            m_ray[j] = intersec.x;
+                            m_ray[j+1] = intersec.y;
+                            m_ray[j+2] = intersec.z;
+
+                            // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
+                            m_ray[j+m_Nray] = vecteur_reflechi(vect_dir,vect_norm).x+intersec.x;
+                            m_ray[j+m_Nray+1] = vecteur_reflechi(vect_dir,vect_norm).y+intersec.y;
+                            m_ray[j+m_Nray+2] = vecteur_reflechi(vect_dir,vect_norm).z+intersec.z;
+
+
+                            //On affecte au rayon une nouvelle energie
+                            m_nrg[j] = m_nrg[j] * indiceMat[k];
 
                         }
                     }

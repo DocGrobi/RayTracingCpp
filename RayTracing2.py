@@ -1,5 +1,6 @@
  
 import os
+import subprocess
 import bpy
 #import mathutils
 
@@ -62,7 +63,8 @@ bl_info = {
 
 ## Open executable file
 def OPEN(file):
-    os.system(file)
+    #os.system(file)
+    subprocess.Popen(file)
 
 
 class Settings(PropertyGroup):
@@ -109,6 +111,11 @@ class Settings(PropertyGroup):
                           description = "File to be lauched",
                           subtype = 'FILE_PATH'
     )
+    file2 = StringProperty(name = "file2",
+                          default = "",
+                          description = "File to be imported",
+                          subtype = 'FILE_PATH'
+    )    
 
 class RayTracingPanel(bpy.types.Panel):
     bl_label = "Ray Tracing"
@@ -120,12 +127,28 @@ class RayTracingPanel(bpy.types.Panel):
     
     def draw(self, context):
         mytool = context.scene.my_tool
-
-        # display the properties
-        self.layout.prop(mytool, "file", text="App file")
         
         TheCol = self.layout.column(align=True)
-        TheCol.operator("run.rt", text="RUN", icon="PLAY")
+        TheCol.operator("bpy.ops.mesh.primitive_uv_sphere_add", text="New Source", icon="MESH_UVSPHERE")
+        
+        # FILE
+        self.layout.prop(mytool, "file", text="App file")
+        
+        # export buttons
+        TheCol = self.layout.column(align=True)
+        
+        row = TheCol.row(align=True)
+        row.operator("exp.src", text="EXPORT SOURCE", icon="MESH_UVSPHERE")
+        row.operator("exp.listener", text="EXPORT LISTENER", icon="MESH_MONKEY")
+        # run button
+        TheCol = self.layout.column(align=True)
+        TheCol.operator("run.rt", text="EXPORT MESH & RUN", icon="PLAY")
+                
+        #import
+        self.layout.prop(mytool, "file2", text="Import Obj")
+        
+        TheCol = self.layout.column(align=True)
+        TheCol.operator("imp.rt", text="IMPORT", icon="IMPORT")
 
 class runRayTracing(bpy.types.Operator):
     bl_idname = "run.rt"
@@ -136,35 +159,73 @@ class runRayTracing(bpy.types.Operator):
         inFile = T.file # recupération du répertoire de l'app
         objFile = T.file[:-13] + "meshForRayTracing.obj"
         #print ("le repertoire est :" + folder)
-        try:
-            
-            bpy.ops.export_scene.obj(filepath = objFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True, axis_forward='Y', axis_up='Z')
-
-            #bpy.ops.export_mesh.mesh(filepath = inFile)
-            #mmgFile = MMG(T)
+        try:            
+            #bpy.ops.export_scene.obj(filepath = objFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True, axis_forward='Y', axis_up='Z')
+            bpy.ops.export_scene.obj(filepath = objFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True)
+            #bpy.ops.export_mesh.mesh(filepath = inFile)           
 
 ##### Attention le chemin du repertoire doit être complet #######
             
             OPEN(inFile)
-#            if(T.medit):
-#                MEDIT([mmgFile])
-#            if(T.reload):
-#                scene = bpy.context.scene
-#                for ob in scene.objects:
-#                    if ob.type == 'MESH':
-#                        ob.select=True
-#                        scene.objects.active = ob
-#                        bpy.ops.object.mode_set(mode='OBJECT')
-#                        scene.objects.unlink(ob)
-#                        bpy.data.objects.remove(ob)
-#                for m in bpy.data.meshes:
-#                    bpy.data.meshes.remove(m)
-#                bpy.ops.import_mesh.mesh(filepath = mmgFile)
-#                bpy.ops.object.mode_set(mode='WEIGHT_PAINT')
+
+        except AttributeError:
+            print("OUPS !")
+        return {"FINISHED"}
+    
+class expSource(bpy.types.Operator):
+    bl_idname = "exp.src"
+    bl_label = "Export Source"
+
+    def invoke(self, context, event):
+        T = context.scene.my_tool
+        inFile = T.file # recupération du répertoire de l'app
+        srcFile = T.file[:-13] + "srcForRayTracing.obj"
+        #print ("le repertoire est :" + folder)
+        try:            
+            bpy.ops.export_scene.obj(filepath = srcFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True)          
+
+        except AttributeError:
+            print("OUPS !")
+        return {"FINISHED"}
+    
+class expListener(bpy.types.Operator):
+    bl_idname = "exp.listener"
+    bl_label = "Export Listener"
+
+    def invoke(self, context, event):
+        T = context.scene.my_tool
+        inFile = T.file # recupération du répertoire de l'app
+        ltnFile = T.file[:-13] + "listenerForRayTracing.obj"
+        #print ("le repertoire est :" + folder)
+        try:            
+            bpy.ops.export_scene.obj(filepath = ltnFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True)          
+
         except AttributeError:
             print("OUPS !")
         return {"FINISHED"}
 
+class impRayTracing(bpy.types.Operator):
+    bl_idname = "imp.rt"
+    bl_label = "Import raytracing algorythme Output"
+
+    def invoke(self, context, event):
+        T = context.scene.my_tool
+        
+        inFile = T.file2 # recupération du répertoire de l'app
+#        objFile = T.file[:-13] + "meshForRayTracing.obj"
+#        #print ("le repertoire est :" + folder)
+        try:            
+#            #bpy.ops.export_scene.obj(filepath = objFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True, axis_forward='Y', axis_up='Z')
+             bpy.ops.import_scene.obj(filepath = inFile)
+             
+
+        except AttributeError:
+            print("OUPS !")
+        return {"FINISHED"}
+
+bpy.utils.register_class(expListener)
+bpy.utils.register_class(expSource)
+bpy.utils.register_class(impRayTracing)
 bpy.utils.register_class(runRayTracing)
 bpy.utils.register_class(RayTracingPanel)
 

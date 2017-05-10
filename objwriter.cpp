@@ -5,6 +5,14 @@
 #include <QIODevice>
 #include "QDebug"
 #include <QtMath>
+#include <QMessageBox>
+
+
+QString ObjWriter::CoordVector2QString(CoordVector coord)
+{
+    QString text = QString::number(coord.x) + " " + QString::number(coord.y) + " " + QString::number(coord.z);
+     return text;
+}
 
 ObjWriter::ObjWriter(QString chemin) // recupere en attribue le nom de chemin de fichier specifié
 {
@@ -13,7 +21,11 @@ ObjWriter::ObjWriter(QString chemin) // recupere en attribue le nom de chemin de
     int i=0;
     QString newName(chemin);
 
-    /*
+    //suppression du fichier s'il existe deja
+    if(!fichier.remove())
+        QMessageBox::critical(NULL,"Erreur","Impossible de supprimer le fichier !");
+
+/*
     while(fichier.exists()) // incrementation de version de fichier s'il existe deja
     {
         //qDebug() << fichier.fileName() << "existe !";
@@ -32,7 +44,8 @@ ObjWriter::ObjWriter(QString chemin) // recupere en attribue le nom de chemin de
         fichier.setFileName(newName);
         //qDebug() << "newname" << newName ;
     }
-    */
+*/
+
       m_chemin = newName; // attribution du dernier nom
 }
 
@@ -168,8 +181,66 @@ void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay, in
 
 
 
-QString ObjWriter::CoordVector2QString(CoordVector coord)
+
+
+void ObjWriter::rec_Vert(Source source, std::vector<float> ray, int nbRay,int nbRebond, int num_rebond)
 {
-    QString text = QString::number(coord.x) + " " + QString::number(coord.y) + " " + QString::number(coord.z);
-     return text;
+    QFile fichier(m_chemin);
+
+    if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier
+    {
+        // creation d'un entete
+        QString text("o Rayons \n");
+        if (num_rebond == 0)
+        {
+            // coordonnées du premier point
+            text = text + "v " + CoordVector2QString(source.centre()) + "\n";
+            fichier.write(text.toLatin1());
+        }
+
+        // ecriture des vertex pour tous les rebonds
+        for (int i = 0; i < nbRay*3 ; i=i+3) // on n'ecrit que le deuxième point
+        {
+            CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
+            text = "v "+ CoordVector2QString(vertCoord) + "\n";
+            fichier.write(text.toLatin1());
+        }
+
+        if (num_rebond == nbRebond-1)
+        {
+            // ecriture des derniers vertex
+            for (int i = nbRay*3; i < nbRay*6 ; i=i+3) // on n'ecrit que le deuxième point
+            {
+                CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
+                text = "v "+ CoordVector2QString(vertCoord) + "\n";
+                fichier.write(text.toLatin1());
+            }
+        }
+    }
+    fichier.close(); // ferme le fichier
+}
+
+
+void ObjWriter::rec_Line(int nbRay, int nbRebond)
+{
+    QFile fichier(m_chemin);
+    QString ligne;
+
+    if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier et place le curseur à la fin
+    {
+      // relier les premier point à la source
+        for (int i = 0 ; i<nbRay ; i++)
+        {
+            ligne = "l 1 " + QString::number(i+2) + "\n";
+            fichier.write(ligne.toLatin1());
+        }
+      // relier les points suivent deux par deux
+        for (int i = 0 ; i<nbRay*nbRebond ; i++)
+        {
+            ligne = "l " + QString::number(i+1) + " " + QString::number(nbRay+1+i) + "\n";
+            fichier.write(ligne.toLatin1());
+        }
+    }
+
+    fichier.close(); // ferme le fichier
 }

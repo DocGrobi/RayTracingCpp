@@ -1,9 +1,7 @@
 #ifndef OBJREADER_H
 #define OBJREADER_H
 
-#include "fonction.h"
-#include <QString>
-
+#include "physic.h"
 
 // Les methodes
 QString doubleSlash(QString s); // fonction qui remplace // par /1/
@@ -95,19 +93,16 @@ class MeshObj
         Listener getListener()const; //accesseur aux parametres du listener
         std::vector<float> getVertex() const; //accesseur au pointeur de vertex
         std::vector<float> getNormals() const;
-        std::vector<int> getIndMat() const;
+        std::vector<float> getIndMat() const;
         int getNb_data() const;
 
     private:
 
         std::vector<float> m_vert;
         std::vector<float> m_norm;
-        std::vector<int> m_indMat;
-
+        std::vector<float> m_indMat;
 
         int m_nbData;
-        //float *m_vertice,*m_normals;
-        //int *m_indicesMateriaux; // Pointeurs vers les tableaux de stockages des vertex, des normales et des materiaux.
         Source m_source;
         Listener m_listener;
         QVector<QString> m_materiaux;

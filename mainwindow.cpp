@@ -59,7 +59,17 @@ void MainWindow::on_bouton_rayons_clicked()
     QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
     ObjWriter monObjWriter(fichierObj_2);
 
-    monObjWriter.display_ray(m_source,monRay.getRay(), nbRayons,nbRebond);
+    //affichage incrémentale
+    for (int i =0; i<nbRebond ; i++)
+    {
+        monRay.rebondSansMemoire(m_meshObj);
+        monObjWriter.rec_Vert(m_source,monRay.getRay(), nbRayons,nbRebond, i);
+    }
+    monObjWriter.rec_Line(nbRayons,nbRebond);
+
+    //monObjWriter.display_ray(m_source,monRay.getRay(), nbRayons,nbRebond);
+
+
 }
 
 void MainWindow::on_bouton_source_clicked()

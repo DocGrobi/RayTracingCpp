@@ -17,20 +17,21 @@ public:
     ~Ray();                                 //Destructeur
     std::vector<float> getRay() const;
     void rebond(MeshObj mesh, int nb_rebond);
+    void rebondSansMemoire(MeshObj mesh);
 
 
-private:
-    int m_Nray;                 // Nombre de rayon
+private:    
     CoordVector m_dir;          // Direction unitaire des rayons
     CoordVector m_pos;          // Position absolue des rayons
-    std::vector<int> m_col;     // Donnees de collision des rayons sur le maillage [iray, ielt, vray]
-    std::vector<float> m_dist;  // Distance parcourue par les rayons
+    std::vector<int> m_col;     // Donnees de collision des rayons sur le maillage [iray, ielt, vray]    
     float m_dMax;               // Distance max parcourue par les rayons
-    std::vector<float> m_nrg;   // Energie portee par le rayon
-    CoordVector m_src;          // Position absolue de la source
 
-    //std::vector<float> m_dirTot; // Vecteur des directions des rayons
+    // Utilisés
+    int m_Nray;                 // Nombre de rayon
+    CoordVector m_src;          // Position absolue de la source
     std::vector<float> m_ray;   // vecteur stockant les vecteur directeur des rayons
+    std::vector<float> m_dist;  // Distance parcourue par les rayons
+    std::vector<float> m_nrg;   // Energie portee par le rayon
 
 };
 

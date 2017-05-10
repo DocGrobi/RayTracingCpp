@@ -129,60 +129,24 @@ MeshObj::MeshObj(QString s) : m_nbData(1)// : m_vertice(NULL), m_normals(NULL), 
 MeshObj::~MeshObj()
 {
 
-    /*
-    free(m_vertice);
-    free(m_normals);
-    free(m_indicesMateriaux);
-    */
-
-   /* for(unsigned int i=0;i<materiaux.size();i++)
-        delete materiaux[i];
-    materiaux.clear();
-    */
 }
 
-
-
-/*
-float* MeshObj::getVertex() const //accesseur au pointeur de vertex
-{
-    return m_vertice;
-}
-
-
-float* MeshObj::getNormals() const //accesseur au pointeur de vertex
-{
-    return m_normals;
-}
-
-int* MeshObj::getIndMat() const //accesseur au pointeur de vertex
-{
-
-    return m_indicesMateriaux;
-}
-int MeshObj::getNb_data() const //accesseur au pointeur de vertex
-{
-    return m_nbData;
-}
-*/
 
 std::vector<float> MeshObj::getVertex() const //accesseur au pointeur de vertex
 {
     return m_vert;
 }
 
-
 std::vector<float> MeshObj::getNormals() const //accesseur au pointeur de vertex
 {
     return m_norm;
 }
 
-std::vector<int> MeshObj::getIndMat() const //accesseur au pointeur de vertex
+std::vector<float> MeshObj::getIndMat() const //accesseur au pointeur de vertex
 {
 
     return m_indMat;
 }
-
 
 int MeshObj::getNb_data() const //accesseur au pointeur de vertex
 {
@@ -193,15 +157,16 @@ int MeshObj::getNb_data() const //accesseur au pointeur de vertex
 void MeshObj::charger_obj(QString file_obj)
 {
     std::vector<CoordVector> ver, nor; // vecteurs de coordonnees
-    std::vector<unsigned int> iv, in, imat; // indice des points à assembler
-    int indiceMat = 0, indiceMat_Curr =0; // Indice du materiaux
+    std::vector<unsigned int> iv, in; // indice des points à assembler
+    std::vector<float> imat;
+    float indiceMat = 0, indiceMat_Curr = 0; // Indice du materiaux
     bool lecture_source = false, lecture_listener = false;
     CoordVector coordFloat (0,0,0);
     int nb_ver = 0, nb_verSource = 0, nb_verListener = 0, nb_norSource = 0, nb_norListener = 0;
     float x_max = -10000000, rayon = 0;
 
-
-
+    Material matOdeon; // chargement des materiaux Odéons
+    std::vector<QString> matOdeon_vect = matOdeon.getNomMat();
 
     QFile fichier(file_obj); // fichier .obj
 
@@ -276,8 +241,6 @@ void MeshObj::charger_obj(QString file_obj)
                     nb_ver = 0; //remsie à 0 du compteur de vertex
                     coordFloat = (0,0,0); //remsie à 0 de la somme des coordonnees
                 }
-
-
             }
 
             else // mode chargement du mesh normal
@@ -297,19 +260,6 @@ void MeshObj::charger_obj(QString file_obj)
 
                     }
 
-                    /*
-                    else if(ligne[1]=='t') //Texture (pas utile ...)
-                    {
-                        QStringList coord = ligne.split(" ");
-                        float x,y;
-                        x = coord[1].toFloat();
-                        y = coord[2].toFloat();
-
-                        tex.push_back(CoordVector(x,y)); // C'est un std::vector rempli avec les CoordVector de coordonnees de textures
-
-                    }
-                    */
-
                     else if(ligne[1]=='n') //Normales
                     {
                         QStringList coord = ligne.split(" ");
@@ -326,6 +276,7 @@ void MeshObj::charger_obj(QString file_obj)
                 if(ligne[0]=='u')
                 {
                     QStringList materiau = ligne.split(" ");
+                    /*
                     int i = m_materiaux.indexOf(materiau[1]);
 
                     if(i == -1) // si c'est la première fois qu'on rencontre ce materiau
@@ -338,9 +289,16 @@ void MeshObj::charger_obj(QString file_obj)
                     else
                     {
                         indiceMat_Curr = i; // on affecte ce numero à l'indice courant
+                    }*/
+                    indiceMat_Curr = 1;
+                    for(int i=0 ; i < matOdeon_vect.size(); i++ )
+                    {
+                        if (matOdeon_vect[i] == materiau[1])
+                        {
+                            indiceMat_Curr = matOdeon.getIndMat(i);
+                        }
                     }
                 }
-
 
                 //Les faces : f V1/T1/N1 V2/T2/N2 V3/T3/N3
                 if(ligne[0]=='f')
@@ -465,18 +423,6 @@ void MeshObj::charger_obj(QString file_obj)
         }
     }
 
-
-    // création de des vecteur normales dans le repere absolu
-
-
-
-
-    // attributs : pointeurs vers les tableaux
-    /*
-    m_vertice = vector2float(tv); // adresse du premier element
-    m_normals = vector2float(tn);
-    m_indicesMateriaux = vector2int(tmat);
-    */
     m_nbData = m_vert.size();
 
     // nettoyage
@@ -487,48 +433,8 @@ void MeshObj::charger_obj(QString file_obj)
     in.clear();
     imat.clear();
 
-
 }
 
-/*
-// fonction retournant un pointeur vers un tableau de float
-float* vector2float(std::vector<float>& tableau)
-{
-    float* t=NULL;
-    t=(float*)malloc(tableau.size()*sizeof(float));
-    if(t==NULL||tableau.empty())
-    {
-        float *t1=(float*)malloc(sizeof(float)*3);
-        for(int i=0;i<3;i++)
-            t1[i]=0.;
-        return t1;
-    }
-
-    for(unsigned int i=0;i<tableau.size();i++)
-        t[i]=tableau[i];
-    return t;
-
-    //return tableau.data()
-}
-
-// fonction retournant un pointeur vers un tableau de float
-int* vector2int(std::vector<int>& tableau)
-{
-    int* t=NULL;
-    t=(int*)malloc(tableau.size()*sizeof(int));
-    if(t==NULL||tableau.empty())
-    {
-        int *t1=(int*)malloc(sizeof(int)*3);
-        for(int i=0;i<3;i++)
-            t1[i]=0.;
-        return t1;
-    }
-
-    for(unsigned int i=0;i<tableau.size();i++)
-        t[i]=tableau[i];
-    return t;
-}
-*/
 
 
 QString doubleSlash(QString s) // On remplace les // correspondant à l'absence de texture par des /1/ pour avoir un numero de texture
