@@ -65,8 +65,8 @@ void MainWindow::on_bouton_rayons_clicked()
         //Méthode d'affichage incrémentale
         for (int i =0; i<nbRebond ; i++)
         {
-            monRay.rebondSansMemoire(m_meshObj, seuil); // calcul des points d'intersection entre rayons et faces
-            monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, seuil); // ecriture des vertex
+            monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+            monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, -1); // ecriture des vertex
         }
         monObjWriter.rec_Line(nbRayons,nbRebond); // ecriture des edges entre les vertex
     }
@@ -80,11 +80,8 @@ void MainWindow::on_bouton_rayons_clicked()
             i++;
         }
         monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, seuil); // ecriture du dernier vertex
-        monObjWriter.rec_Line(nbRayons,i); // ecriture des edges entre les vertex
+        monObjWriter.rec_Line(nbRayons,0); // ecriture des edges entre les vertex
     }
-
-
-
 
     // Ancienne méthode :
 

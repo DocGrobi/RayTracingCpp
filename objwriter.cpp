@@ -259,7 +259,17 @@ void ObjWriter::rec_Line(int nbRay, int nbRebond)
             dernierVertex[i] = i+2;
         }
 
-        if (nbRebond > 1) // relier les points suivent deux par deux
+        // relier les points suivent deux par deux
+
+        if (nbRebond > 1) // MODE NOMBRE DE REBONDS FIXE
+        {
+            for (int i = 0 ; i < nbRay*(nbRebond-1) ; i++)
+            {
+                ligne = "l " + QString::number(i+2) + " " + QString::number(nbRay+i+2) + "\n";
+                fichier.write(ligne.toLatin1());
+            }
+        }
+        else // MODE ATTENUATION
         {
             int raymort = m_rayMort[0];
             int j (0), k(0);

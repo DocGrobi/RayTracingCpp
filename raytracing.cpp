@@ -1,6 +1,5 @@
 #include "raytracing.h"
 #include <math.h>
-//#include <vector>
 #include "QDebug"
 #include "QVector"
 
@@ -244,8 +243,8 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
     std::vector<float> vertex(mesh.getVertex());
     std::vector<float> indiceMat(mesh.getIndMat());
 
-    bool rayonsExistent = true;
-    int compteurRayonsMorts(0);
+    bool rayonsExistent = false;
+    //int compteurRayonsMorts(0);
 
         for(int j=0; j<m_Nray;j=j+3) // pour chaque rayon
         {
@@ -310,20 +309,22 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                             for (int l=0; l<8; l++)
                             {
                                 m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[k+l+1]) * exp(-absorptionAir(20)[l]*longueur_ray);
-                                if (m_nrg[j/3*8 + l] < seuil)
-                                {
-                                    compteurRayonsMorts++;
-                                }
                             }
                         }
                     }
                 }
             }
-            if(compteurRayonsMorts >= m_Nray/3 * 8)
-            {
-                rayonsExistent = false;
-            }
     }
+
+    // test des rayons morts
+        for (int i =0; i <m_nrg.size(); i++)
+        {
+            if (m_nrg[i] > seuil) // s'il existe au moins un rayon vivant
+            {
+                rayonsExistent = true;
+            }
+        }
+
     return rayonsExistent;
 }
 
