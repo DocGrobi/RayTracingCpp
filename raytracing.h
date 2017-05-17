@@ -16,8 +16,10 @@ public:
     Ray(float phy, int Nray, Source S);   //Constructeur
     ~Ray();                                 //Destructeur
     std::vector<float> getRay() const;
+    std::vector<float> getNRG() const;
+
     void rebond(MeshObj mesh, int nb_rebond);
-    void rebondSansMemoire(MeshObj mesh);
+    bool rebondSansMemoire(MeshObj mesh, float seuil);
 
 
 private:    

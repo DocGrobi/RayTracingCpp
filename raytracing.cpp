@@ -28,7 +28,7 @@ bool appartient_face(CoordVector point, std::vector<float> face)
      hypoB = produitScalaire(produitVectoriel(vecteur(b,a),vecteur(b,point)),produitVectoriel(vecteur(b,point),vecteur(b,c)));
      hypoC = produitScalaire(produitVectoriel(vecteur(c,a),vecteur(c,point)),produitVectoriel(vecteur(c,point),vecteur(c,b)));
 
-     if(hypoA>0 && hypoB>0 && hypoC >0)
+     if(hypoA>=0 && hypoB>=0 && hypoC >=0) // si =0 on est sur l'arrete
      {
          resultat = true;
      }
@@ -76,8 +76,8 @@ Ray::Ray(float phy, int Nray, Source S)
 
     m_dMax = 0;
     m_src = S.centre();        
-    m_dist.resize(m_Nray, 0);
-    m_nrg.resize(m_Nray, 1);
+    m_dist.resize(m_Nray/3, 0); // longueur totale de chaque rayon
+    m_nrg.resize(m_Nray/3*8, 1); // 8 bandes de fréquence par rayons
 
 
     m_ray.clear(); //facultatif à priori
@@ -158,6 +158,10 @@ std::vector<float> Ray::getRay() const
     return m_ray;
 }
 
+std::vector<float> Ray::getNRG() const
+{
+    return m_nrg;
+}
 
 void Ray::rebond(MeshObj mesh, int nb_rebond)
 {
@@ -234,16 +238,19 @@ void Ray::rebond(MeshObj mesh, int nb_rebond)
 }
 
 
-void Ray::rebondSansMemoire(MeshObj mesh)
+bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 {
     std::vector<float> normales(mesh.getNormals());
     std::vector<float> vertex(mesh.getVertex());
     std::vector<float> indiceMat(mesh.getIndMat());
 
-    //for (int i=0; i<(nb_rebond*m_Nray); i=i+m_Nray)// pour chaque ordre de rebond
-    {
+    bool rayonsExistent = true;
+    int compteurRayonsMorts(0);
+
         for(int j=0; j<m_Nray;j=j+3) // pour chaque rayon
         {
+            //SI LE RAYON N'EST PAS MORT
+
             // recuperation d'un point et du vecteur directeur
             CoordVector point(m_ray[j], m_ray[j+1] , m_ray[j+2]);
             CoordVector vect_dir(m_ray[j+m_Nray]-m_ray[j],m_ray[j+m_Nray+1]-m_ray[j+1] ,m_ray[j+m_Nray+2]-m_ray[j+2]);
@@ -286,7 +293,7 @@ void Ray::rebondSansMemoire(MeshObj mesh)
                             // on garde la longueur min
                             longueur_ray = norme(vecteur(point,intersec));
                             // et on l'ajoute à la longueur totale
-                            m_dist[j] = m_dist[j] + longueur_ray;
+                            m_dist[j/3] = m_dist[j/3] + longueur_ray;
 
                             // on remplace le bout du rayon par le point d'intersection
                             m_ray[j] = intersec.x;
@@ -299,14 +306,24 @@ void Ray::rebondSansMemoire(MeshObj mesh)
                             m_ray[j+m_Nray+2] = vecteur_reflechi(vect_dir,vect_norm).z+intersec.z;
 
 
-                            //On affecte au rayon une nouvelle energie
-                            m_nrg[j] = m_nrg[j] * indiceMat[k];
-
+                            //On affecte au rayon une nouvelle energie pour chaque bande
+                            for (int l=0; l<8; l++)
+                            {
+                                m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[k+l+1]) * exp(-absorptionAir(20)[l]*longueur_ray);
+                                if (m_nrg[j/3*8 + l] < seuil)
+                                {
+                                    compteurRayonsMorts++;
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
+            if(compteurRayonsMorts >= m_Nray/3 * 8)
+            {
+                rayonsExistent = false;
+            }
     }
+    return rayonsExistent;
 }
 

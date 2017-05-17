@@ -14,17 +14,19 @@ QString ObjWriter::CoordVector2QString(CoordVector coord)
      return text;
 }
 
-ObjWriter::ObjWriter(QString chemin) // recupere en attribue le nom de chemin de fichier specifié
+ObjWriter::ObjWriter(QString chemin, int nbRay) // recupere en attribue le nom de chemin de fichier specifié
 {
 
     QFile fichier(chemin);
     int i=0;
     QString newName(chemin);
+    m_buff_rayMort.resize(nbRay, 0); // 0 = rayon vivant
 
     //suppression du fichier s'il existe deja
     if(!fichier.remove())
         QMessageBox::critical(NULL,"Erreur","Impossible de supprimer le fichier !");
 
+    // A CONSERVER : INCREMENTATION DES FICHIERS
 /*
     while(fichier.exists()) // incrementation de version de fichier s'il existe deja
     {
@@ -180,17 +182,17 @@ void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay, in
 }
 
 
-
-
-
-void ObjWriter::rec_Vert(Source source, std::vector<float> ray, int nbRay,int nbRebond, int num_rebond)
+void ObjWriter::rec_Vert(Source source, Ray monRay, int nbRay, int num_rebond, float seuil)
 {
     QFile fichier(m_chemin);
+    std::vector<float> ray = monRay.getRay();
+    std::vector<float> nrg = monRay.getNRG();
 
     if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier
     {
         // creation d'un entete
         QString text("o Rayons \n");
+
         if (num_rebond == 0)
         {
             // coordonnées du premier point
@@ -198,24 +200,40 @@ void ObjWriter::rec_Vert(Source source, std::vector<float> ray, int nbRay,int nb
             fichier.write(text.toLatin1());
         }
 
-        // ecriture des vertex pour tous les rebonds
-        for (int i = 0; i < nbRay*3 ; i=i+3) // on n'ecrit que le deuxième point
+        // ecriture des vertex pour tous les rayons
+        for (int i = 0; i < nbRay*3 ; i=i+3) // on n'ecrit que le premier point
         {
-            CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
-            text = "v "+ CoordVector2QString(vertCoord) + "\n";
-            fichier.write(text.toLatin1());
-        }
-
-        if (num_rebond == nbRebond-1)
-        {
-            // ecriture des derniers vertex
-            for (int i = nbRay*3; i < nbRay*6 ; i=i+3) // on n'ecrit que le deuxième point
+            if (m_buff_rayMort[i/3] == 0) // si le rayon est toujours vivant
             {
+                // si l'énergie sur au moins une bande est au dessus du seuil le rayon reste vivant
+                bool rayVivant = false;
+                for (int l=0; l<8; l++)
+                {
+                    if (nrg[i/3*8+l] > seuil)
+                    {
+                        rayVivant = true;
+                    }
+                }
                 CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
                 text = "v "+ CoordVector2QString(vertCoord) + "\n";
                 fichier.write(text.toLatin1());
+
+                if (rayVivant) // S'il reste vivant
+                {
+                    m_rayMort.push_back(0);
+                }
+                else // S'il meurt
+                {
+                    m_rayMort.push_back(1);
+                    m_buff_rayMort[i/3] = 1;
+                }
+            }
+            else // S'il était deja mort
+            {
+                m_rayMort.push_back(1);
             }
         }
+
     }
     fichier.close(); // ferme le fichier
 }
@@ -228,19 +246,46 @@ void ObjWriter::rec_Line(int nbRay, int nbRebond)
 
     if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier et place le curseur à la fin
     {
+
+        std::vector<int> dernierVertex;
+        dernierVertex.resize(nbRay,0); // numero de ligne du dernier vertex du rayon
+
       // relier les premier point à la source
         for (int i = 0 ; i<nbRay ; i++)
         {
             ligne = "l 1 " + QString::number(i+2) + "\n";
             fichier.write(ligne.toLatin1());
+
+            dernierVertex[i] = i+2;
         }
-      // relier les points suivent deux par deux
-        for (int i = 0 ; i<nbRay*nbRebond ; i++)
+
+        if (nbRebond > 1) // relier les points suivent deux par deux
         {
-            ligne = "l " + QString::number(i+1) + " " + QString::number(nbRay+1+i) + "\n";
-            fichier.write(ligne.toLatin1());
+            int raymort = m_rayMort[0];
+            int j (0), k(0);
+
+            while (raymort < nbRay) // tant que tous les rayons ne sont pas morts
+            {
+                raymort = 0;
+                for (int i = 0; i<nbRay ; i++) // pour chaque rayon
+                {
+                    raymort = raymort + m_rayMort[j*nbRay +i]; // on ajoute 1 si le i-eme rayon meurt
+
+                    if (m_rayMort[j*nbRay +i] == 0) // Si le i-eme rayon n'est pas mort
+                    {
+                        // On l'ecrit
+                        ligne = "l " + QString::number(dernierVertex[i]) + " " + QString::number(nbRay+2+k) + "\n";
+                        fichier.write(ligne.toLatin1());
+
+                        // on remplace le numero du dernier vertex (que si le rayon n'est pas mort)
+                        dernierVertex[i] = nbRay+2+k;
+
+                        k++; // on n'augmente l'increment (que si le rayon n'est pas mort)
+                    }
+                }
+                j++; // compteur general de rebond
+            }
         }
     }
-
     fichier.close(); // ferme le fichier
 }

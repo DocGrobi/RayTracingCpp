@@ -28,12 +28,21 @@ private slots:
 
     void on_spinBox_nbRay_valueChanged(int arg1);
 
+    void on_checkBox__rayFixe_toggled(bool checked);
+
+    void on_spinBox_attenuation_valueChanged(int arg1);
+
+    void on_spinBox_temperature_valueChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
     Source m_source;
     Listener m_listener;
     int m_nbRebond;
+    int m_seuilAttenuation;
+    int m_temperature;
+    bool m_nbRebondFixe;
 };
 
 #endif // MAINWINDOW_H
