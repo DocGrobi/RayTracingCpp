@@ -18,7 +18,8 @@ SOURCES += main.cpp\
     objwriter.cpp \
     raytracing.cpp \
     fonction.cpp \
-    physic.cpp
+    physic.cpp \
+    rir.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -26,7 +27,8 @@ HEADERS  += mainwindow.h \
     objwriter.h \
     raytracing.h \
     fonction.h \
-    physic.h
+    physic.h \
+    rir.h
 
 
 FORMS    += mainwindow.ui

@@ -32,7 +32,7 @@ CoordVector vecteur(CoordVector a, CoordVector b);
 float produitScalaire(CoordVector a, CoordVector b);
 CoordVector produitVectoriel(CoordVector a, CoordVector b);
 float norme(CoordVector a);
-float angle(float prdScalaire, CoordVector a, CoordVector b);
+float angle(CoordVector a, CoordVector b);
 void debugStdVect(std::vector<float> vect); // permet d'afficher un std::vector dans la console
 CoordVector coord_New_Base(CoordVector point, std::vector<float> mat );
 

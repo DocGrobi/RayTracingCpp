@@ -1,11 +1,12 @@
 #ifndef OBJWRITER_H
 #define OBJWRITER_H
 
-#endif // OBJWRITER_H
+
 
 #include<QString>
 #include "objreader.h"
 #include "raytracing.h"
+#include "rir.h"
 
 class ObjWriter
 {
@@ -17,6 +18,7 @@ class ObjWriter
     QString CoordVector2QString(CoordVector coord);    
     void rec_Vert(Source source, Ray monRay, int nbRay, int num_rebond, float seuil);
     void rec_Line(int nbRay, int nbRebond);
+    void display_sourceImages(SourceImage sourcesImages,float seuil);
 
 private:
     QString m_chemin;
@@ -26,3 +28,4 @@ private:
 };
 
 
+#endif // OBJWRITER_H

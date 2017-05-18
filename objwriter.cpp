@@ -299,3 +299,31 @@ void ObjWriter::rec_Line(int nbRay, int nbRebond)
     }
     fichier.close(); // ferme le fichier
 }
+
+
+void ObjWriter::display_sourceImages(SourceImage srcImg, float seuil)
+{
+    QFile fichier(m_chemin);
+
+    std::vector<float> sourcesImages = srcImg.getSourcesImages();
+    std::vector<float> nrg = srcImg.getNrgSI();
+
+    fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
+
+    // creation d'un entete
+    QString text("o SourcesImages \n");
+    fichier.write(text.toLatin1());
+
+    // ecriture des vertex représentant les posotions de sources images
+    for (int i = 0; i < sourcesImages.size() ; i=i+3)
+    {
+        if (nrg[i/3] > seuil) // On n'ecrit que les sources images dont l'energie est supérieure qu seuil
+        {
+            CoordVector vertCoord(sourcesImages[i], sourcesImages[i+1], sourcesImages[i+2]);
+            text = "v "+ CoordVector2QString(vertCoord) + "\n";
+            fichier.write(text.toLatin1());
+        }
+    }
+
+    fichier.close(); // ferme le fichier
+}

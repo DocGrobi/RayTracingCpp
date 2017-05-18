@@ -50,9 +50,9 @@ CoordVector produitVectoriel(CoordVector a, CoordVector b)
 
 }
 
-float angle(float prdScalaire, CoordVector a, CoordVector b) // cos de l'angle entre les deux vecteurs
+float angle(CoordVector a, CoordVector b) // angle entre les deux vecteurs
 {
-    float resultat = prdScalaire/(norme(a)*norme(b));
+    float resultat = acos(produitScalaire(a,b)/(norme(a)*norme(b)));
     return resultat;
 }
 

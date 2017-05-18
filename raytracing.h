@@ -17,23 +17,35 @@ public:
     ~Ray();                                 //Destructeur
     std::vector<float> getRay() const;
     std::vector<float> getNRG() const;
+    std::vector<float> getPos() const;
+    std::vector<float> getDir() const;
+    std::vector<float> getDist() const;
+    std::vector<float> getLong() const;
+
+    int getNbRay() const;
 
     void rebond(MeshObj mesh, int nb_rebond);
     bool rebondSansMemoire(MeshObj mesh, float seuil);
 
+    void stockage();
+
 
 private:    
-    CoordVector m_dir;          // Direction unitaire des rayons
-    CoordVector m_pos;          // Position absolue des rayons
+
     std::vector<int> m_col;     // Donnees de collision des rayons sur le maillage [iray, ielt, vray]    
     float m_dMax;               // Distance max parcourue par les rayons
 
     // Utilisés
-    int m_Nray;                 // Nombre de rayon
+    int m_Nray;                 // Nombre de rayon * 3 (car trois coordonnées)
     CoordVector m_src;          // Position absolue de la source
     std::vector<float> m_ray;   // vecteur stockant les vecteur directeur des rayons
-    std::vector<float> m_dist;  // Distance parcourue par les rayons
+    std::vector<float> m_dist;  // Distance parcourue par les rayons au moment t
     std::vector<float> m_nrg;   // Energie portee par le rayon
+
+    std::vector<float> m_dir;   // Direction unitaire des rayons stockée
+    std::vector<float> m_pos;   // Position du point de départ du rayons stockée
+    std::vector<float> m_angle;
+    std::vector<float> m_long;  // longueur du dernier segment de rayon
 
 };
 

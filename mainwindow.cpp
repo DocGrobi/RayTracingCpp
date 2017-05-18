@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "QDebug"
 #include "math.h"
+#include "rir.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -67,6 +68,7 @@ void MainWindow::on_bouton_rayons_clicked()
         {
             monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
             monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, -1); // ecriture des vertex
+
         }
         monObjWriter.rec_Line(nbRayons,nbRebond); // ecriture des edges entre les vertex
     }
@@ -142,4 +144,45 @@ void MainWindow::on_spinBox_attenuation_valueChanged(int arg1)
 void MainWindow::on_spinBox_temperature_valueChanged(int arg1)
 {
     m_temperature = arg1;
+}
+
+void MainWindow::on_bouton_sourcesImages_clicked()
+{
+    // REBONDS
+    int nbRebond = m_nbRebond;
+    float seuil = pow(10,(-m_seuilAttenuation/10));
+
+    // RAYONS
+    int nbRayons = 30; // Si on n'utilise pas les vertex de la source comme rayons
+    Ray monRay(1,nbRayons,m_source);
+    nbRayons = monRay.getRay().size()/6; // m_ray est composé de 2 points par rayons chacun avec 3 coordonnées
+
+    //SOURCES IMAGES
+    SourceImage maSourceImage;
+
+    // EXPORT
+    QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
+    ObjWriter monObjWriter(fichierObj_2, nbRayons);
+
+    if (m_nbRebondFixe)
+    {
+        //Méthode d'affichage incrémentale
+        for (int i =0; i<nbRebond ; i++)
+        {
+            monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+            maSourceImage.addSourcesImages(monRay , m_listener);
+        }
+        monObjWriter.display_sourceImages(maSourceImage, -1);
+    }
+    else
+    {
+        // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
+        while(monRay.rebondSansMemoire(m_meshObj, seuil))
+        {
+            maSourceImage.addSourcesImages(monRay , m_listener);
+        }
+        maSourceImage.addSourcesImages(monRay , m_listener); // On le refait une fois à la sortie de boucle pour les dernier rayon
+        monObjWriter.display_sourceImages(maSourceImage, seuil);
+
+    }
 }

@@ -85,6 +85,15 @@ QString Listener::afficher()
 
 }
 
+CoordVector Listener::getCentre()
+{
+    return m_centreListener;
+}
+
+float Listener::getRayon()
+{
+    return m_rayon;
+}
 
 Listener MeshObj::getListener() const //accesseur aux parametres du listener
 {

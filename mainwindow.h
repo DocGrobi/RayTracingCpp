@@ -34,6 +34,8 @@ private slots:
 
     void on_spinBox_temperature_valueChanged(int arg1);
 
+    void on_bouton_sourcesImages_clicked();
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
