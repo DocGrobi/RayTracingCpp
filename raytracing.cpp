@@ -332,8 +332,6 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                             longueur_ray = norme(vecteur(point,intersec));
                             // On sauvegarde la longueur du rayon actuel
                             m_long[j/3] = longueur_ray;
-                            // et on l'ajoute à la longueur totale
-                            m_dist[j/3] = m_dist[j/3] + longueur_ray;
 
                             // on remplace le bout du rayon par le point d'intersection
                             m_ray[j] = intersec.x;
@@ -355,6 +353,8 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                     }
                 }
             }
+            // On ajoute à la longueur du rayon actuel à la longueur totale
+            m_dist[j/3] = m_dist[j/3] + longueur_ray;
     }
 
     // test des rayons morts

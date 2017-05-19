@@ -12,24 +12,26 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
     dirOld = rayon.getDir();
     rayNew = rayon.getRay();
 
-    int n(rayon.getNbRay());
+    //int n(rayon.getNbRay());
 
-    CoordVector L(listener.getCentre());
-    float r(listener.getRayon());
-
-
+    CoordVector L(listener.getCentre()); // Point au centre du Listener
+    float r(listener.getRayon()); // Rayon du Listener
 
     for(int i = 0; i<rayon.getNbRay() ; i=i+3)
     {
 
-       CoordVector A(posOld[i],posOld[i+1],posOld[i+2]);
-       CoordVector B(rayNew[i],rayNew[i+1],rayNew[i+2]);
-       CoordVector vectDir(rayNew[n+i],rayNew[n+i+1],rayNew[n+i+2]);
+       CoordVector A(posOld[i],posOld[i+1],posOld[i+2]); // Point de départ du rayon
+       CoordVector B(rayNew[i],rayNew[i+1],rayNew[i+2]); // Point d'arrivée du rayon
+       //CoordVector vectDir(rayNew[n+i]-rayNew[i],rayNew[n+i+1]-rayNew[i+1],rayNew[n+i+2]-rayNew[i+2]);
 
        float alpha = angle(vecteur(A,B),vecteur(A,L));
 
        // test sur l'angle
-       if ( alpha <= asin(r/norme(vecteur(A,L))))
+       if (norme(vecteur(A,L)) == 0)
+       {
+            hypA = true;
+       }
+       else if (alpha <= asin(r/norme(vecteur(A,L))))
        {
            hypA = true;
        }
@@ -39,7 +41,7 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
        }
 
        // test sur la direction
-       if (produitScalaire(vectDir,vecteur(A,B)) > 0)
+       if (cos(alpha) >= 0)
        {
            hypB = true;
        }
