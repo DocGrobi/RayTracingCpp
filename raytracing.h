@@ -23,6 +23,7 @@ public:
     std::vector<float> getLong() const;
 
     int getNbRay() const;
+    int getRayMorts() const;
 
     void rebond(MeshObj mesh, int nb_rebond);
     bool rebondSansMemoire(MeshObj mesh, float seuil);
@@ -44,8 +45,11 @@ private:
 
     std::vector<float> m_dir;   // Direction unitaire des rayons stockée
     std::vector<float> m_pos;   // Position du point de départ du rayons stockée
-    std::vector<float> m_angle;
+    //std::vector<float> m_angle;
     std::vector<float> m_long;  // longueur du dernier segment de rayon
+
+    std::vector<bool> m_rayVivant;  // longueur du dernier segment de rayon
+    int m_nbRayMort;
 
 };
 

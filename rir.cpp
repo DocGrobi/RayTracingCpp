@@ -131,8 +131,16 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener)
             m_sourcesImages.push_back(C.y);
             m_sourcesImages.push_back(C.z);
 
-            m_nrgSI.push_back(nrg[i]);
+            // Pour chaque source image on enregistre les energie des 8 bandes
+            for (int j = 0 ; j<8 ; j ++)
+            {
+                m_nrgSI.push_back(nrg[8*i+j]);
+            }
+
         }
     }
+
+
+
 }
 

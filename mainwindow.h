@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "objwriter.h"
 #include "raytracing.h"
+#include <QElapsedTimer>
 
 namespace Ui {
 class MainWindow;
@@ -41,10 +42,13 @@ private:
     MeshObj m_meshObj;
     Source m_source;
     Listener m_listener;
+    Ray m_monRay;
     int m_nbRebond;
-    int m_seuilAttenuation;
+    float m_seuilAttenuation;
     int m_temperature;
     bool m_nbRebondFixe;
+    QElapsedTimer m_timer;
+
 };
 
 #endif // MAINWINDOW_H

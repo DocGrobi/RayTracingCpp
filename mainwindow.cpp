@@ -3,15 +3,22 @@
 #include "QDebug"
 #include "math.h"
 #include "rir.h"
+#include <QProgressDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_meshObj(QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj")
+    ui(new Ui::MainWindow), m_meshObj(QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj"),
+  m_listener(m_meshObj.getListener()), m_source(m_meshObj.getSource()) , m_monRay(1,30,m_source)
 {
 
    // IMPORT
-   m_listener = m_meshObj.getListener();
+   /*
+    * m_listener = m_meshObj.getListener();
    m_source = m_meshObj.getSource();
+   int nbRayons = 30; // Si on n'utilise pas les vertex de la source comme rayons
+   Ray monRay(1,nbRayons,m_source);
+   m_monRay = monRay;
+   */
 
    // AFFICHAGE FENETRE
    ui->setupUi(this);
@@ -20,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
    // CHARGEMENT PARAMETRES
    m_nbRebond = ui->spinBox_nbRay->value();
-   m_seuilAttenuation = ui->spinBox_attenuation->value();
+   m_seuilAttenuation = pow(10,(-(ui->spinBox_attenuation->value()/10)));
    m_temperature = ui->spinBox_temperature->value();
    on_checkBox__rayFixe_toggled(false);
 
@@ -48,9 +55,6 @@ void MainWindow::on_bouton_normales_clicked()
 
 void MainWindow::on_bouton_rayons_clicked()
 {
-    // REBONDS
-    int nbRebond = m_nbRebond;
-    float seuil = pow(10,(-m_seuilAttenuation/10));
 
     // RAYONS
     int nbRayons = 30; // Si on n'utilise pas les vertex de la source comme rayons
@@ -64,24 +68,24 @@ void MainWindow::on_bouton_rayons_clicked()
     if (m_nbRebondFixe)
     {
         //Méthode d'affichage incrémentale
-        for (int i =0; i<nbRebond ; i++)
+        for (int i =0; i<m_nbRebond ; i++)
         {
             monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
             monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, -1); // ecriture des vertex
 
         }
-        monObjWriter.rec_Line(nbRayons,nbRebond); // ecriture des edges entre les vertex
+        monObjWriter.rec_Line(nbRayons,m_nbRebond); // ecriture des edges entre les vertex
     }
     else
     {
         int i(0);
         // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-        while(monRay.rebondSansMemoire(m_meshObj, seuil))
+        while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
         {
-            monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, seuil); // ecriture des vertex
+            monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, m_seuilAttenuation); // ecriture des vertex
             i++;
         }
-        monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, seuil); // ecriture du dernier vertex
+        monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, m_seuilAttenuation); // ecriture du dernier vertex
         monObjWriter.rec_Line(nbRayons,0); // ecriture des edges entre les vertex
     }
 
@@ -100,6 +104,10 @@ void MainWindow::on_bouton_source_clicked()
     QString fichierObj = QCoreApplication::applicationDirPath() + "/srcForRayTracing.obj";
     MeshObj monMeshObj(fichierObj);
     m_source = monMeshObj.getSource();
+
+    int nbRayons = 30; // Si on n'utilise pas les vertex de la source comme rayons
+    Ray monRay(1,nbRayons,m_source);
+    m_monRay = monRay;
 
 
     ui->label_source->setText(m_source.afficher());
@@ -138,7 +146,7 @@ void MainWindow::on_checkBox__rayFixe_toggled(bool checked)
 
 void MainWindow::on_spinBox_attenuation_valueChanged(int arg1)
 {
-    m_seuilAttenuation = arg1;
+    m_seuilAttenuation = pow(10,(-arg1/10));
 }
 
 void MainWindow::on_spinBox_temperature_valueChanged(int arg1)
@@ -148,14 +156,8 @@ void MainWindow::on_spinBox_temperature_valueChanged(int arg1)
 
 void MainWindow::on_bouton_sourcesImages_clicked()
 {
-    // REBONDS
-    int nbRebond = m_nbRebond;
-    float seuil = pow(10,(-m_seuilAttenuation/10));
-
     // RAYONS
-    int nbRayons = 30; // Si on n'utilise pas les vertex de la source comme rayons
-    Ray monRay(1,nbRayons,m_source);
-    nbRayons = monRay.getRay().size()/6; // m_ray est composé de 2 points par rayons chacun avec 3 coordonnées
+    int nbRayons = m_monRay.getRay().size()/6; // m_ray est composé de 2 points par rayons chacun avec 3 coordonnées
 
     //SOURCES IMAGES
     SourceImage maSourceImage;
@@ -164,25 +166,63 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
     ObjWriter monObjWriter(fichierObj_2, nbRayons);
 
+    // Ouvrir fenetre de progress bar
+    //QProgressDialog progress("Opération en cours.", "Annuler", 0, m_nbRebond, this);
+    //progress.setWindowModality(Qt::WindowModal);
+    QProgressDialog progress(this);
+        progress.setWindowModality(Qt::WindowModal);
+        progress.setLabelText("working...");
+        //progress.setCancelButton(0);
+        progress.setRange(0,0);
+        progress.setMinimumDuration(0);
+        progress.show();
+
+    // lancer le timer
+    m_timer.start();
+
     if (m_nbRebondFixe)
     {
+        progress.setRange(0,m_nbRebond);
+
         //Méthode d'affichage incrémentale
-        for (int i =0; i<nbRebond ; i++)
+        for (int i =0; i<m_nbRebond ; i++)
         {
-            monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
-            maSourceImage.addSourcesImages(monRay , m_listener);
+            // progress bar
+            progress.setValue(i);
+            if (progress.wasCanceled())
+                        break;
+
+            m_monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+            maSourceImage.addSourcesImages(m_monRay , m_listener);
         }
         monObjWriter.display_sourceImages(maSourceImage, -1);
+        progress.setValue(m_nbRebond);
+
     }
     else
     {
+        progress.setRange(0,nbRayons);
+        progress.setValue(1);
+
+
         // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-        while(monRay.rebondSansMemoire(m_meshObj, seuil))
+        while(m_monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
         {
-            maSourceImage.addSourcesImages(monRay , m_listener);
+            // progress bar
+            progress.setValue(m_monRay.getRayMorts());
+            if (progress.wasCanceled())
+                        break; // arrete la boucle
+
+            maSourceImage.addSourcesImages(m_monRay , m_listener);
         }
-        maSourceImage.addSourcesImages(monRay , m_listener); // On le refait une fois à la sortie de boucle pour les dernier rayon
-        monObjWriter.display_sourceImages(maSourceImage, seuil);
+        maSourceImage.addSourcesImages(m_monRay , m_listener); // On le refait une fois à la sortie de boucle pour les dernier rayon
+        monObjWriter.display_sourceImages(maSourceImage, m_seuilAttenuation);
+
+        progress.setValue(nbRayons);
 
     }
+    float temps = m_timer.elapsed()/1000;
+    ui->lcd_timer->display(temps);
+
+    progress.cancel();
 }
