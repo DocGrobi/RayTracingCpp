@@ -13,8 +13,8 @@ CoordVector vecteur_reflechi(CoordVector i, CoordVector n);
 class Ray
 {
 public:
-    Ray(float phy, int Nray, Source S);   //Constructeur
-    ~Ray();                                 //Destructeur
+    Ray(int Nray, Source S, bool fibonacci);   //Constructeur
+    ~Ray();                               //Destructeur
     std::vector<float> getRay() const;
     std::vector<float> getNRG() const;
     std::vector<float> getPos() const;

@@ -1,7 +1,9 @@
 #include "raytracing.h"
-#include <math.h>
+#include "fonction.h"
 #include "QDebug"
 #include "QVector"
+#include <QMessageBox>
+#include <math.h>
 
 
 // Méthodes
@@ -64,88 +66,78 @@ CoordVector vecteur_reflechi(CoordVector i, CoordVector n)
 // Les classes
 
 // Constructeur
-Ray::Ray(float phy, int Nray, Source S)
+Ray::Ray(int Nray, Source S, bool fibonacci)
 {    
-    m_Nray = S.vert().size();
+    m_src = S.centre();
 
+    if (fibonacci) // création des rayons sur une grille uniforme de fibonacci
+    {
+        // étage 0 : source
+        for (int i=0; i<Nray; i++)
+        {
+        // creation des vecteurs directeur
+            m_ray.push_back(m_src.x);
+            m_ray.push_back(m_src.y);
+            m_ray.push_back(m_src.z);
+        }
+
+        float OR = (1+sqrt(5))/2;
+
+        for (float i=0; i<Nray; i++)
+        {
+            float theta = fmod((i*2*M_PI/OR) , (2*M_PI));
+            float phi = asin(-1 + 2*i/(Nray-1));
+
+            CoordVector coord(sph2cart(1,theta,phi));
+
+            m_ray.push_back(coord.x + m_src.x);
+            m_ray.push_back(coord.y + m_src.y);
+            m_ray.push_back(coord.z + m_src.z);
+        }
+
+            m_Nray = 3*Nray; // nombre de rayon * 3 coordonnées
+
+    }
+    else // utilisation des vertex de la source blender
+    {
+
+        m_Nray = S.vert().size();
+
+        if (S.vert().size() == 0) // si pas de source chargée
+        {
+            QMessageBox::critical(NULL,"Erreur","Aucune source sélectionnée \nVeuillez charger une nouvelle source");
+        }
+        else
+        {
+            // étage 0 : source
+            for (int i=0; i<m_Nray; i=i+3)
+            {
+            // creation des vecteurs directeur
+                m_ray.push_back(m_src.x);
+                m_ray.push_back(m_src.y);
+                m_ray.push_back(m_src.z);
+            }
+
+            // étage 1 : coordonnées des vertex
+            for (int i=0; i<m_Nray; i++)
+            {
+                m_ray.push_back(S.vert()[i]);
+            }
+        }
+
+    }
+
+    // initialisation des attributs
     m_dMax = 0;
-    m_src = S.centre();        
     m_dist.resize(m_Nray/3, 0); // longueur totale de chaque rayon
     m_long.resize(m_Nray/3, 0); // longueur du dernier segment de rayon
     m_nrg.resize(m_Nray/3*8, 1); // 8 bandes de fréquence par rayons
 
     m_pos.resize(m_Nray, 0);
     m_dir.resize(m_Nray, 0);
-    //m_angle.resize(m_Nray/3, 0);
-
     m_nbRayMort = 0;
     m_rayVivant.resize(m_Nray/3, true); // Tous les rayons sont vivant
 
-    m_ray.clear(); //facultatif à priori
-
-    /*
-    // OPTION 1 : Repartition uniforme des rayons (2D pour l'instant)
-    float theta(0), phi(0), ro(1);;
-    for (int i = 0; i<Nray ; i++)
-    {
-        // creation des vecteurs directeur
-        theta = theta + 2*M_PI/Nray;
-        CoordVector coord(sph2cart(ro,theta,phi));
-
-        m_ray.push_back(m_src.x);
-        m_ray.push_back(m_src.y);
-        m_ray.push_back(m_src.z);
-
-        m_ray.push_back(coord.x + m_src.x);
-        m_ray.push_back(coord.y + m_src.y);
-        m_ray.push_back(coord.z + m_src.z);
-    }
-
-    */
-
-
-    // OPTION 2 : Repartition des rayons sur chaque vertex de la sphere
-
-    // étage 0 : source
-    for (int i=0; i<m_Nray; i=i+3)
-    {
-    // creation des vecteurs directeur
-        m_ray.push_back(m_src.x);
-        m_ray.push_back(m_src.y);
-        m_ray.push_back(m_src.z);
-    }
-
-    // étage 1 : coordonnées des vertex
-    for (int i=0; i<m_Nray; i=i+3)
-    {
-        for(int j=0;j<3;j++)
-        {
-            m_ray.push_back(S.vert()[i+j]);
-
-        }
-    }
-
-
-    // OPTION 3 : Discretisation des rayons sur une grille uniforme de Fibonacci
-    /*
-    float OR = (1+sqrt(5))/2;
-
-    std::vector<float> theta(0);
-    for (int i; i<N; i++)
-    {
-
-        //float mod = (i*2*M_PI/OR) % (2*M_PI); // a inverser et comprendre
-        float mod = (i*2*M_PI/OR) - (2*M_PI)*(floor((i*2*M_PI/OR)/(2*M_PI)));
-        theta.push_back(mod);
-    }
-
-    std::vector<float> phi(0);
-    for (int i; i<N; i++)
-    {
-        float angle = asin(-1 + 2/(N-1)*i);
-        phi.push_back(angle);
-    }
-    */
 }
 
 // Destructeur

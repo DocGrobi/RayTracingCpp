@@ -261,7 +261,7 @@ void ObjWriter::rec_Line(int nbRay, int nbRebond)
 
         // relier les points suivent deux par deux
 
-        if (nbRebond > 1) // MODE NOMBRE DE REBONDS FIXE
+        if (nbRebond >= 1) // MODE NOMBRE DE REBONDS FIXE
         {
             for (int i = 0 ; i < nbRay*(nbRebond-1) ; i++)
             {

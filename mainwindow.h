@@ -27,7 +27,7 @@ private slots:
 
     void on_bouton_listener_clicked();
 
-    void on_spinBox_nbRay_valueChanged(int arg1);
+    void on_spinBox_nbRebond_valueChanged(int arg1);
 
     void on_checkBox__rayFixe_toggled(bool checked);
 
@@ -37,17 +37,25 @@ private slots:
 
     void on_bouton_sourcesImages_clicked();
 
+    void on_radioButton_vertexSource_toggled(bool checked);
+
+    void on_radioButton_Fibonacci_toggled(bool checked);
+
+    void on_spinBox_nbRay_valueChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
     Source m_source;
     Listener m_listener;
-    Ray m_monRay;
+    //Ray m_monRay;
     int m_nbRebond;
     float m_seuilAttenuation;
     int m_temperature;
     bool m_nbRebondFixe;
     QElapsedTimer m_timer;
+    bool m_fibonacci;
+    int m_nbRayon;
 
 };
 

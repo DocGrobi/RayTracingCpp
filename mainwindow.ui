@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>559</width>
-    <height>384</height>
+    <width>567</width>
+    <height>447</height>
    </rect>
   </property>
   <property name="palette">
@@ -477,8 +477,8 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>170</y>
-      <width>341</width>
+      <y>224</y>
+      <width>331</width>
       <height>61</height>
      </rect>
     </property>
@@ -524,7 +524,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Nouvelle Source</string>
+     <string>Mettre à jour la &quot;Source&quot;</string>
     </property>
    </widget>
    <widget class="QPushButton" name="bouton_listener">
@@ -537,7 +537,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Nouveau Listener</string>
+     <string>Mettre à jour le &quot;Listener&quot;</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_listener">
@@ -568,8 +568,8 @@
    <widget class="QCheckBox" name="checkBox__rayFixe">
     <property name="geometry">
      <rect>
-      <x>346</x>
-      <y>170</y>
+      <x>336</x>
+      <y>224</y>
       <width>171</width>
       <height>22</height>
      </rect>
@@ -584,11 +584,11 @@
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QSpinBox" name="spinBox_nbRay">
+   <widget class="QSpinBox" name="spinBox_nbRebond">
     <property name="geometry">
      <rect>
-      <x>504</x>
-      <y>200</y>
+      <x>516</x>
+      <y>254</y>
       <width>41</width>
       <height>25</height>
      </rect>
@@ -597,11 +597,11 @@
      <number>1</number>
     </property>
    </widget>
-   <widget class="QLabel" name="label_nbRay">
+   <widget class="QLabel" name="label_nbRebond">
     <property name="geometry">
      <rect>
-      <x>350</x>
-      <y>203</y>
+      <x>341</x>
+      <y>257</y>
       <width>130</width>
       <height>20</height>
      </rect>
@@ -613,8 +613,8 @@
    <widget class="QLabel" name="label_seuil">
     <property name="geometry">
      <rect>
-      <x>350</x>
-      <y>235</y>
+      <x>341</x>
+      <y>289</y>
       <width>141</width>
       <height>16</height>
      </rect>
@@ -626,8 +626,8 @@
    <widget class="QSpinBox" name="spinBox_attenuation">
     <property name="geometry">
      <rect>
-      <x>500</x>
-      <y>230</y>
+      <x>512</x>
+      <y>284</y>
       <width>48</width>
       <height>25</height>
      </rect>
@@ -642,8 +642,8 @@
    <widget class="QLabel" name="label_temperature">
     <property name="geometry">
      <rect>
-      <x>349</x>
-      <y>260</y>
+      <x>340</x>
+      <y>314</y>
       <width>151</width>
       <height>20</height>
      </rect>
@@ -658,8 +658,8 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>500</x>
-      <y>258</y>
+      <x>512</x>
+      <y>312</y>
       <width>48</width>
       <height>25</height>
      </rect>
@@ -684,8 +684,8 @@
     <property name="geometry">
      <rect>
       <x>-1</x>
-      <y>233</y>
-      <width>341</width>
+      <y>287</y>
+      <width>331</width>
       <height>61</height>
      </rect>
     </property>
@@ -697,7 +697,7 @@
     <property name="geometry">
      <rect>
       <x>9</x>
-      <y>300</y>
+      <y>354</y>
       <width>331</width>
       <height>20</height>
      </rect>
@@ -713,7 +713,7 @@
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>300</y>
+      <y>354</y>
       <width>131</width>
       <height>23</height>
      </rect>
@@ -725,10 +725,10 @@
      <enum>QFrame::NoFrame</enum>
     </property>
     <property name="smallDecimalPoint">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
     <property name="digitCount">
-     <number>10</number>
+     <number>7</number>
     </property>
     <property name="segmentStyle">
      <enum>QLCDNumber::Flat</enum>
@@ -744,7 +744,7 @@
     <property name="geometry">
      <rect>
       <x>490</x>
-      <y>306</y>
+      <y>360</y>
       <width>31</width>
       <height>16</height>
      </rect>
@@ -753,13 +753,99 @@
      <string>sec</string>
     </property>
    </widget>
+   <widget class="QLabel" name="labe_typeSource">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>170</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Type de rayons :</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioButton_vertexSource">
+    <property name="geometry">
+     <rect>
+      <x>116</x>
+      <y>160</y>
+      <width>211</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Utiliser les vertex de la Source</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioButton_Fibonacci">
+    <property name="geometry">
+     <rect>
+      <x>116</x>
+      <y>180</y>
+      <width>221</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Utiliser une sphère de Fibonacci</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_nbRay">
+    <property name="geometry">
+     <rect>
+      <x>343</x>
+      <y>183</y>
+      <width>131</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Nombre de rayons :</string>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="spinBox_nbRay">
+    <property name="geometry">
+     <rect>
+      <x>469</x>
+      <y>180</y>
+      <width>91</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+    <property name="prefix">
+     <string/>
+    </property>
+    <property name="maximum">
+     <number>10000000</number>
+    </property>
+    <property name="value">
+     <number>10000</number>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>559</width>
+     <width>567</width>
      <height>22</height>
     </rect>
    </property>
