@@ -43,11 +43,16 @@ private slots:
 
     void on_spinBox_nbRay_valueChanged(int arg1);
 
+    void on_bouton_RIR_clicked();
+
+    void on_spinBox_freqEchan_valueChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
     Source m_source;
     Listener m_listener;
+    SourceImage m_sourceImage;
     //Ray m_monRay;
     int m_nbRebond;
     float m_seuilAttenuation;
@@ -56,6 +61,8 @@ private:
     QElapsedTimer m_timer;
     bool m_fibonacci;
     int m_nbRayon;
+    int m_freq;
+
 
 };
 

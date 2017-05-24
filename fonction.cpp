@@ -53,7 +53,7 @@ CoordVector produitVectoriel(CoordVector a, CoordVector b)
 float angle(CoordVector a, CoordVector b) // angle entre les deux vecteurs
 {
     float resultat;
-    if (norme(a) || norme(b))
+    if (norme(a) == 0 || norme(b) == 0)
     {
         resultat = 0;
     }
@@ -149,6 +149,20 @@ CoordVector coord_New_Base(CoordVector point, std::vector<float> mat) // pour ma
     qDebug() << "dans nouvelle base :";
     resultat.debug();
     return resultat;
+}
+
+bool proche(float a, float b)
+{
+    float seuil = 0.01;
+
+    if (a/b > 1-seuil && a/b < 1+seuil)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 

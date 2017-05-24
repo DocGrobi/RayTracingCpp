@@ -35,5 +35,6 @@ float norme(CoordVector a);
 float angle(CoordVector a, CoordVector b);
 void debugStdVect(std::vector<float> vect); // permet d'afficher un std::vector dans la console
 CoordVector coord_New_Base(CoordVector point, std::vector<float> mat );
+bool proche(float a, float b);
 
 #endif // FONCTION_H

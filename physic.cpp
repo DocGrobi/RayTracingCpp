@@ -6,6 +6,8 @@
 #include "math.h"
 #include <QMessageBox>
 
+
+
 // Les Méthodes
 std::vector<float> absorptionAir(int temperature)
 {

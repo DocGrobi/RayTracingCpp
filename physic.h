@@ -4,6 +4,9 @@
 #include "fonction.h"
 #include <QString>
 
+// Definition de constantes
+const int VITESSE_SON = 340; // m/s
+
 // Classes
 class Material
 {

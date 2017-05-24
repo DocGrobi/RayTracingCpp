@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = RayTracingCpp
 TEMPLATE = app
@@ -19,7 +19,9 @@ SOURCES += main.cpp\
     raytracing.cpp \
     fonction.cpp \
     physic.cpp \
-    rir.cpp
+    rir.cpp \
+    qcustomplot.cpp \
+    plotwindow.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -28,10 +30,13 @@ HEADERS  += mainwindow.h \
     raytracing.h \
     fonction.h \
     physic.h \
-    rir.h
+    rir.h \
+    qcustomplot.h \
+    plotwindow.h
 
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    plotwindow.ui
 
 
 

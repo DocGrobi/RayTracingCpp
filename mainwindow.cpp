@@ -4,6 +4,7 @@
 #include "math.h"
 #include "rir.h"
 #include <QProgressDialog>
+#include "plotwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -32,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
    m_temperature = ui->spinBox_temperature->value();
    on_checkBox__rayFixe_toggled(false);
    on_radioButton_Fibonacci_toggled(true);
+   m_freq = ui->spinBox_freqEchan->value();
 
 
 }
@@ -228,6 +230,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
             monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
             maSourceImage.addSourcesImages(monRay , m_listener);
         }
+        maSourceImage.filtrerSourceImages();
         monObjWriter.display_sourceImages(maSourceImage, -1);
         progress.setValue(m_nbRebond);
 
@@ -249,6 +252,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
             maSourceImage.addSourcesImages(monRay , m_listener);
         }
         maSourceImage.addSourcesImages(monRay , m_listener); // On le refait une fois à la sortie de boucle pour les dernier rayon
+        maSourceImage.filtrerSourceImages();
         monObjWriter.display_sourceImages(maSourceImage, m_seuilAttenuation);
 
         progress.setValue(nbRayons);
@@ -259,6 +263,8 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     ui->lcd_timer->display(temps);
 
     progress.cancel();
+
+    m_sourceImage = maSourceImage;
 }
 
 void MainWindow::on_radioButton_vertexSource_toggled(bool checked)
@@ -303,4 +309,23 @@ void MainWindow::on_radioButton_Fibonacci_toggled(bool checked)
 void MainWindow::on_spinBox_nbRay_valueChanged(int arg1)
 {
     m_nbRayon = arg1;
+}
+
+void MainWindow::on_bouton_RIR_clicked()
+{
+
+     m_sourceImage.afficherRIR(m_freq, m_listener);
+
+    // ouvre une nouvelle fenetre
+    plotWindow plot;
+    plot.setModal(true);
+    plot.exec();
+
+
+
+}
+
+void MainWindow::on_spinBox_freqEchan_valueChanged(int arg1)
+{
+    m_freq = arg1;
 }

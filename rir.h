@@ -17,11 +17,20 @@ class SourceImage
         ~SourceImage();
         std::vector<float> getSourcesImages();
         std::vector<float> getNrgSI();
+        std::vector<float> getX();
+        std::vector<float> getY();
         void addSourcesImages(Ray rayon, Listener listener);
+        void filtrerSourceImages();
+        void afficherRIR(int f_ech, Listener listener);
 
     private:
         std::vector<float> m_sourcesImages;
         std::vector<float> m_nrgSI;
+        std::vector<int> m_nbSI;
+        std::vector<float> m_sourcesImages_Filtrees;
+        std::vector<float> m_nrgSI_Filtrees;
+        std::vector<float> m_x;
+        std::vector<float> m_y;
 };
 
 #endif // RIR_H
