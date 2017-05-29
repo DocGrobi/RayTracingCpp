@@ -84,7 +84,7 @@ CoordVector sourceImage(Ray rayon)
 
 SourceImage::SourceImage()
 {
-
+    m_xMax = 0;
 }
 
 SourceImage::~SourceImage()
@@ -94,12 +94,12 @@ SourceImage::~SourceImage()
 
 std::vector<float> SourceImage::getSourcesImages()
 {
-    return m_sourcesImages_Filtrees;
+    return m_sourcesImages;
 }
 
 std::vector<float> SourceImage::getNrgSI()
 {
-    return m_nrgSI_Filtrees;
+    return m_nrgSI;
 }
 
 std::vector<float> SourceImage::getX()
@@ -136,6 +136,31 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener)
             C.y = -longueurRay * vect.y / norm + A.y;
             C.z = -longueurRay * vect.z / norm + A.z;
 
+            // BONNE METHODE (on garde toutes les sources images) :
+            // On ajoute les coordonnée au vecteur sources images
+            m_sourcesImages.push_back(C.x);
+            m_sourcesImages.push_back(C.y);
+            m_sourcesImages.push_back(C.z);
+
+            // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
+            for (int k = 0 ; k<8 ; k ++)
+            {
+                m_nrgSI.push_back(nrg[8*i+k]);
+            }
+
+            float temps = 1000 * norme(vecteur(C,listener.getCentre())) / VITESSE_SON; // en ms
+
+            // On créé le vecteur des valeurs en temps
+            m_sourcesImages_Tps.push_back(temps);
+
+            // On garde le temps max
+            if (temps > m_xMax)
+            {
+                m_xMax = temps;
+            }
+
+            // MAUVAISE METHODE :
+            /*
             bool srcTrouvee = false;
 
             for (int j = 0 ; j < m_sourcesImages.size() ; j = j+3) // test parmi les Sources images deja enregistrées
@@ -170,12 +195,14 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener)
                     m_nrgSI.push_back(nrg[8*i+k]);
                 }
             }
+            */
         }
     }
 }
 
 void SourceImage::filtrerSourceImages()
 {
+    // FAUX NE MARCHE PAS POUR LA SPHERE
     // On ne garde que les sources images en plus de 10 exemplaires
     for (int i = 0 ; i< m_nbSI.size(); i++)
     {
@@ -195,19 +222,32 @@ void SourceImage::filtrerSourceImages()
 }
 
 
-void SourceImage::afficherRIR(int f_ech, Listener listener)
+void SourceImage::calculerRIR(int f_ech)
 {
-    int intervalle_Tps = 1/f_ech;
-    // Premier etape sans tenir compte de f ech
-    //std::vector<float> x, y;
+    int seuil = 10;
 
-    for (int i=0 ; i< m_sourcesImages_Filtrees.size(); i=i+3) // pour chaque source image
-    {
-        CoordVector src_im(m_sourcesImages_Filtrees[i],m_sourcesImages_Filtrees[i+1],m_sourcesImages_Filtrees[i+2]);
-        m_x.push_back(norme(vecteur(src_im,listener.getCentre())) / VITESSE_SON);
-        m_y.push_back(m_nrgSI_Filtrees[i/3*8]); // que la premier bande pour l'instant
+    float freq = (float)f_ech/1000; // car on a des temps en ms (convertion en float)
+
+    int nb_ech = ceil(m_xMax*freq);
+    m_x.resize(nb_ech, 0);
+    m_y.resize(nb_ech*8, 0);
+
+   // Abscisses
+    for (float i = 0 ; i <nb_ech ; i++)
+   {
+       m_x[i] = i/freq; // valeurs en ms
+   }
+
+    // Ordonnées
+    for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
+    {      
+        for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+        {
+            m_y[round(8*m_sourcesImages_Tps[i]*freq + k) ] = m_y[round(8*m_sourcesImages_Tps[i]*freq + k)] + m_nrgSI[i*8 + k];
+
+        }
+
     }
 
-    // on sort les x et les y pour chaque bande
 
 }

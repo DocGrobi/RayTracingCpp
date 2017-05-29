@@ -21,7 +21,7 @@ class SourceImage
         std::vector<float> getY();
         void addSourcesImages(Ray rayon, Listener listener);
         void filtrerSourceImages();
-        void afficherRIR(int f_ech, Listener listener);
+        void calculerRIR(int f_ech);
 
     private:
         std::vector<float> m_sourcesImages;
@@ -31,6 +31,8 @@ class SourceImage
         std::vector<float> m_nrgSI_Filtrees;
         std::vector<float> m_x;
         std::vector<float> m_y;
+        std::vector<float> m_sourcesImages_Tps;
+        float m_xMax;
 };
 
 #endif // RIR_H

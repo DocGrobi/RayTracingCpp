@@ -230,7 +230,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
             monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
             maSourceImage.addSourcesImages(monRay , m_listener);
         }
-        maSourceImage.filtrerSourceImages();
+        //maSourceImage.filtrerSourceImages();
         monObjWriter.display_sourceImages(maSourceImage, -1);
         progress.setValue(m_nbRebond);
 
@@ -252,7 +252,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
             maSourceImage.addSourcesImages(monRay , m_listener);
         }
         maSourceImage.addSourcesImages(monRay , m_listener); // On le refait une fois à la sortie de boucle pour les dernier rayon
-        maSourceImage.filtrerSourceImages();
+        //maSourceImage.filtrerSourceImages();
         monObjWriter.display_sourceImages(maSourceImage, m_seuilAttenuation);
 
         progress.setValue(nbRayons);
@@ -314,10 +314,11 @@ void MainWindow::on_spinBox_nbRay_valueChanged(int arg1)
 void MainWindow::on_bouton_RIR_clicked()
 {
 
-     m_sourceImage.afficherRIR(m_freq, m_listener);
+     m_sourceImage.calculerRIR(m_freq);
 
     // ouvre une nouvelle fenetre
     plotWindow plot;
+    plot.makePlot(m_sourceImage.getX(), m_sourceImage.getY());
     plot.setModal(true);
     plot.exec();
 

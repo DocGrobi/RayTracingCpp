@@ -357,8 +357,8 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 int compteur(0);
                 for (int l=0; l<8; l++)
                 {
-                    m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]) * exp(-absorptionAir(20)[l]*longueur_ray);
-
+                    //m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]) * exp(-absorptionAir(20)[l]*longueur_ray);
+                    m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]);
                     // test si le rayon est mort
                     if (m_nrg[j/3*8 + l] > seuil) // s'il existe au moins un rayon vivant
                     {
