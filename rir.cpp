@@ -229,6 +229,8 @@ void SourceImage::calculerRIR(int f_ech)
     float freq = (float)f_ech/1000; // car on a des temps en ms (convertion en float)
 
     int nb_ech = ceil(m_xMax*freq);
+    m_x.clear();
+    m_y.clear();
     m_x.resize(nb_ech, 0);
     m_y.resize(nb_ech*8, 0);
 
