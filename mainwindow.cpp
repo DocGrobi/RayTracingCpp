@@ -193,6 +193,8 @@ void MainWindow::on_spinBox_temperature_valueChanged(int arg1)
 
 void MainWindow::on_bouton_sourcesImages_clicked()
 {
+    // lancer le timer
+    //m_timer.start();
     // RAYONS
     Ray monRay(m_nbRayon, m_source, m_fibonacci);
     int nbRayons = monRay.getRay().size()/6; // m_ray est composé de 2 points par rayons chacun avec 3 coordonnées
@@ -214,6 +216,8 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 
     // lancer le timer
     m_timer.start();
+    //qDebug() << "creation rayons" << m_timer.restart() << "ms";
+
 
     if (m_nbRebondFixe)
     {
@@ -227,12 +231,16 @@ void MainWindow::on_bouton_sourcesImages_clicked()
             if (progress.wasCanceled())
                         break;
 
-            monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+            monRay.rebondSansMemoireBis(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+
+            qDebug() << i << "eme iteration (rayons) : " << m_timer.restart() << "ms";
             maSourceImage.addSourcesImages(monRay , m_listener);
+            //qDebug() << i << "eme iteration (src img) : " << m_timer.restart() << "ms";
         }
         //maSourceImage.filtrerSourceImages();
         monObjWriter.display_sourceImages(maSourceImage, -1);
         progress.setValue(m_nbRebond);
+        //qDebug() << "creation src img : " << m_timer.restart() << "ms";
 
     }
     else

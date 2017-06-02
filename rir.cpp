@@ -224,7 +224,6 @@ void SourceImage::filtrerSourceImages()
 
 void SourceImage::calculerRIR(int f_ech)
 {
-    int seuil = 10;
 
     float freq = (float)f_ech/1000; // car on a des temps en ms (convertion en float)
 
