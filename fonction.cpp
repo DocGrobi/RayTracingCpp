@@ -55,11 +55,13 @@ CoordVector vecteur(std::vector<float>& a, int indA, const CoordVector &b)
 float produitScalaire(const CoordVector &a,const CoordVector &b)
 {
     float resultat = a.x*b.x + a.y*b.y + a.z*b.z;
+    /*
     if(resultat< 0.0001 && resultat > -0.0001)
     {
-        resultat =0;
+        return 0;
         //qDebug() << "vecteurs colinéaires";
     }
+    */
     return resultat;
 }
 
@@ -68,8 +70,7 @@ float produitScalaire(std::vector<float>& a, int indA,const CoordVector &b)
     float resultat = a[indA]*b.x + a[indA+1]*b.y + a[indA+2]*b.z;
     if(resultat< 0.0001 && resultat > -0.0001)
     {
-        resultat =0;
-        //qDebug() << "vecteurs colinéaires";
+        return 0;
     }
     return resultat;
 }
@@ -98,7 +99,7 @@ float produitScalaire(std::vector<float>& a, int indA, std::vector<float>& b, in
     }
     if(resultat< 0.0001 && resultat > -0.0001)
     {
-        resultat =0;
+        return 0;
         //qDebug() << "vecteurs colinéaires";
     }
     return resultat;
@@ -120,22 +121,21 @@ CoordVector produitVectoriel(const CoordVector &a,const CoordVector &b)
 
 float angle(const CoordVector &a,const CoordVector &b) // angle entre les deux vecteurs
 {
-    float resultat;
+
     if (norme(a) == 0 || norme(b) == 0)
     {
-        resultat = 0;
+        return 0;
     }
     else
     {
-        resultat = acos(produitScalaire(a,b)/(norme(a)*norme(b)));
+        return acos(produitScalaire(a,b)/(norme(a)*norme(b)));
     }
-    return resultat;
+
 }
 
 float norme(const CoordVector &a)
 {
-    float resultat = sqrt(produitScalaire(a,a));
-    return resultat;
+    return sqrt(produitScalaire(a,a));
 }
 
 

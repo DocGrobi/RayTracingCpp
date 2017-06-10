@@ -8,21 +8,23 @@
 //#include <QtOpenGL>
 
 // fonction de Möller–Trumbore
-float triangle_intersection(const CoordVector &orig, const CoordVector &dir, const CoordVector &v0,const CoordVector &v1,const CoordVector &v2)
+float triangle_intersection(const CoordVector &orig, const CoordVector &dir,
+                            const CoordVector &v0,const CoordVector &v1,const CoordVector &v2)
 {
+
     CoordVector e1 = vecteur(v0,v1);
     CoordVector e2 = vecteur(v0,v2);
     // calculer les vecteur normaux aux plans
     CoordVector pvec = produitVectoriel(dir,e2);
     float det = produitScalaire(e1, pvec);
 
-    // Si le rayon est parralelle a plan
-    if (det == 0)
+    // Si le rayon est parralelle au plan
+    if (det <= 0.000001) // det proche de 0 dans la version originale
     {
         return 0;
     }
     CoordVector tvec = vecteur(v0, orig);
-    float u = produitScalaire(dir, pvec)/det;
+    float u = produitScalaire(tvec, pvec)/det;
     if (u < 0 || u > 1)
     {
             return 0;
@@ -34,7 +36,7 @@ float triangle_intersection(const CoordVector &orig, const CoordVector &dir, con
     {
             return 0;
     }
-    return produitScalaire(e2,qvec)/det;
+    return produitScalaire(e2,qvec)/det; // distance entre le point d'origine et le point d'intersection
 
 }
 
@@ -184,20 +186,35 @@ std::vector<float> vecteur_reflechi(std::vector<float>& i, int ii,std::vector<fl
 Ray::Ray(int Nray, Source S, bool fibonacci)
 {    
     m_src = S.centre();
+    float theta(0), phi(0), nor(0), N(Nray-1);
+    CoordVector coord;
 
     if (fibonacci) // création des rayons sur une grille uniforme de fibonacci
     {
+        float OR = (1+sqrt(5))/2;
         // étage 0 : source
-        for (int i=0; i<Nray; i++)
+        for (float i=0; i<Nray; i++)
         {
-        // creation des vecteurs directeur
+            // creation des points initiaux
             m_ray.push_back(m_src.x);
             m_ray.push_back(m_src.y);
             m_ray.push_back(m_src.z);
+
+            //m_test.push_back((m_src));
+
+            // creation des vecteurs directeurs normalisés
+            theta = fmod((i*2*M_PI/OR) , (2*M_PI));
+            phi = asin(-1 + 2*i/(N));
+
+            coord = sph2cart(1,theta,phi);
+            nor = norme(coord);
+            m_vDir.push_back(coord.x/nor);
+            m_vDir.push_back(coord.y/nor);
+            m_vDir.push_back(coord.z/nor);
         }
 
-        float OR = (1+sqrt(5))/2;
 
+/*
         for (float i=0; i<Nray; i++)
         {
             float theta = fmod((i*2*M_PI/OR) , (2*M_PI));
@@ -213,7 +230,7 @@ Ray::Ray(int Nray, Source S, bool fibonacci)
             m_vDir.push_back(coord.y);
             m_vDir.push_back(coord.z);
         }
-
+*/
             m_Nray = 3*Nray; // nombre de rayon * 3 coordonnées
 
     }
@@ -235,17 +252,23 @@ Ray::Ray(int Nray, Source S, bool fibonacci)
                 m_ray.push_back(m_src.x);
                 m_ray.push_back(m_src.y);
                 m_ray.push_back(m_src.z);
-            //  creation du vecteur directeur
-                m_vDir.push_back(S.vert()[i]-m_src.x);
-                m_vDir.push_back(S.vert()[i+1]-m_src.y);
-                m_vDir.push_back(S.vert()[i+2]-m_src.z);
-            }
+            //  creation du vecteur directeur normalisé
 
+                coord.x = S.vert()[i]-m_src.x;
+                coord.y = S.vert()[i+1]-m_src.y;
+                coord.z = S.vert()[i+2]-m_src.z;
+                nor = norme(coord);
+                m_vDir.push_back(coord.x/nor);
+                m_vDir.push_back(coord.y/nor);
+                m_vDir.push_back(coord.z/nor);
+            }
+            /*
             // étage 1 : coordonnées des vertex
             for (int i=0; i<m_Nray; i++)
             {
                 m_ray.push_back(S.vert()[i]);
             }
+            */
         }
 
     }
@@ -408,13 +431,17 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 
     // Declarations
     std::vector<float> absAir = absorptionAir(20);
-    CoordVector point, vect_dir, vect_norm, intersec, vect_ref;
+    CoordVector point, vect_dir, vect_ref,vect_norm;
     CoordVector A,B,C; // trois points
-    float longueur_ray(1000000),longueur_inst(0);
+    float longueur_inst(0),nor(0);
     int compteur(0),face(0);
     bool rayonsExistent = false;
-    int j(0), k(0), ind(0), l(0);
+    int j(0), k(0), l(0);
     int nbVertex = vertex.size();
+    //int ind(0);
+    // float cons(0);
+    //float longueur_ray(1000000);
+    //CoordVector intersec;
 
 //    QElapsedTimer timer, timer2, timer3, timer4;
 //    double tempsRay(0), tempsNrg(0), tempsAvIf(0), tempsApIf(0), tps2(0), tps3(0), tps4(0);
@@ -429,66 +456,66 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 //    timer.restart();
 
 
-        for(j=0; j<m_Nray;j=j+3) // pour chaque rayon
+        for(j=0; j<m_Nray/3;j++) // pour chaque rayon
         {
             //SI LE RAYON N'EST PAS MORT
-            if (m_rayVivant[j/3])
+            if (m_rayVivant[j])
             {
-
                 // recuperation d'un point et du vecteur directeur
-                point.x = m_ray[j];
-                point.y = m_ray[j+1];
-                point.z = m_ray[j+2];
+                point.x = m_ray[3*j];
+                point.y = m_ray[3*j+1];
+                point.z = m_ray[3*j+2];
 
                 //timer.restart();
-                /*
-                vect_dir.x = m_ray[j+m_Nray]-m_ray[j];
-                vect_dir.y = m_ray[j+m_Nray+1]-m_ray[j+1];
-                vect_dir.z = m_ray[j+m_Nray+2]-m_ray[j+2];
-                */
-                vect_dir.x = m_vDir[j];
-                vect_dir.y = m_vDir[j+1];
-                vect_dir.z = m_vDir[j+2];
+
+                vect_dir.x = m_vDir[3*j];
+                vect_dir.y = m_vDir[3*j+1];
+                vect_dir.z = m_vDir[3*j+2];
+
                 //tpsCoo = tpsCoo + timer.nsecsElapsed();
                 //timer.restart();
 
-
                 // Stockage de la longeur du nouveau rayon
-                longueur_ray = 1000000;
+                m_long[j] = 1000000;
 
                 for (k=0; k < nbVertex; k = k+9) // pour chaque face
                 {
+
+                    // ALTERNATIVE
+
+                    A.x = vertex[k];
+                    A.y = vertex[k+1];
+                    A.z = vertex[k+2];
+                    B.x = vertex[k+3];
+                    B.y = vertex[k+4];
+                    B.z = vertex[k+5];
+                    C.x = vertex[k+6];
+                    C.y = vertex[k+7];
+                    C.z = vertex[k+8];
+
+                    // longueur du rayon depuis point de depart dans le sens du vecteur directeur et intersectant avec la face ABC
+                    longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
+                    //longueur_inst = triangle_intersection(m_test[j],vect_dir,A,B,C);
+                    if (longueur_inst > 0 && longueur_inst < m_long[j]) // Rayon dans le sens du vecteur directeur et le plus petit trouvé
+                    {
+                        // On sauvegrade la plus petite longueur
+                        m_long[j] = longueur_inst;
+                        //on sauvegarde la dernière face testée
+                        face = k;
+                    }
+
+
                     /*
-                    ////////////////////// TEST
-                    ///
-                    ///
-                    timer.restart();
-                    produitScalaire(m_vDir,j,normales,k);
-                    tpsSTD = tpsSTD + timer.nsecsElapsed();
-                    timer.restart();
-
-                    // Recuperation du vecteur normale
-
-                    produitScalaire(vect_dir,vect_norm);
-                    tpsCoo = tpsCoo + timer.nsecsElapsed();
-                    timer.restart();
-                    */
-
+                    // ANCIENNE VERSION
                     vect_norm.x = normales[k];
                     vect_norm.y = normales[k+1];
                     vect_norm.z = normales[k+2];
 
-//                    tempsAvIf = tempsAvIf + timer.nsecsElapsed();
-//                    timer.restart();
-
-//                    timer2.restart();
-
                     if (produitScalaire(vect_dir,vect_norm)<0) // test non-parralelisme des vecteurs et sens opposé
                     //if (produitScalaire(m_vDir,j,normales,k)<0)
                     {
-
                         //calcul de la constante de l'équation du plan
-                        float cons(0);
+                        cons = 0;
                         for (ind=0;ind<3; ind++)
                         {
                             cons = cons - (vertex[k+ind]*normales[k+ind]);
@@ -525,79 +552,76 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 //                            tps3 = tps3 + timer3.nsecsElapsed();
 //                            timer4.restart();
 
-                            if(longueur_inst<longueur_ray )
+                            if(longueur_inst<m_long[j] )
                             //if(longueur_inst<longueur_ray && produitScalaire(m_vDir,j,vecteur(m_ray, j,intersec, 0))>0)
                             {
                                 if (produitScalaire(vect_dir,vecteur(point,intersec))>0)
                                 {
                                     // on garde la longueur min
                                     //longueur_ray = norme(vecteur(point,intersec));
-                                    longueur_ray = longueur_inst;
+                                    m_long[j] = longueur_inst;
                                     // On sauvegarde la longueur du rayon actuel
-                                    m_long[j/3] = longueur_ray;
-
-                                    /*
-                                    vect_ref = vecteur_reflechi(m_vDir,j,normales,k);
-
-                                    for (i = 0 ; i<3 ; i++)
-                                    {
-                                        m_ray[j+i] = intersec[i];
-                                        m_vDir[j+i] = vect_ref[i];
-                                    }
-                                    */
+                                    //m_long[j] = longueur_ray;
 
                                     // on remplace le bout du rayon par le point d'intersection
-                                    m_ray[j] = intersec.x;
-                                    m_ray[j+1] = intersec.y;
-                                    m_ray[j+2] = intersec.z;
+                                    m_ray[3*j] = intersec.x;
+                                    m_ray[3*j+1] = intersec.y;
+                                    m_ray[3*j+2] = intersec.z;
 
                                     // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
                                     vect_ref = vecteur_reflechi(vect_dir,vect_norm);
 
-                                    m_ray[j+m_Nray] = vect_ref.x + intersec.x;
-                                    m_ray[j+m_Nray+1] = vect_ref.y + intersec.y;
-                                    m_ray[j+m_Nray+2] = vect_ref.z + intersec.z;
+                                    m_ray[3*j+m_Nray] = vect_ref.x + intersec.x;
+                                    m_ray[3*j+m_Nray+1] = vect_ref.y + intersec.y;
+                                    m_ray[3*j+m_Nray+2] = vect_ref.z + intersec.z;
 
-                                    m_vDir[j] = vect_ref.x;
-                                    m_vDir[j+1] = vect_ref.y;
-                                    m_vDir[j+2] = vect_ref.z;
+                                    m_vDir[3*j] = vect_ref.x;
+                                    m_vDir[3*j+1] = vect_ref.y;
+                                    m_vDir[3*j+2] = vect_ref.z;
 
                                     //on sauvegarde la dernière face testée
                                     face = k;
                                 }
                             }
-//                            tps4 = tps4 + timer4.nsecsElapsed();
                         }
-//                        else
-//                        {
-//                            tps3 = tps3 + timer3.nsecsElapsed();
-//                        }
                     }
-//                    else
-//                    {
-//                        tps2 = tps2 + timer2.nsecsElapsed();
-//                    }
-//                    tempsApIf = tempsApIf + timer.nsecsElapsed();
-//                    timer.restart();
+                    */
                 }
-
-                //qDebug() << "nouveau rayon : " << timer.nsecsElapsed() << "ns";
-                //tempsRay = tempsRay + timer.nsecsElapsed();
-                //timer.restart();
 
                 // POUR CHAQUE NOUVEAU RAYON
 
+                // on remplace le bout du rayon par le point d'intersection
+                m_ray[3*j] = point.x + vect_dir.x*m_long[j];
+                m_ray[3*j+1] = point.y + vect_dir.y*m_long[j];
+                m_ray[3*j+2] = point.z + vect_dir.z*m_long[j];
+
+//                m_test[j].x = m_test[j].x + vect_dir.x*m_long[j];
+//                m_test[j].y = m_test[j].y + vect_dir.y*m_long[j];
+//                m_test[j].z = m_test[j].z + vect_dir.z*m_long[j];
+
+                // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
+                vect_norm.x = normales[face];
+                vect_norm.y = normales[face+1];
+                vect_norm.z = normales[face+2];
+
+                vect_ref = vecteur_reflechi(vect_dir,vect_norm);
+                nor = norme(vect_ref);
+                m_vDir[3*j] = vect_ref.x/nor;
+                m_vDir[3*j+1] = vect_ref.y/nor;
+                m_vDir[3*j+2] = vect_ref.z/nor;
+
+
                 // On ajoute à la longueur du nouveau rayon à la longueur totale
-                m_dist[j/3] = m_dist[j/3] + longueur_ray;
+                m_dist[j] = m_dist[j] + m_long[j];
 
                 //On met à jour l'énergie du nouveau rayon pour chaque bande
                 compteur = 0;
                 for (l=0; l<8; l++)
                 {
-                    m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]) * exp(-absAir[l]*longueur_ray);
+                    m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[face+l+1]) * exp(-absAir[l]*m_long[j]);
                     //m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]);
                     // test si le rayon est mort
-                    if (m_nrg[j/3*8 + l] > seuil) // s'il existe au moins un rayon vivant
+                    if (m_nrg[j*8 + l] > seuil) // s'il existe au moins un rayon vivant
                     {
                         rayonsExistent = true;
                     }
@@ -609,7 +633,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 // si l'énergie sur les 8 bandes est inférieure au seuil le rayons est déclaré mort
                 if (compteur == 8)
                 {
-                    m_rayVivant[j/3] = false;
+                    m_rayVivant[j] = false;
                     //comptage des rayons morts pour la progress bar
                     m_nbRayMort++;
                 }
@@ -646,10 +670,11 @@ bool Ray::rebondSansMemoireBis(MeshObj mesh, float seuil)
 
     // Declarations
     std::vector<float> absAir = absorptionAir(20);
-    CoordVector point, vect_dir, vect_norm, intersec, vect_ref;
-    CoordVector A,B,C; // trois points
-    float longueur_inst(0), nor(0);
-    float cons(0);
+    CoordVector point, vect_dir, vect_ref, vect_norm;
+    //CoordVector  intersec;
+    //CoordVector A,B,C; // trois points
+    //float longueur_inst(0), nor(0);
+    //float cons(0);
     int compteur(0);
     bool rayonsExistent = false;
     int j(0), k(0), ind(0), l(0);
@@ -657,20 +682,10 @@ bool Ray::rebondSansMemoireBis(MeshObj mesh, float seuil)
     std::vector<int> face;
     face.resize(m_Nray/3, 0);
     m_long.assign(m_Nray/3, 1000000);
+    CoordVector A,B,C, e1, e2, pvec, tvec, qvec; // trois points
+    float longueur_inst(0),nor(0), det, u, v;
 
-
-//    QElapsedTimer timer, timer2, timer3, timer4;
-//    double tempsRay(0), tempsNrg(0), tempsAvIf(0), tempsApIf(0), tps2(0), tps3(0), tps4(0);
-
-//    timer.start();
-//    timer2.start();
-//    timer3.start();
-//    timer4.start();
     stockage();
-
-//    qDebug() << "stockage" << timer.nsecsElapsed() << "ns";
-//    timer.restart();
-
 
     for (k=0; k < nbVertex; k = k+9) // pour chaque face
     {
@@ -688,153 +703,75 @@ bool Ray::rebondSansMemoireBis(MeshObj mesh, float seuil)
         C.y = vertex[k+7];
         C.z = vertex[k+8];
 
-        //calcul de la constante de l'équation du plan
-        cons = 0;
-        for (ind=0;ind<3; ind++)
-        {
-            cons = cons - (vertex[k+ind]*normales[k+ind]);
-            // matrice de face
-        }
+        e1 = vecteur(A,B);
+        e2 = vecteur(A,C);
 
-        for(j=0; j<m_Nray;j=j+3) // pour chaque rayon
+        for(j=0; j<m_Nray/3;j++) // pour chaque rayon
             {
                 //SI LE RAYON N'EST PAS MORT
-                if (m_rayVivant[j/3])
+                if (m_rayVivant[j])
                 {
                     // recuperation d'un point et du vecteur directeur
-                    point.x = m_pos[j];
-                    point.y = m_pos[j+1];
-                    point.z = m_pos[j+2];
+                    point.x = m_pos[3*j];
+                    point.y = m_pos[3*j+1];
+                    point.z = m_pos[3*j+2];
 
-                    vect_dir.x = m_dir[j];
-                    vect_dir.y = m_dir[j+1];
-                    vect_dir.z = m_dir[j+2];
+                    vect_dir.x = m_dir[3*j];
+                    vect_dir.y = m_dir[3*j+1];
+                    vect_dir.z = m_dir[3*j+2];
 
-                    // Stockage de la longeur du nouveau rayon
-                    //longueur_ray = 1000000;
-
-//                    tempsAvIf = tempsAvIf + timer.nsecsElapsed();
-//                    timer.restart();
-
-//                    timer2.restart();
-
-                    // ALTERNATIVE
-                    longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
-                    if (longueur_inst >0 && longueur_inst<m_long[j/3])
+                    pvec = produitVectoriel(vect_dir,e2);
+                    det = produitScalaire(e1,pvec);
+                    if(det>0.000001)
                     {
-                        m_long[j/3] = longueur_inst;
-                        nor = norme(vect_dir);
-
-                        // on remplace le bout du rayon par le point d'intersection
-                        m_ray[j] = point.x + vect_dir.x*longueur_inst/nor;
-                        m_ray[j+1] = point.y + vect_dir.y*longueur_inst/nor;
-                        m_ray[j+2] = point.z + vect_dir.z*longueur_inst/nor;
-
-                        // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
-                        vect_ref = vecteur_reflechi(vect_dir,vect_norm);
-
-                        m_ray[j+m_Nray] = vect_ref.x + m_ray[j];
-                        m_ray[j+m_Nray+1] = vect_ref.y + m_ray[j+1];
-                        m_ray[j+m_Nray+2] = vect_ref.z + m_ray[j+2];
-
-                        m_vDir[j] = vect_ref.x;
-                        m_vDir[j+1] = vect_ref.y;
-                        m_vDir[j+2] = vect_ref.z;
-
-                        //on sauvegarde la dernière face testée
-                        face[j/3] = k;
+                        tvec = vecteur(A, point);
+                        u = produitScalaire(tvec, pvec)/det;
+                        if(u>=0 && u <=1)
+                        {
+                            qvec = produitScalaire(tvec,e1);
+                            v = produitScalaire(vect_dir,qvec)/det;
+                            if(v >=0 && u+v <=1)
+                            {
+                                longueur_inst = produitScalaire(e2, qvec)/det;
+                            }
+                        }
                     }
 
+                    //longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
+                    if (longueur_inst >0 && longueur_inst<m_long[j])
+                    {
+                        m_long[j] = longueur_inst;
+/*
+                        // on remplace le bout du rayon par le point d'intersection
+                        m_ray[3*j] = point.x + vect_dir.x*longueur_inst;
+                        m_ray[3*j+1] = point.y + vect_dir.y*longueur_inst;
+                        m_ray[3*j+2] = point.z + vect_dir.z*longueur_inst;
+*/
+                        // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
+                        vect_ref = vecteur_reflechi(vect_dir,vect_norm);
+                        nor = norme(vect_ref);
+                        m_vDir[3*j] = vect_ref.x/nor;
+                        m_vDir[3*j+1] = vect_ref.y/nor;
+                        m_vDir[3*j+2] = vect_ref.z/nor;
 
-                    // VERSION ORIGINALE
-//                    if (produitScalaire(vect_dir,vect_norm)<0) // test non-parralelisme des vecteurs et sens opposé
-//                    {
-//                        // point d'intersection de la droite portée par vect-dir et du plan de normale vect_norm
-//                        intersec = intersection(point, vect_dir, vect_norm, cons);
-
-////                        tps2 = tps2 + timer2.nsecsElapsed();
-////                        timer3.restart();
-
-//                        // si le point d'intersection appartient à la face
-//                        if (appartient_face(intersec, A,B,C))
-//                        {
-//                            // s'il s'agit du plus petit rayon et qu'il est dans le sens du vecteur directeur
-//                            longueur_inst = norme(vecteur(point,intersec));
-
-////                            tps3 = tps3 + timer3.nsecsElapsed();
-////                            timer4.restart();
-
-//                            if(longueur_inst<m_long[j/3] )
-//                            //if(longueur_inst<longueur_ray && produitScalaire(m_vDir,j,vecteur(m_ray, j,intersec, 0))>0)
-//                            {
-//                                if (produitScalaire(vect_dir,vecteur(point,intersec))>0)
-//                                {
-//                                    // on garde la longueur min
-//                                    //longueur_ray = norme(vecteur(point,intersec));
-//                                    //longueur_ray = longueur_inst;
-
-//                                    // On sauvegarde la longueur du rayon actuel
-//                                    m_long[j/3] = longueur_inst;
-
-//                                    /*
-//                                    vect_ref = vecteur_reflechi(m_vDir,j,normales,k);
-
-//                                    for (i = 0 ; i<3 ; i++)
-//                                    {
-//                                        m_ray[j+i] = intersec[i];
-//                                        m_vDir[j+i] = vect_ref[i];
-//                                    }
-//                                    */
-
-//                                    // on remplace le bout du rayon par le point d'intersection
-//                                    m_ray[j] = intersec.x;
-//                                    m_ray[j+1] = intersec.y;
-//                                    m_ray[j+2] = intersec.z;
-
-//                                    // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
-//                                    vect_ref = vecteur_reflechi(vect_dir,vect_norm);
-
-//                                    m_ray[j+m_Nray] = vect_ref.x + intersec.x;
-//                                    m_ray[j+m_Nray+1] = vect_ref.y + intersec.y;
-//                                    m_ray[j+m_Nray+2] = vect_ref.z + intersec.z;
-
-//                                    m_vDir[j] = vect_ref.x;
-//                                    m_vDir[j+1] = vect_ref.y;
-//                                    m_vDir[j+2] = vect_ref.z;
-
-//                                    //on sauvegarde la dernière face testée
-//                                    face[j/3] = k;
-//                                }
-//                            }
-//                            tps4 = tps4 + timer4.nsecsElapsed();
-//                      }
-//                        else
-//                        {
-//                            tps3 = tps3 + timer3.nsecsElapsed();
-//                        }
-//                    }
-//                    else
-//                    {
-//                        tps2 = tps2 + timer2.nsecsElapsed();
-//                    }
-//                    tempsApIf = tempsApIf + timer.nsecsElapsed();
-//                    timer.restart();
+                        //on sauvegarde la dernière face testée
+                        face[j] = k;
+                    }
                 }
-
-                //qDebug() << "nouveau rayon : " << timer.nsecsElapsed() << "ns";
-                //tempsRay = tempsRay + timer.nsecsElapsed();
-                //timer.restart();
-
             }
     }
 
-//    timer.restart();
     // POUR CHAQUE RAYON
     for (j = 0; j<m_Nray/3; j++)
     {
         //SI LE RAYON N'EST PAS MORT
         if (m_rayVivant[j])
         {
+            for (l=0; l<3; l++)
+            {
+                m_ray[3*j+l] = m_pos[3*j+l] + m_dir[3*j+l]*m_long[j];
+            }
+
             // On ajoute à la longueur des nouveaux rayons à la longueur totale
             m_dist[j] = m_dist[j] + m_long[j];
 
@@ -868,18 +805,7 @@ bool Ray::rebondSansMemoireBis(MeshObj mesh, float seuil)
             m_long[j] = 0;
         }
     }
-    //qDebug() << "gestion energie : " << timer.nsecsElapsed() << "ns";
-//    tempsNrg = tempsNrg + timer.nsecsElapsed();
-//    timer.restart();
 
-//        qDebug() << "gestion rayons avant if : " << tempsAvIf/1000000 << "ms";
-//        qDebug() << "gestion rayons apres if : " << tempsApIf/1000000 << "ms";
-//        qDebug() << "gestion energie : " << tempsNrg/1000000 << "ms";
-//        qDebug() << "produit scalire : " << tps2/1000000 << "ms";
-//        qDebug() << "appartient face : " << tps3/1000000 << "ms";
-//        qDebug() << "bon rayon : " << tps4/1000000 << "ms";
-        //qDebug() << "produit scalaire avec std vector : " << tpsSTD/1000000 << "ms";
-        //qDebug() << "produit scalaire avec  Coordvector : " << tpsCoo/1000000 << "ms";
 
     return rayonsExistent;
 }

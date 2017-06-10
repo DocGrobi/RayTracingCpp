@@ -7,9 +7,9 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
     std::vector<bool> resultat;
     bool hypA, hypB, hypC;
 
-    std::vector<float> posOld, dirOld, rayNew;
+    std::vector<float> posOld, rayNew;
     posOld = rayon.getPos();
-    dirOld = rayon.getDir();
+    //dirOld = rayon.getDir();
     rayNew = rayon.getRay();
 
     //int n(rayon.getNbRay());
@@ -129,12 +129,16 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener)
         {
             CoordVector A (point[3*i], point[3*i + 1], point[3*i + 2]);
             CoordVector vect(vec[3*i], vec[3*i + 1], vec[3*i + 2]);
-            float norm = norme(vect);
+            //float norm = norme(vect);
             float longueurRay = longueurRayonTot[i] - longueurRayonFin[i];
-
+            /*
             C.x = -longueurRay * vect.x / norm + A.x;
             C.y = -longueurRay * vect.y / norm + A.y;
             C.z = -longueurRay * vect.z / norm + A.z;
+            */
+            C.x = -longueurRay * vect.x + A.x;
+            C.y = -longueurRay * vect.y + A.y;
+            C.z = -longueurRay * vect.z + A.z;
 
             // BONNE METHODE (on garde toutes les sources images) :
             // On ajoute les coordonnée au vecteur sources images

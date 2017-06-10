@@ -12,8 +12,8 @@ bool appartient_face(std::vector<float>& point, int iP, std::vector<float>& face
 bool appartient_face(const CoordVector &point, const CoordVector &a, const CoordVector &b, const CoordVector &c);
 std::vector<float> vecteur_reflechi(std::vector<float> &i, int ii, std::vector<float> &n, int in);
 
-float triangle_intersection(const CoordVector &orig, const CoordVector &dir, const CoordVector &v0,const CoordVector &v1,const CoordVector &v2);
-
+float triangle_intersection(const CoordVector &orig, const CoordVector &dir,
+                            const CoordVector &v0, const CoordVector &v1, const CoordVector &v2);
 
 // Les classes
 class Ray
@@ -46,17 +46,19 @@ private:
     // Utilisés
     int m_Nray;                 // Nombre de rayon * 3 (car trois coordonnées)
     CoordVector m_src;          // Position absolue de la source
-    std::vector<float> m_ray;   // vecteur stockant les vecteur directeur des rayons
-    std::vector<float> m_dist;  // Distance parcourue par les rayons au moment t
     std::vector<float> m_nrg;   // Energie portee par le rayon
 
-    std::vector<float> m_dir;   // Direction unitaire des rayons stockée
-    std::vector<float> m_pos;   // Position du point de départ du rayons stockée
-    std::vector<float> m_vDir;  //vecteur directeur des rayons
+    std::vector<float> m_pos;   // Position du point de départ du rayon stockée
+    std::vector<float> m_ray;   // Position du point de départ du rayon au moment t
+    std::vector<float> m_dir;   // Direction des rayons stockée
+    std::vector<float> m_vDir;  // vecteur directeur des rayons au moment t
     std::vector<float> m_long;  // longueur du dernier segment de rayon
+    std::vector<float> m_dist;  // Distance totale parcourue par les rayons au moment t
 
     std::vector<bool> m_rayVivant;  // longueur du dernier segment de rayon
     int m_nbRayMort;
+
+    //std::vector<CoordVector> m_test;
 
 };
 
