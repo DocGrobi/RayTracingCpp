@@ -127,7 +127,7 @@ float Material::getIndMat(int num)
     return m_indMat[num];
 }
 
-std::vector<QString> Material::getNomMat()
+std::vector<QString> &Material::getNomMat()
 {
     return m_nomMat;
 }

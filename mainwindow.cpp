@@ -5,6 +5,7 @@
 #include "rir.h"
 #include <QProgressDialog>
 #include "plotwindow.h"
+#include "octree.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -218,6 +219,8 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     m_timer.start();
     //qDebug() << "creation rayons" << m_timer.restart() << "ms";
 
+    Octree monOctree(monRay,m_meshObj);
+
 
     if (m_nbRebondFixe)
     {
@@ -235,7 +238,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 
             qDebug() << i << "eme iteration (rayons) : " << m_timer.restart() << "ms";
             maSourceImage.addSourcesImages(monRay , m_listener);
-            //qDebug() << i << "eme iteration (src img) : " << m_timer.restart() << "ms";
+            qDebug() << i << "eme iteration (src img) : " << m_timer.restart() << "ms";
         }
         //maSourceImage.filtrerSourceImages();
         monObjWriter.display_sourceImages(maSourceImage, -1);

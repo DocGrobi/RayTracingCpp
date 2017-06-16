@@ -40,6 +40,37 @@ float triangle_intersection(const CoordVector &orig, const CoordVector &dir,
 
 }
 
+float triangle_intersection(const Vect3f &orig, const Vect3f &dir,
+                            const Vect3f &v0,const Vect3f &v1,const Vect3f &v2)
+{
+
+    Vect3f e1 = v1-v0;
+    Vect3f e2 = v2-v0;
+    // calculer les vecteur normaux aux plans
+    Vect3f pvec = dir^e2;
+    float det = e1*pvec;
+
+    // Si le rayon est parralelle au plan
+    if (det <= 0.000001) // det proche de 0 dans la version originale
+    {
+        return 0;
+    }
+    Vect3f tvec = orig-v0;
+    float u = tvec*pvec/det;
+    if (u < 0 || u > 1)
+    {
+            return 0;
+    }
+    Vect3f qvec = tvec^e1;
+    float v = dir*qvec/det;
+
+    if (v < 0 || u + v > 1)
+    {
+            return 0;
+    }
+    return e2*qvec/det; // distance entre le point d'origine et le point d'intersection
+
+}
 
 
 // Méthodes
@@ -168,6 +199,13 @@ CoordVector vecteur_reflechi(const CoordVector &i, const CoordVector &n)
     return resultat;
 }
 
+Vect3f vecteur_reflechi(const Vect3f &i, const Vect3f &n)
+{
+    float p = i*n;
+
+    return Vect3f(-2*p*n +i);
+}
+
 std::vector<float> vecteur_reflechi(std::vector<float>& i, int ii,std::vector<float>& n, int in)
 {
     std::vector<float> resultat;
@@ -292,21 +330,21 @@ Ray::~Ray()
 }
 
 // Accesseur
-std::vector<float> Ray::getRay() const
+std::vector<float> &Ray::getRay()
 {
     return m_ray;
 }
 
-std::vector<float> Ray::getNRG() const
+std::vector<float> &Ray::getNRG()
 {
     return m_nrg;
 }
-std::vector<float> Ray::getPos() const
+std::vector<float> &Ray::getPos()
 {
     return m_pos;
 }
 
-std::vector<float> Ray::getDir() const
+std::vector<float> &Ray::getDir()
 {
     return m_dir;
 }
@@ -316,12 +354,12 @@ int Ray::getNbRay() const
     return m_Nray;
 }
 
-std::vector<float> Ray::getDist() const
+std::vector<float> &Ray::getDist()
 {
     return m_dist;
 }
 
-std::vector<float> Ray::getLong() const
+std::vector<float> &Ray::getLong()
 {
     return m_long;
 }
@@ -438,6 +476,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
     bool rayonsExistent = false;
     int j(0), k(0), l(0);
     int nbVertex = vertex.size();
+
     //int ind(0);
     // float cons(0);
     //float longueur_ray(1000000);
@@ -461,6 +500,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
             //SI LE RAYON N'EST PAS MORT
             if (m_rayVivant[j])
             {
+
                 // recuperation d'un point et du vecteur directeur
                 point.x = m_ray[3*j];
                 point.y = m_ray[3*j+1];
@@ -471,6 +511,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 vect_dir.x = m_vDir[3*j];
                 vect_dir.y = m_vDir[3*j+1];
                 vect_dir.z = m_vDir[3*j+2];
+
 
                 //tpsCoo = tpsCoo + timer.nsecsElapsed();
                 //timer.restart();
@@ -493,9 +534,10 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                     C.y = vertex[k+7];
                     C.z = vertex[k+8];
 
+
                     // longueur du rayon depuis point de depart dans le sens du vecteur directeur et intersectant avec la face ABC
                     longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
-                    //longueur_inst = triangle_intersection(m_test[j],vect_dir,A,B,C);
+
                     if (longueur_inst > 0 && longueur_inst < m_long[j]) // Rayon dans le sens du vecteur directeur et le plus petit trouvé
                     {
                         // On sauvegrade la plus petite longueur
@@ -503,6 +545,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                         //on sauvegarde la dernière face testée
                         face = k;
                     }
+
 
 
                     /*
@@ -588,6 +631,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                     */
                 }
 
+
                 // POUR CHAQUE NOUVEAU RAYON
 
                 // on remplace le bout du rayon par le point d'intersection
@@ -606,6 +650,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 
                 vect_ref = vecteur_reflechi(vect_dir,vect_norm);
                 nor = norme(vect_ref);
+                //nor = vect_ref*vect_ref;
                 m_vDir[3*j] = vect_ref.x/nor;
                 m_vDir[3*j+1] = vect_ref.y/nor;
                 m_vDir[3*j+2] = vect_ref.z/nor;

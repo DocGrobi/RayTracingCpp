@@ -16,7 +16,7 @@ class Material
         ~Material();
          //Destructeur
         float getIndMat(int num); // renvoi l'indce du materiau
-        std::vector<QString> getNomMat(); // renvoi le nom du materiau
+        std::vector<QString> &getNomMat(); // renvoi le nom du materiau
 
     private:
         std::vector<float> m_coeffFreq; // coefficient d'absorption pour toutes les bandes de fréquence de tous les matériaux

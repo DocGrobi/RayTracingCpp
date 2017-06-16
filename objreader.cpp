@@ -14,7 +14,7 @@ Source::~Source()
 {
 }
 
-void Source::chargerSource(CoordVector cs)
+void Source::chargerSource(const CoordVector &cs)
 {
     m_centreSource = cs;
     //qDebug() << cs.x << cs.y << cs.z;
@@ -65,7 +65,7 @@ Listener::~Listener()
 {
 }
 
-void Listener::chargerListener(CoordVector cs, float r)
+void Listener::chargerListener(const CoordVector &cs, float r)
 {
     m_centreListener = cs;
     m_rayon =r;
@@ -113,17 +113,17 @@ MeshObj::~MeshObj()
 }
 
 
-std::vector<float> MeshObj::getVertex() const //accesseur au pointeur de vertex
+std::vector<float> &MeshObj::getVertex()  //accesseur au pointeur de vertex
 {
     return m_vert;
 }
 
-std::vector<float> MeshObj::getNormals() const //accesseur au pointeur de vertex
+std::vector<float> &MeshObj::getNormals()  //accesseur au pointeur de vertex
 {
     return m_norm;
 }
 
-std::vector<float> MeshObj::getIndMat() const //accesseur au pointeur de vertex
+std::vector<float> &MeshObj::getIndMat()  //accesseur au pointeur de vertex
 {
 
     return m_indMat;

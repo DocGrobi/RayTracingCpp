@@ -11,9 +11,15 @@ bool appartient_face(const CoordVector &point, std::vector<float>& face);
 bool appartient_face(std::vector<float>& point, int iP, std::vector<float>& face, int iF);
 bool appartient_face(const CoordVector &point, const CoordVector &a, const CoordVector &b, const CoordVector &c);
 std::vector<float> vecteur_reflechi(std::vector<float> &i, int ii, std::vector<float> &n, int in);
+CoordVector vecteur_reflechi(const CoordVector &i, const CoordVector &n);
 
 float triangle_intersection(const CoordVector &orig, const CoordVector &dir,
                             const CoordVector &v0, const CoordVector &v1, const CoordVector &v2);
+float triangle_intersection(const Vect3f &orig, const Vect3f &dir,
+                            const Vect3f &v0, const Vect3f &v1, const Vect3f &v2);
+
+Vect3f vecteur_reflechi(const Vect3f &i, const Vect3f &n);
+
 
 // Les classes
 class Ray
@@ -21,12 +27,12 @@ class Ray
 public:
     Ray(int Nray, Source S, bool fibonacci);   //Constructeur
     ~Ray();                               //Destructeur
-    std::vector<float> getRay() const;
-    std::vector<float> getNRG() const;
-    std::vector<float> getPos() const;
-    std::vector<float> getDir() const;
-    std::vector<float> getDist() const;
-    std::vector<float> getLong() const;
+    std::vector<float>& getRay() ;
+    std::vector<float>& getNRG() ;
+    std::vector<float>& getPos() ;
+    std::vector<float>& getDir() ;
+    std::vector<float>& getDist() ;
+    std::vector<float>& getLong() ;
 
     int getNbRay() const;
     int getRayMorts() const;

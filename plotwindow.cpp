@@ -30,7 +30,7 @@ plotWindow::~plotWindow()
 }
 
 
-void plotWindow::makePlot(std::vector<float> x, std::vector<float> y)
+void plotWindow::makePlot(std::vector<float> &x, std::vector<float> &y)
 {
     // Conversion en double
     std::vector<double> vX(x.begin(),x.end());

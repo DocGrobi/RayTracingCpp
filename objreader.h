@@ -15,7 +15,7 @@ class Source
     public:
         Source();// Constructeur
         ~Source();// Destructeur
-        void chargerSource(CoordVector cs);
+        void chargerSource(const CoordVector &cs);
         void chargerVertSource(float coord);
         CoordVector centre();
         std::vector<float> vert();
@@ -32,7 +32,7 @@ class Listener
       public:
         Listener();// Constructeur
         ~Listener();// Destructeur
-        void chargerListener(CoordVector cs, float r); // affecte une valeur aux attribus
+        void chargerListener(const CoordVector &cs, float r); // affecte une valeur aux attribus
         QString afficher(); // pour afficher les coordonnées du centre et le rayon dans une fenetre
 
         //accesseurs
@@ -55,9 +55,9 @@ class MeshObj
 
         Source getSource() const; //accesseur aux parametres de source
         Listener getListener()const; //accesseur aux parametres du listener
-        std::vector<float> getVertex() const; //accesseur au pointeur de vertex
-        std::vector<float> getNormals() const;
-        std::vector<float> getIndMat() const;
+        std::vector<float>& getVertex() ; //accesseur au pointeur de vertex
+        std::vector<float>& getNormals() ;
+        std::vector<float>& getIndMat() ;
         int getNb_data() const;
 
     private:

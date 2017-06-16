@@ -5,7 +5,7 @@
 std::vector<bool> toucheListener(Ray rayon, Listener listener)
 {
     std::vector<bool> resultat;
-    bool hypA, hypB, hypC;
+    //bool hypA, hypB, hypC;
 
     std::vector<float> posOld, rayNew;
     posOld = rayon.getPos();
@@ -25,7 +25,7 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
        //CoordVector vectDir(rayNew[n+i]-rayNew[i],rayNew[n+i+1]-rayNew[i+1],rayNew[n+i+2]-rayNew[i+2]);
 
        float alpha = angle(vecteur(A,B),vecteur(A,L));
-
+/*
 
        // test sur l'angle
        if (norme(vecteur(A,L)) == 0)
@@ -69,6 +69,40 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
        {
            resultat.push_back(false);
        }
+       */
+
+
+
+       // test sur la direction
+       if (cos(alpha) >= 0)
+       {
+           // test sur la distance
+           if ( norme(vecteur(A,B)) >= norme(vecteur(A,L)) * (tan(alpha) + 1) - r)
+           {
+               // test sur l'angle
+               if (norme(vecteur(A,L)) == 0)
+               {
+                    resultat.push_back(true);
+               }
+               else if (alpha <= asin(r/norme(vecteur(A,L))))
+               {
+                   resultat.push_back(true);
+               }
+               else
+               {
+                   resultat.push_back(false);
+               }
+           }
+           else
+           {
+               resultat.push_back(false);
+           }
+       }
+       else
+       {
+           resultat.push_back(false);
+       }
+
     }
 
     return resultat;
@@ -92,21 +126,21 @@ SourceImage::~SourceImage()
 
 }
 
-std::vector<float> SourceImage::getSourcesImages()
+std::vector<float> &SourceImage::getSourcesImages()
 {
     return m_sourcesImages;
 }
 
-std::vector<float> SourceImage::getNrgSI()
+std::vector<float> &SourceImage::getNrgSI()
 {
     return m_nrgSI;
 }
 
-std::vector<float> SourceImage::getX()
+std::vector<float> &SourceImage::getX()
 {
     return m_x;
 }
-std::vector<float> SourceImage::getY()
+std::vector<float> &SourceImage::getY()
 {
     return m_y;
 }

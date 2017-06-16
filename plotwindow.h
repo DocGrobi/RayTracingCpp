@@ -16,7 +16,7 @@ public:
     explicit plotWindow(QWidget *parent = 0);
     ~plotWindow();
 
-    void makePlot(std::vector<float> x, std::vector<float> y);
+    void makePlot(std::vector<float> &x, std::vector<float> &y);
 
 private slots:
   void mousePress();

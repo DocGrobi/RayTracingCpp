@@ -15,10 +15,10 @@ class SourceImage
     public:
         SourceImage();
         ~SourceImage();
-        std::vector<float> getSourcesImages();
-        std::vector<float> getNrgSI();
-        std::vector<float> getX();
-        std::vector<float> getY();
+        std::vector<float> &getSourcesImages();
+        std::vector<float> &getNrgSI();
+        std::vector<float> &getX();
+        std::vector<float> &getY();
         void addSourcesImages(Ray rayon, Listener listener);
         void filtrerSourceImages();
         void calculerRIR(int f_ech);

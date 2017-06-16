@@ -8,7 +8,7 @@
 #include <QMessageBox>
 
 
-QString ObjWriter::CoordVector2QString(CoordVector coord)
+QString ObjWriter::CoordVector2QString(const CoordVector &coord)
 {
     QString text = QString::number(coord.x) + " " + QString::number(coord.y) + " " + QString::number(coord.z);
      return text;
@@ -55,7 +55,7 @@ ObjWriter::~ObjWriter()
 {
 }
 
-void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> normals, int nData)
+void ObjWriter::display_normales(std::vector<float> &vertex, std::vector<float> &normals, int nData)
 {
     QFile fichier(m_chemin);
 
@@ -145,7 +145,7 @@ void ObjWriter::display_normales(std::vector<float> vertex, std::vector<float> n
     difference.clear();
 }
 
-void ObjWriter::display_ray(Source source, std::vector<float> ray, int nbRay, int nb_rebond)
+void ObjWriter::display_ray(Source source, std::vector<float> &ray, int nbRay, int nb_rebond)
 {
     QFile fichier(m_chemin);
 

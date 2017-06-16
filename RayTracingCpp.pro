@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     physic.cpp \
     rir.cpp \
     qcustomplot.cpp \
-    plotwindow.cpp
+    plotwindow.cpp \
+    octree.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -32,7 +33,8 @@ HEADERS  += mainwindow.h \
     physic.h \
     rir.h \
     qcustomplot.h \
-    plotwindow.h
+    plotwindow.h \
+    octree.h
 
 
 FORMS    += mainwindow.ui \
