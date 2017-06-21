@@ -191,10 +191,11 @@ std::vector<float> intersection(std::vector<float>& point_ray, std::vector<float
 // vecteur reflechi par rapport au rayon incident et au vecteur normale de la face
 CoordVector vecteur_reflechi(const CoordVector &i, const CoordVector &n)
 {
+    float p= produitScalaire(i,n);
     CoordVector resultat;
-    resultat.x = -2*produitScalaire(i,n)*n.x + i.x;
-    resultat.y = -2*produitScalaire(i,n)*n.y + i.y;
-    resultat.z = -2*produitScalaire(i,n)*n.z + i.z;
+    resultat.x = -2*p*n.x + i.x;
+    resultat.y = -2*p*n.y + i.y;
+    resultat.z = -2*p*n.z + i.z;
 
     return resultat;
 }
@@ -339,6 +340,12 @@ std::vector<float> &Ray::getNRG()
 {
     return m_nrg;
 }
+
+std::vector<float> &Ray::getNRGbackup()
+{
+    return m_nrgBackup;
+}
+
 std::vector<float> &Ray::getPos()
 {
     return m_pos;
@@ -380,6 +387,7 @@ void Ray::stockage()
     */
     m_pos = m_ray;
     m_dir = m_vDir;
+    m_nrgBackup = m_nrg;
 
 }
 

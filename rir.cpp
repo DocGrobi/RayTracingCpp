@@ -77,7 +77,8 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
        if (cos(alpha) >= 0)
        {
            // test sur la distance
-           if ( norme(vecteur(A,B)) >= norme(vecteur(A,L)) * (tan(alpha) + 1) - r)
+           //if ( norme(vecteur(A,B)) >= norme(vecteur(A,L)) * (tan(alpha) + 1) - r)
+           if ( norme(vecteur(A,B)) >= norme(vecteur(A,L)))
            {
                // test sur l'angle
                if (norme(vecteur(A,L)) == 0)
@@ -145,21 +146,22 @@ std::vector<float> &SourceImage::getY()
     return m_y;
 }
 
-void SourceImage::addSourcesImages(Ray rayon, Listener listener)
+void SourceImage::addSourcesImages(Ray rayon, Listener listener, float longueurMax, bool rayAuto)
 {
     std::vector<bool> touche = toucheListener(rayon,listener);
     CoordVector C; // la source image
+    std::vector<float> absAir = absorptionAir(20);
 
     std::vector<float> longueurRayonTot = rayon.getDist();
     std::vector<float> longueurRayonFin = rayon.getLong();
     std::vector<float> point = rayon.getPos();
     std::vector<float> vec = rayon.getDir();
-    std::vector<float> nrg = rayon.getNRG();
+    std::vector<float> nrg = rayon.getNRGbackup();
 
 
     for (int i = 0 ; i< touche.size() ; i++) // rayon par rayon
     {
-        if (touche[i]) // si le rayon touche le listener
+        if ((rayAuto && longueurRayonTot[i]<longueurMax && touche[i]) || (!rayAuto && touche[i]) ) // si le rayon touche le listener
         {
             CoordVector A (point[3*i], point[3*i + 1], point[3*i + 2]);
             CoordVector vect(vec[3*i], vec[3*i + 1], vec[3*i + 2]);
@@ -183,7 +185,8 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener)
             // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
             for (int k = 0 ; k<8 ; k ++)
             {
-                m_nrgSI.push_back(nrg[8*i+k]);
+                //m_nrgSI.push_back(nrg[8*i+k]);
+                m_nrgSI.push_back(nrg[8*i+k] * exp(-absAir[k]*longueurRay));
             }
 
             float temps = 1000 * norme(vecteur(C,listener.getCentre())) / VITESSE_SON; // en ms
@@ -197,7 +200,7 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener)
                 m_xMax = temps;
             }
 
-            // MAUVAISE METHODE :
+            // MAUVAISE METHODE (à conserver pour le traitement acoustique par la suite) :
             /*
             bool srcTrouvee = false;
 
@@ -266,27 +269,43 @@ void SourceImage::calculerRIR(int f_ech)
     float freq = (float)f_ech/1000; // car on a des temps en ms (convertion en float)
 
     int nb_ech = ceil(m_xMax*freq);
+
+    if(nb_ech == 0) // Securité dans le cas de la source et listener confondu et sans rebond
+    {
+        nb_ech = 1;
+    }
+
     m_x.clear();
     m_y.clear();
     m_x.resize(nb_ech, 0);
     m_y.resize(nb_ech*8, 0);
+
 
    // Abscisses
     for (float i = 0 ; i <nb_ech ; i++)
    {
        m_x[i] = i/freq; // valeurs en ms
    }
-
+/*
     // Ordonnées
     for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
     {      
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
         {
-            m_y[round(8*m_sourcesImages_Tps[i]*freq + k) ] = m_y[round(8*m_sourcesImages_Tps[i]*freq + k)] + m_nrgSI[i*8 + k];
+            m_y[round(8*m_sourcesImages_Tps[i]*freq + k) ] += m_nrgSI[i*8 + k];
 
         }
 
     }
+*/
+    // Ordonnées
+    for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+    {
+        for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
+        {
+           m_y[floor(m_sourcesImages_Tps[i]*freq) + k*nb_ech] += m_nrgSI[i*8 + k];
+        }
 
+    }
 
 }

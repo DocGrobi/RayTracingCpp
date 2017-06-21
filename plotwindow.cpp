@@ -29,7 +29,7 @@ plotWindow::~plotWindow()
     delete ui;
 }
 
-
+/*
 void plotWindow::makePlot(std::vector<float> &x, std::vector<float> &y)
 {
     // Conversion en double
@@ -83,8 +83,63 @@ void plotWindow::makePlot(std::vector<float> &x, std::vector<float> &y)
     ui->customPlot->yAxis->setRange(0, 1);
     ui->customPlot->replot();
 }
+*/
+void plotWindow::makePlot(std::vector<float> &x, std::vector<float> &y)
+{
+    // Conversion en double
+    std::vector<double> vX(x.begin(),x.end());
+    std::vector<double> vY(y.begin(),y.end());
+
+    // Conversion en QVector
+    QVector<double> vectX = QVector<double>::fromStdVector(vX);
+    QVector<double> vectY = QVector<double>::fromStdVector(vY);
 
 
+    // Recupération des maximums
+    double xMax = vectX[vectX.size() - 1];
+    double yMax(0) ;
+
+    for (int i = 0 ; i < vectY.size() ; i++)
+    {
+        if (vectY[i] > yMax)
+        {
+            yMax = vectY[i];
+        }
+    }
+
+    // Normalisation sur les y et repartition sur les 8 courbes
+    QVector<QVector<double> > courbe;
+    courbe.resize(8);
+    int i(0), n(vectY.size()/8);
+
+    for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+    {
+        for (i = 0 ; i < n ; i++)
+        {
+            courbe[k].push_back(vectY[i+k*n]/yMax);
+        }
+    }
+
+    // Création graphique des courbes
+    for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+    {
+        ui->customPlot->addGraph();
+        ui->customPlot->graph(k)->setData(vectX, courbe[k]);
+        QString nom = QString::number(62.5*pow(2,k)) + "Hz";
+        ui->customPlot->graph(k)->setName(nom);
+        ui->customPlot->graph(k)->setPen(QPen(QColor::fromHsv(360/8*k,255,255)));
+    }
+
+    // Noms des axes
+    ui->customPlot->xAxis->setLabel("Temps (ms)");
+    ui->customPlot->yAxis->setLabel("Energie nomalisée");
+
+    // Regalges des plages des axes
+    //xMax = 40; //pour les tests
+    ui->customPlot->xAxis->setRange(0, xMax);
+    ui->customPlot->yAxis->setRange(0, 1);
+    ui->customPlot->replot();
+}
 
 // SLOTS :
 

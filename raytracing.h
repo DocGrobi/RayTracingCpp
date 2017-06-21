@@ -29,6 +29,7 @@ public:
     ~Ray();                               //Destructeur
     std::vector<float>& getRay() ;
     std::vector<float>& getNRG() ;
+    std::vector<float>& getNRGbackup() ;
     std::vector<float>& getPos() ;
     std::vector<float>& getDir() ;
     std::vector<float>& getDist() ;
@@ -52,7 +53,8 @@ private:
     // Utilisés
     int m_Nray;                 // Nombre de rayon * 3 (car trois coordonnées)
     CoordVector m_src;          // Position absolue de la source
-    std::vector<float> m_nrg;   // Energie portee par le rayon
+    std::vector<float> m_nrg;   // Energie portee par le rayon au moment t
+    std::vector<float> m_nrgBackup;   // Energie portee par le rayon
 
     std::vector<float> m_pos;   // Position du point de départ du rayon stockée
     std::vector<float> m_ray;   // Position du point de départ du rayon au moment t

@@ -29,7 +29,7 @@ private slots:
 
     void on_spinBox_nbRebond_valueChanged(int arg1);
 
-    void on_checkBox__rayFixe_toggled(bool checked);
+    void on_checkBox__rebFixe_toggled(bool checked);
 
     void on_spinBox_attenuation_valueChanged(int arg1);
 
@@ -47,6 +47,10 @@ private slots:
 
     void on_spinBox_freqEchan_valueChanged(int arg1);
 
+    void on_checkBox_rayAuto_toggled(bool checked);
+
+    void on_spinBox_seuilArret_valueChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
@@ -62,6 +66,9 @@ private:
     bool m_fibonacci;
     int m_nbRayon;
     int m_freq;
+    int m_seuilArret;
+    bool m_rayAuto;
+    float m_longueurRayMax;
 
 
 };

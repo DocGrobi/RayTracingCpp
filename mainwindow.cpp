@@ -28,13 +28,18 @@ MainWindow::MainWindow(QWidget *parent) :
    ui->label_listener->setText(m_listener.afficher());
 
    // CHARGEMENT PARAMETRES
+   on_checkBox__rebFixe_toggled(false);
+   on_radioButton_Fibonacci_toggled(true);
+   on_checkBox_rayAuto_toggled(false);
    m_nbRebond = ui->spinBox_nbRebond->value();
-   m_nbRayon = ui->spinBox_nbRay->value();
    m_seuilAttenuation = pow(10,(-(ui->spinBox_attenuation->value()/10)));
    m_temperature = ui->spinBox_temperature->value();
-   on_checkBox__rayFixe_toggled(false);
-   on_radioButton_Fibonacci_toggled(true);
    m_freq = ui->spinBox_freqEchan->value();
+   m_seuilArret = ui->spinBox_seuilArret->value();
+   m_nbRayon = ui->spinBox_nbRay->value();
+
+
+  Octree monOctree(m_meshObj);
 
 
 }
@@ -57,6 +62,37 @@ void MainWindow::on_bouton_normales_clicked()
     ObjWriter monObjWriter(fichierObj_2, 1);
 
     monObjWriter.display_normales(m_meshObj.getVertex(), m_meshObj.getNormals(), m_meshObj.getNb_data());
+}
+
+void MainWindow::on_bouton_source_clicked()
+{
+    // IMPORT
+    QString fichierObj = QCoreApplication::applicationDirPath() + "/srcForRayTracing.obj";
+    MeshObj monMeshObj(fichierObj);
+    m_source = monMeshObj.getSource();
+
+    ui->label_source->setText(m_source.afficher());
+
+}
+
+void MainWindow::on_bouton_listener_clicked()
+{
+    // IMPORT
+    QString fichierObj = QCoreApplication::applicationDirPath() + "/listenerForRayTracing.obj";
+    MeshObj monMeshObj(fichierObj);
+    m_listener = monMeshObj.getListener();
+
+    ui->label_listener->setText(m_listener.afficher());
+
+    if(m_rayAuto)
+    {
+        m_longueurRayMax = sqrt(m_nbRayon/m_seuilArret)*m_listener.getRayon();
+        QMessageBox msgBox;
+        msgBox.setText("Temps maximum pour mesure statistique : " + QString::number(m_longueurRayMax/VITESSE_SON)+ "s");
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.exec();
+    }
+
 }
 
 void MainWindow::on_bouton_rayons_clicked()
@@ -140,57 +176,6 @@ void MainWindow::on_bouton_rayons_clicked()
 
 }
 
-void MainWindow::on_bouton_source_clicked()
-{
-    // IMPORT
-    QString fichierObj = QCoreApplication::applicationDirPath() + "/srcForRayTracing.obj";
-    MeshObj monMeshObj(fichierObj);
-    m_source = monMeshObj.getSource();
-
-    ui->label_source->setText(m_source.afficher());
-
-}
-
-void MainWindow::on_bouton_listener_clicked()
-{
-    // IMPORT
-    QString fichierObj = QCoreApplication::applicationDirPath() + "/listenerForRayTracing.obj";
-    MeshObj monMeshObj(fichierObj);
-    m_listener = monMeshObj.getListener();
-
-    ui->label_listener->setText(m_listener.afficher());
-}
-
-void MainWindow::on_spinBox_nbRebond_valueChanged(int arg1)
-{
-    m_nbRebond = arg1;
-}
-
-void MainWindow::on_checkBox__rayFixe_toggled(bool checked)
-{
-    m_nbRebondFixe = checked;
-    if (checked)
-    {
-        ui->spinBox_attenuation->setEnabled(false);
-        ui->spinBox_nbRebond->setEnabled(true);
-    }
-    else
-    {
-        ui->spinBox_attenuation->setEnabled(true);
-        ui->spinBox_nbRebond->setEnabled(false);
-    }
-}
-
-void MainWindow::on_spinBox_attenuation_valueChanged(int arg1)
-{
-    m_seuilAttenuation = pow(10,(-arg1/10));
-
-}
-
-void MainWindow::on_spinBox_temperature_valueChanged(int arg1)
-{
-    m_temperature = arg1;
-}
 
 void MainWindow::on_bouton_sourcesImages_clicked()
 {
@@ -219,7 +204,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     m_timer.start();
     //qDebug() << "creation rayons" << m_timer.restart() << "ms";
 
-    Octree monOctree(monRay,m_meshObj);
+
 
 
     if (m_nbRebondFixe)
@@ -236,9 +221,9 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 
             monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
 
-            qDebug() << i << "eme iteration (rayons) : " << m_timer.restart() << "ms";
-            maSourceImage.addSourcesImages(monRay , m_listener);
-            qDebug() << i << "eme iteration (src img) : " << m_timer.restart() << "ms";
+            //qDebug() << i << "eme iteration (rayons) : " << m_timer.restart() << "ms";
+            maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
+            //qDebug() << i << "eme iteration (src img) : " << m_timer.restart() << "ms";
         }
         //maSourceImage.filtrerSourceImages();
         monObjWriter.display_sourceImages(maSourceImage, -1);
@@ -260,9 +245,9 @@ void MainWindow::on_bouton_sourcesImages_clicked()
             if (progress.wasCanceled())
                         break; // arrete la boucle
 
-            maSourceImage.addSourcesImages(monRay , m_listener);
+            maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
         }
-        maSourceImage.addSourcesImages(monRay , m_listener); // On le refait une fois à la sortie de boucle pour les dernier rayon
+        maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto); // On le refait une fois à la sortie de boucle pour les dernier rayon
         //maSourceImage.filtrerSourceImages();
         monObjWriter.display_sourceImages(maSourceImage, m_seuilAttenuation);
 
@@ -276,6 +261,37 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     progress.cancel();
 
     m_sourceImage = maSourceImage;
+}
+
+void MainWindow::on_spinBox_nbRebond_valueChanged(int arg1)
+{
+    m_nbRebond = arg1;
+}
+
+void MainWindow::on_checkBox__rebFixe_toggled(bool checked)
+{
+    m_nbRebondFixe = checked;
+    if (checked)
+    {
+        ui->spinBox_attenuation->setEnabled(false);
+        ui->spinBox_nbRebond->setEnabled(true);
+    }
+    else
+    {
+        ui->spinBox_attenuation->setEnabled(true);
+        ui->spinBox_nbRebond->setEnabled(false);
+    }
+}
+
+void MainWindow::on_spinBox_attenuation_valueChanged(int arg1)
+{
+    m_seuilAttenuation = pow(10,(-arg1/10));
+
+}
+
+void MainWindow::on_spinBox_temperature_valueChanged(int arg1)
+{
+    m_temperature = arg1;
 }
 
 void MainWindow::on_radioButton_vertexSource_toggled(bool checked)
@@ -340,4 +356,17 @@ void MainWindow::on_bouton_RIR_clicked()
 void MainWindow::on_spinBox_freqEchan_valueChanged(int arg1)
 {
     m_freq = arg1;
+}
+
+
+void MainWindow::on_checkBox_rayAuto_toggled(bool checked)
+{
+
+   //ui->spinBox_nbRay->setEnabled(!checked);
+   m_rayAuto = checked;
+}
+
+void MainWindow::on_spinBox_seuilArret_valueChanged(int arg1)
+{
+    m_seuilArret = arg1;
 }

@@ -55,13 +55,13 @@ CoordVector vecteur(std::vector<float>& a, int indA, const CoordVector &b)
 float produitScalaire(const CoordVector &a,const CoordVector &b)
 {
     float resultat = a.x*b.x + a.y*b.y + a.z*b.z;
-    /*
-    if(resultat< 0.0001 && resultat > -0.0001)
+
+    if(resultat< 0.00001 && resultat > -0.00001)
     {
         return 0;
         //qDebug() << "vecteurs colinéaires";
     }
-    */
+
     return resultat;
 }
 

@@ -565,11 +565,11 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox__rayFixe">
+   <widget class="QCheckBox" name="checkBox__rebFixe">
     <property name="geometry">
      <rect>
       <x>341</x>
-      <y>235</y>
+      <y>245</y>
       <width>171</width>
       <height>22</height>
      </rect>
@@ -588,7 +588,7 @@
     <property name="geometry">
      <rect>
       <x>536</x>
-      <y>257</y>
+      <y>272</y>
       <width>41</width>
       <height>25</height>
      </rect>
@@ -601,7 +601,7 @@
     <property name="geometry">
      <rect>
       <x>346</x>
-      <y>260</y>
+      <y>275</y>
       <width>130</width>
       <height>20</height>
      </rect>
@@ -614,7 +614,7 @@
     <property name="geometry">
      <rect>
       <x>346</x>
-      <y>292</y>
+      <y>307</y>
       <width>141</width>
       <height>16</height>
      </rect>
@@ -627,7 +627,7 @@
     <property name="geometry">
      <rect>
       <x>532</x>
-      <y>287</y>
+      <y>302</y>
       <width>48</width>
       <height>25</height>
      </rect>
@@ -643,7 +643,7 @@
     <property name="geometry">
      <rect>
       <x>345</x>
-      <y>317</y>
+      <y>332</y>
       <width>151</width>
       <height>20</height>
      </rect>
@@ -659,7 +659,7 @@
     <property name="geometry">
      <rect>
       <x>532</x>
-      <y>315</y>
+      <y>330</y>
       <width>48</width>
       <height>25</height>
      </rect>
@@ -799,7 +799,7 @@
     <property name="geometry">
      <rect>
       <x>343</x>
-      <y>178</y>
+      <y>197</y>
       <width>131</width>
       <height>16</height>
      </rect>
@@ -812,7 +812,7 @@
     <property name="geometry">
      <rect>
       <x>490</x>
-      <y>175</y>
+      <y>194</y>
       <width>91</width>
       <height>25</height>
      </rect>
@@ -843,7 +843,7 @@
     <property name="geometry">
      <rect>
       <x>320</x>
-      <y>210</y>
+      <y>220</y>
       <width>191</width>
       <height>22</height>
      </rect>
@@ -898,6 +898,54 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_rayAuto">
+    <property name="geometry">
+     <rect>
+      <x>325</x>
+      <y>150</y>
+      <width>240</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::RightToLeft</enum>
+    </property>
+    <property name="text">
+     <string>Nombre rayon selon taille listener</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_seuilArret">
+    <property name="geometry">
+     <rect>
+      <x>344</x>
+      <y>173</y>
+      <width>151</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Seuil d'arret statistique</string>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="spinBox_seuilArret">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>170</y>
+      <width>91</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+    <property name="maximum">
+     <number>1000</number>
+    </property>
+    <property name="value">
+     <number>100</number>
     </property>
    </widget>
   </widget>
