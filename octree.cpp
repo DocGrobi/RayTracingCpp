@@ -6,11 +6,11 @@
 
 
 // classes
-Octree::Octree(MeshObj monMesh)
+Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
 {
 
     // Declaration
-    int seuil = 5;
+    int seuil = nbFaceFeuille;
     int k(0), i(0), j(0), nbBoiteNew, nbBoiteOld(1); // on demarre à 1 boite (boite racine)
 
 

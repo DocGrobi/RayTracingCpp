@@ -32,7 +32,7 @@ public:
 
 class Octree{
 public:
-    Octree(MeshObj monMesh);
+    Octree(MeshObj monMesh, int nbFaceFeuille);
     ~Octree();
     std::vector<Boite>& getVectBoite();
 

@@ -145,7 +145,7 @@ void ObjWriter::display_normales(std::vector<float> &vertex, std::vector<float> 
     difference.clear();
 }
 
-void ObjWriter::display_ray(Source source, std::vector<float> &ray, int nbRay, int nb_rebond)
+void ObjWriter::display_ray(Source &source, std::vector<float> &ray, int nbRay, int nb_rebond)
 {
     QFile fichier(m_chemin);
 
@@ -182,7 +182,7 @@ void ObjWriter::display_ray(Source source, std::vector<float> &ray, int nbRay, i
 }
 
 
-void ObjWriter::rec_Vert(Source source, Ray monRay, int nbRay, int num_rebond, float seuil)
+void ObjWriter::rec_Vert(Source &source, Ray &monRay, int nbRay, int num_rebond, float seuil)
 {
     QFile fichier(m_chemin);
     std::vector<float> ray = monRay.getRay();
@@ -301,7 +301,7 @@ void ObjWriter::rec_Line(int nbRay, int nbRebond)
 }
 
 
-void ObjWriter::display_sourceImages(SourceImage srcImg, float seuil)
+void ObjWriter::display_sourceImages(SourceImage &srcImg, float seuil)
 {
     QFile fichier(m_chemin);
 
@@ -326,4 +326,80 @@ void ObjWriter::display_sourceImages(SourceImage srcImg, float seuil)
     }
 
     fichier.close(); // ferme le fichier
+}
+
+void ObjWriter::display_octree(std::vector<Boite> &oct)
+{
+    QFile fichier(m_chemin);
+    int i, j;
+
+    std::vector<CoordVector> coordVertexBoite;
+
+    fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
+
+    // creation d'un entete
+    QString text("o Octree \n");
+    fichier.write(text.toLatin1());
+
+    // Pour chaque boite
+    for ( i = 0 ; i<oct.size() ; i++)
+    {
+        coordVertexBoite = coordVertBoite(oct[i]);
+        // Ecriture des huit vertex ligne par ligne
+        for (j = 0 ; j < coordVertexBoite.size() ; j++)
+        {
+            text = "v "+ CoordVector2QString(coordVertexBoite[j]) + "\n";
+            fichier.write(text.toLatin1());
+        }
+    }
+
+    // On relie les points
+    std::vector<QString> ligne;
+    ligne.resize(12,"");
+    // Pour chaque boite
+    for ( i = 0 ; i<oct.size() ; i++)
+    {
+        ligne[0]  = "l " + QString::number(8*i +1) + " " + QString::number(8*i+2) + "\n";
+        ligne[1]  = "l " + QString::number(8*i +1) + " " + QString::number(8*i+3) + "\n";
+        ligne[2]  = "l " + QString::number(8*i +1) + " " + QString::number(8*i+5) + "\n";
+        ligne[3]  = "l " + QString::number(8*i +2) + " " + QString::number(8*i+4) + "\n";
+        ligne[4]  = "l " + QString::number(8*i +2) + " " + QString::number(8*i+6) + "\n";
+        ligne[5]  = "l " + QString::number(8*i +3) + " " + QString::number(8*i+4) + "\n";
+        ligne[6]  = "l " + QString::number(8*i +3) + " " + QString::number(8*i+7) + "\n";
+        ligne[7]  = "l " + QString::number(8*i +4) + " " + QString::number(8*i+8) + "\n";
+        ligne[8]  = "l " + QString::number(8*i +5) + " " + QString::number(8*i+6) + "\n";
+        ligne[9]  = "l " + QString::number(8*i +5) + " " + QString::number(8*i+7) + "\n";
+        ligne[10] = "l " + QString::number(8*i +6) + " " + QString::number(8*i+8) + "\n";
+        ligne[11] = "l " + QString::number(8*i +7) + " " + QString::number(8*i+8) + "\n";
+
+        for (j = 0 ; j < ligne.size() ; j ++)
+        {
+            fichier.write(ligne[j].toLatin1());
+        }
+    }
+
+    fichier.close(); // ferme le fichier
+
+}
+
+// Méthodes
+
+std::vector<CoordVector> coordVertBoite(Boite &boite)
+{
+    CoordVector centre = boite.m_centre;
+    float rayon = boite.m_rayon;
+    std::vector<CoordVector> coordVert;
+    coordVert.resize(8,CoordVector(0,0,0));
+
+    coordVert[0] = CoordVector(centre.x -rayon, centre.y -rayon, centre.z -rayon);
+    coordVert[1] = CoordVector(centre.x +rayon, centre.y -rayon, centre.z -rayon);
+    coordVert[2] = CoordVector(centre.x -rayon, centre.y +rayon, centre.z -rayon);
+    coordVert[3] = CoordVector(centre.x +rayon, centre.y +rayon, centre.z -rayon);
+    coordVert[4] = CoordVector(centre.x -rayon, centre.y -rayon, centre.z +rayon);
+    coordVert[5] = CoordVector(centre.x +rayon, centre.y -rayon, centre.z +rayon);
+    coordVert[6] = CoordVector(centre.x -rayon, centre.y +rayon, centre.z +rayon);
+    coordVert[7] = CoordVector(centre.x +rayon, centre.y +rayon, centre.z +rayon);
+
+    return coordVert;
+
 }

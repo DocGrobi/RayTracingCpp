@@ -5,12 +5,12 @@
 #include "rir.h"
 #include <QProgressDialog>
 #include "plotwindow.h"
-#include "octree.h"
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_meshObj(QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj"),
-  m_listener(m_meshObj.getListener()), m_source(m_meshObj.getSource())// , m_monRay(1,1,m_source)
+  m_listener(m_meshObj.getListener()), m_source(m_meshObj.getSource())//, m_octree(Octree(m_meshObj, ui->spinBox_nbFaceFeuille->value()))// , m_monRay(1,1,m_source)
 {
 
    // IMPORT
@@ -31,15 +31,17 @@ MainWindow::MainWindow(QWidget *parent) :
    on_checkBox__rebFixe_toggled(false);
    on_radioButton_Fibonacci_toggled(true);
    on_checkBox_rayAuto_toggled(false);
+   on_checkBox_methodeRapide_toggled(false);
    m_nbRebond = ui->spinBox_nbRebond->value();
    m_seuilAttenuation = pow(10,(-(ui->spinBox_attenuation->value()/10)));
    m_temperature = ui->spinBox_temperature->value();
    m_freq = ui->spinBox_freqEchan->value();
    m_seuilArret = ui->spinBox_seuilArret->value();
    m_nbRayon = ui->spinBox_nbRay->value();
+   m_nbFaceFeuille = ui->spinBox_nbFaceFeuille->value();
 
 
-  Octree monOctree(m_meshObj);
+  //Octree monOctree(m_meshObj);
 
 
 }
@@ -263,6 +265,20 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     m_sourceImage = maSourceImage;
 }
 
+void MainWindow::on_bouton_octree_clicked()
+{
+
+    // EXPORT
+    QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
+    ObjWriter monObjWriter(fichierObj_2, 0);
+
+    on_checkBox_methodeRapide_toggled(true); // recalcule l'octree
+    ui->checkBox_methodeRapide->setChecked(true);
+
+    monObjWriter.display_octree(m_octree);
+
+}
+
 void MainWindow::on_spinBox_nbRebond_valueChanged(int arg1)
 {
     m_nbRebond = arg1;
@@ -349,8 +365,6 @@ void MainWindow::on_bouton_RIR_clicked()
     plot.setModal(true);
     plot.exec();
 
-
-
 }
 
 void MainWindow::on_spinBox_freqEchan_valueChanged(int arg1)
@@ -369,4 +383,19 @@ void MainWindow::on_checkBox_rayAuto_toggled(bool checked)
 void MainWindow::on_spinBox_seuilArret_valueChanged(int arg1)
 {
     m_seuilArret = arg1;
+}
+
+
+void MainWindow::on_spinBox_nbFaceFeuille_valueChanged(int arg1)
+{
+    m_nbFaceFeuille = arg1;
+}
+
+void MainWindow::on_checkBox_methodeRapide_toggled(bool checked)
+{
+    if(checked)
+    {
+        m_octree = Octree(m_meshObj,m_nbFaceFeuille).getVectBoite();
+    }
+    m_methodeRapide = checked;
 }
