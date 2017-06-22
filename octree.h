@@ -26,6 +26,7 @@ public:
     float m_rayon;
     CoordVector m_centre;
     int m_indicePere;
+    int m_indiceBoite;
     std::vector<int> m_numElt;
 };
 
