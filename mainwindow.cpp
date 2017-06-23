@@ -40,9 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
    m_nbRayon = ui->spinBox_nbRay->value();
    m_nbFaceFeuille = ui->spinBox_nbFaceFeuille->value();
 
-
   //Octree monOctree(m_meshObj);
-
 
 }
 
@@ -183,6 +181,8 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 {
     // lancer le timer
     //m_timer.start();
+
+
     // RAYONS
     Ray monRay(m_nbRayon, m_source, m_fibonacci);
     int nbRayons = monRay.getRay().size()/6; // m_ray est composé de 2 points par rayons chacun avec 3 coordonnées
@@ -193,6 +193,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     // EXPORT
     QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
     ObjWriter monObjWriter(fichierObj_2, nbRayons);
+
 
     // Ouvrir fenetre de progress bar
     QProgressDialog progress(this);
@@ -207,8 +208,6 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     //qDebug() << "creation rayons" << m_timer.restart() << "ms";
 
 
-
-
     if (m_nbRebondFixe)
     {
         progress.setRange(0,m_nbRebond);
@@ -221,7 +220,15 @@ void MainWindow::on_bouton_sourcesImages_clicked()
             if (progress.wasCanceled())
                         break;
 
-            monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+            if (!m_methodeRapide)
+            {
+                monRay.rebondSansMemoire(m_meshObj, -1, m_octree);
+            }
+            else
+            {
+                monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+
+            }
 
             //qDebug() << i << "eme iteration (rayons) : " << m_timer.restart() << "ms";
             maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
@@ -275,7 +282,8 @@ void MainWindow::on_bouton_octree_clicked()
     on_checkBox_methodeRapide_toggled(true); // recalcule l'octree
     ui->checkBox_methodeRapide->setChecked(true);
 
-    monObjWriter.display_octree(m_octree);
+    //monObjWriter.display_octree(m_octree);
+    monObjWriter.display_octree(m_octree.getVectBoite());
 
 }
 
@@ -395,7 +403,11 @@ void MainWindow::on_checkBox_methodeRapide_toggled(bool checked)
 {
     if(checked)
     {
-        m_octree = Octree(m_meshObj,m_nbFaceFeuille).getVectBoite();
+        //m_octree = Octree(m_meshObj,m_nbFaceFeuille).getVectBoite();
+        m_octree = Octree(m_meshObj,m_nbFaceFeuille);
+        // RAYONS
+        Ray monRay(m_nbRayon, m_source, m_fibonacci);
+        m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
     }
     m_methodeRapide = checked;
 }

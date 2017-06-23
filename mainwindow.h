@@ -64,8 +64,8 @@ private:
     Source m_source;
     Listener m_listener;
     SourceImage m_sourceImage;
-    //Octree m_octree;
-    std::vector<Boite> m_octree;
+    Octree m_octree;
+    //std::vector<Boite> m_octree;
     //Ray m_monRay;
     int m_nbRebond;
     float m_seuilAttenuation;

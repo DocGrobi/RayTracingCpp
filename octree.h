@@ -2,7 +2,7 @@
 #define OCTREE_H
 
 #include "objreader.h"
-#include "raytracing.h"
+
 
 // classes
 class Boite{
@@ -17,9 +17,12 @@ public:
     int getIndPere();
     */
     void chargerElt(int indice);
+    void chargerRay(int indice);
     void supprElt(int position);
+    void supprRay(int position);
     int getNbElt();
     std::vector<int>& getVectNumElt();
+
 
 
 //private:
@@ -27,15 +30,19 @@ public:
     CoordVector m_centre;
     int m_indicePere;
     int m_indiceBoite;
+    std::vector<int> m_numRayon;
     std::vector<int> m_numElt;
 };
 
 
 class Octree{
 public:
+    Octree();
     Octree(MeshObj monMesh, int nbFaceFeuille);
     ~Octree();
-    std::vector<Boite>& getVectBoite();
+    Octree operator=(const Octree &oct);
+    std::vector<Boite> getVectBoite() const;
+    void chargerRayon(std::vector<float> &orig, std::vector<float> &dir);
 
 
 private:
@@ -49,5 +56,6 @@ void etagesuivant(std::vector<float>& vert, std::vector<Boite>& vectBoite, int i
 bool appartientBoite(Boite boite, float valeur);
 std::vector<Boite> decoupage(Boite &boitePere);
 bool estUneFeuille(Boite boite, int seuil);
+bool intersecBoiteRay(Boite &boite, std::vector<float>& orig, std::vector<float>& dir, int indice);
 
 #endif // OCTREE_H

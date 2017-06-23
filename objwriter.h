@@ -20,7 +20,7 @@ class ObjWriter
     void rec_Vert(Source &source, Ray &monRay, int nbRay, int num_rebond, float seuil);
     void rec_Line(int nbRay, int nbRebond);
     void display_sourceImages(SourceImage &srcImg,float seuil);
-    void display_octree(std::vector<Boite> &oct);
+    void display_octree(const std::vector<Boite> &oct);
 
 private:
     QString m_chemin;
@@ -29,6 +29,6 @@ private:
 
 };
 
-std::vector<CoordVector> coordVertBoite(Boite &boite);
+std::vector<CoordVector> coordVertBoite(const Boite &boite);
 
 #endif // OBJWRITER_H

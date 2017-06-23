@@ -2,7 +2,7 @@
 #define RAYTRACING_H
 
 #include "objreader.h"
-
+#include "octree.h"
 
 // Méthodes
 CoordVector intersection(const CoordVector &point_ray, const CoordVector &vect_dir, const CoordVector &vect_norm, float k);
@@ -32,6 +32,7 @@ public:
     std::vector<float>& getNRGbackup() ;
     std::vector<float>& getPos() ;
     std::vector<float>& getDir() ;
+    std::vector<float>& getvDir();
     std::vector<float>& getDist() ;
     std::vector<float>& getLong() ;
 
@@ -40,6 +41,7 @@ public:
 
     void rebond(MeshObj mesh, int nb_rebond);
     bool rebondSansMemoire(MeshObj mesh, float seuil);
+    bool rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct); // fonction surchargée avec octree
     bool rebondSansMemoireBis(MeshObj mesh, float seuil);
 
     void stockage();

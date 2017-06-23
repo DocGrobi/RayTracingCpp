@@ -356,6 +356,11 @@ std::vector<float> &Ray::getDir()
     return m_dir;
 }
 
+std::vector<float> &Ray::getvDir()
+{
+    return m_vDir;
+}
+
 int Ray::getNbRay() const
 {
     return m_Nray;
@@ -708,6 +713,142 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
         //qDebug() << "produit scalaire avec std vector : " << tpsSTD/1000000 << "ms";
         //qDebug() << "produit scalaire avec  Coordvector : " << tpsCoo/1000000 << "ms";
 
+    return rayonsExistent;
+}
+
+
+// rayons puis faces
+bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
+{
+    // chargement du mesh
+    std::vector<float> normales(mesh.getNormals());
+    std::vector<float> vertex(mesh.getVertex());
+    std::vector<float> indiceMat(mesh.getIndMat());
+    std::vector<Boite> vectBoite(oct.getVectBoite());
+
+    // Declarations
+    std::vector<float> absAir = absorptionAir(20);
+    CoordVector point, vect_dir, vect_ref,vect_norm;
+    CoordVector A,B,C; // trois points
+    float longueur_inst(0),nor(0);
+    int compteur(0),face(0);
+    bool rayonsExistent = false;
+    int j(0), k(0), l(0), ind(0), indRay(0), indElt(0);
+    int nbVertex = vertex.size();
+
+    stockage();
+
+
+    for (ind = 0 ; ind< vectBoite.size() ; ind ++) // pour chaque boite
+    {
+
+
+        for(j=0; j< vectBoite[ind].m_numRayon.size() ;j++) // pour chaque rayon compris dans la boite
+        {
+            indRay = vectBoite[ind].m_numRayon[j];
+            //SI LE RAYON N'EST PAS MORT
+            if (m_rayVivant[j])
+            {
+
+                // recuperation d'un point et du vecteur directeur
+                point.x = m_ray[indRay];
+                point.y = m_ray[indRay+1];
+                point.z = m_ray[indRay+2];
+
+                //timer.restart();
+
+                vect_dir.x = m_vDir[indRay];
+                vect_dir.y = m_vDir[indRay+1];
+                vect_dir.z = m_vDir[indRay+2];
+
+                // Stockage de la longeur du nouveau rayon
+                m_long[indRay/3] = 1000000;
+
+
+
+                for (k=0; k < vectBoite[ind].m_numElt.size(); k++) // pour chaque face compris dans la boite
+                {
+                    indElt = indRay = vectBoite[ind].m_numElt[k];
+
+                    // ALTERNATIVE
+
+                    A.x = vertex[indElt];
+                    A.y = vertex[indElt+1];
+                    A.z = vertex[indElt+2];
+                    B.x = vertex[indElt+3];
+                    B.y = vertex[indElt+4];
+                    B.z = vertex[indElt+5];
+                    C.x = vertex[indElt+6];
+                    C.y = vertex[indElt+7];
+                    C.z = vertex[indElt+8];
+
+
+                    // longueur du rayon depuis point de depart dans le sens du vecteur directeur et intersectant avec la face ABC
+                    longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
+
+                    if (longueur_inst > 0 && longueur_inst < m_long[indRay/3]) // Rayon dans le sens du vecteur directeur et le plus petit trouvé
+                    {
+                        // On sauvegrade la plus petite longueur
+                        m_long[indRay/3] = longueur_inst;
+                        //on sauvegarde la dernière face testée
+                        face = indElt;
+                    }
+
+                }
+
+
+                // POUR CHAQUE NOUVEAU RAYON
+
+                // on remplace le bout du rayon par le point d'intersection
+                m_ray[indRay]   = point.x + vect_dir.x*m_long[indRay/3];
+                m_ray[indRay+1] = point.y + vect_dir.y*m_long[indRay/3];
+                m_ray[indRay+2] = point.z + vect_dir.z*m_long[indRay/3];
+
+
+
+                // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
+                vect_norm.x = normales[face];
+                vect_norm.y = normales[face+1];
+                vect_norm.z = normales[face+2];
+
+                vect_ref = vecteur_reflechi(vect_dir,vect_norm);
+                nor = norme(vect_ref);
+                //nor = vect_ref*vect_ref;
+                m_vDir[indRay]   = vect_ref.x/nor;
+                m_vDir[indRay+1] = vect_ref.y/nor;
+                m_vDir[indRay+2] = vect_ref.z/nor;
+
+
+                // On ajoute à la longueur du nouveau rayon à la longueur totale
+                m_dist[indRay/3] = m_dist[indRay/3] + m_long[indRay/3];
+
+                //On met à jour l'énergie du nouveau rayon pour chaque bande
+                compteur = 0;
+                for (l=0; l<8; l++)
+                {
+                    m_nrg[indRay/3*8 + l] = m_nrg[indRay/3*8+l] * (1-indiceMat[face+l+1]) * exp(-absAir[l]*m_long[indRay/3]);
+                    //m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]);
+                    // test si le rayon est mort
+                    if (m_nrg[indRay/3*8 + l] > seuil) // s'il existe au moins un rayon vivant
+                    {
+                        rayonsExistent = true;
+                    }
+                    else
+                    {
+                        compteur++;
+                    }
+                }
+                // si l'énergie sur les 8 bandes est inférieure au seuil le rayons est déclaré mort
+                if (compteur == 8)
+                {
+                    m_rayVivant[indRay/3] = false;
+                    //comptage des rayons morts pour la progress bar
+                    m_nbRayMort++;
+                }
+                compteur = 0;
+            }
+        }
+    }
     return rayonsExistent;
 }
 

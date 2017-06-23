@@ -1,11 +1,16 @@
 #include "octree.h"
 #include "QDebug"
 #include <math.h>
+#include <algorithm>    // std::swap
 
 //methodes
 
 
 // classes
+Octree::Octree()
+{
+}
+
 Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
 {
 
@@ -61,15 +66,15 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
 
 
     //I- Création de la boite root
-    Boite boitesRacine(centre, rayon, 0);
-    boitesRacine.m_indiceBoite = 1;
+    Boite boiteRacine(centre, rayon, -1);
+    boiteRacine.m_indiceBoite = 0;
     for (k = 0 ; k < vert.size() ; k+=9)
     {
-        boitesRacine.chargerElt(k);
+        boiteRacine.chargerElt(k);
     }
 
     // II- Stockage de la boite racine
-    m_vectBoite.push_back(boitesRacine);
+    m_vectBoite.push_back(boiteRacine);
 
     // III- Premiere ramification (les huit nouvelles boites sont ajoutée à m_vectBoite)
     etagesuivant(vert,m_vectBoite, 0);
@@ -96,8 +101,15 @@ Octree::~Octree()
 {
 }
 
+Octree Octree::operator=(const Octree &oct)
+{
+    m_vectBoite.resize(oct.getVectBoite().size(),Boite());
+    m_vectBoite = oct.getVectBoite();
+    return *this;
+}
 
-std::vector<Boite>& Octree::getVectBoite(){
+
+std::vector<Boite> Octree::getVectBoite() const{
     return m_vectBoite;
 }
 
@@ -127,6 +139,7 @@ Boite Boite::operator=(const Boite &boite)
     m_indicePere = boite.m_indicePere;
     m_indiceBoite = boite.m_indiceBoite;
     m_numElt = boite.m_numElt;
+    m_numRayon = boite.m_numRayon;
 
     return *this;
 }
@@ -156,9 +169,19 @@ void Boite::chargerElt(int indice)
     m_numElt.push_back(indice);
 }
 
+void Boite::chargerRay(int indice)
+{
+    m_numRayon.push_back(indice);
+}
+
 void Boite::supprElt(int position)
 {
     m_numElt.erase(m_numElt.begin()+position);
+}
+
+void Boite::supprRay(int position)
+{
+    m_numRayon.erase(m_numRayon.begin()+position);
 }
 
 //Methodes
@@ -198,7 +221,7 @@ void etagesuivant(std::vector<float> &vert, std::vector<Boite> &vectBoite, int i
                 vectBoite[indiceBoite].supprElt(k); // et on le retire de la boite pere
             }
         }
-        boitesFilles[i].m_indiceBoite = vectBoite.size()+1;
+        boitesFilles[i].m_indiceBoite = vectBoite.size();
         vectBoite.push_back(boitesFilles[i]); // Ajout de la boite fille
 
     }
@@ -237,5 +260,114 @@ std::vector<Boite> decoupage(Boite &boitePere)
     boitesFilles[7] = Boite(CoordVector(centre.x + rayon/2, centre.y + rayon/2, centre.z + rayon/2), rayon/2, indicePere);
 
     return boitesFilles;
+
+}
+
+void Octree::chargerRayon(std::vector<float> &orig, std::vector<float> &dir)
+{
+
+    Boite boitePere;
+
+    int i, j, ind;
+
+    // Chargement de la boite racine avec tous les indices rayons : pourra se mettre dans une fonction externe pour ne pas être répeté à chaque boucle
+    for (j = 0; j<orig.size() ; j+=3)
+    {
+        m_vectBoite[0].m_numRayon.push_back(j);
+    }
+
+    // Pour chaque boite : chargement de l'indice des rayons qui intersectent avec elle
+    for (i = 1 ; i < m_vectBoite.size() ; i++)
+    {
+        // boite i en test : m_vectBoite[i]
+
+        // On supprime les indices des rayons précedemment enregistrés
+        m_vectBoite[i].m_numRayon.clear();
+
+        boitePere = m_vectBoite[m_vectBoite[i].m_indicePere];
+
+        // Pour tous les rayons contenus dans la boite père.
+        for (j = boitePere.m_numRayon.size()-1 ; j >=0  ; j--)
+        {
+            ind = boitePere.m_numRayon[j];
+            // rayon j en test : orig[j] et dir[j]
+            // test intersection entre rayon j et boite i
+            if (intersecBoiteRay(m_vectBoite[i], orig, dir, ind))
+            {
+                m_vectBoite[i].chargerRay(ind); // Ajout des rayons à la boite courante
+                m_vectBoite[m_vectBoite[i].m_indicePere].supprRay(j); // Suppression des rayons de la boite père
+            }
+        }
+    }
+}
+
+bool intersecBoiteRay(Boite &boite, std::vector<float>& orig, std::vector<float>& dir, int indice)
+{
+    CoordVector centre = boite.m_centre;
+    float r = boite.m_rayon;
+    float t0x, t0y, t0z, t1x, t1y, t1z;
+
+    t0x =  centre.x - r;
+    t0y =  centre.y - r;
+    t0z =  centre.z - r;
+    t1x =  centre.x + r;
+    t1y =  centre.y + r;
+    t1z =  centre.z + r;
+
+    // implementation http://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+
+
+    float invDirx = 1/ dir[indice];
+    float invDiry = 1/ dir[indice+1];
+    float invDirz = 1/ dir[indice+2];
+
+    float tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+    if (invDirx >=0)
+    {
+        tmin = (t0x - orig[indice]) * invDirx;
+        tmax = (t1x - orig[indice]) * invDirx;
+    }
+    else
+    {
+        tmax = (t0x - orig[indice]) * invDirx;
+        tmin = (t1x - orig[indice]) * invDirx;
+    }
+
+    if (invDiry >=0)
+    {
+        tymin = (t0y - orig[indice+1]) * invDiry;
+        tymax = (t1y - orig[indice+1]) * invDiry;
+    }
+    else
+    {
+        tymax = (t0y - orig[indice+1]) * invDiry;
+        tymin = (t1y - orig[indice+1]) * invDiry;
+    }
+
+   if ((tmin > tymax) || (tymin > tmax))
+   return false;
+
+   if (tymin > tmin)
+   tmin = tymin;
+   if (tymax < tmax)
+   tmax = tymax;
+
+   if(invDirz >= 0)
+   {
+       tzmin = (t0z - orig[indice+2]) * invDirz;
+       tzmax = (t1z - orig[indice+2]) * invDirz;
+   }
+   else
+   {
+       tzmax = (t0z - orig[indice+2]) * invDirz;
+       tzmin = (t1z - orig[indice+2]) * invDirz;
+   }
+
+   if ((tmin > tzmax) || (tzmin > tmax))
+   return false;
+
+
+   return true;
 
 }

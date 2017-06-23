@@ -328,7 +328,7 @@ void ObjWriter::display_sourceImages(SourceImage &srcImg, float seuil)
     fichier.close(); // ferme le fichier
 }
 
-void ObjWriter::display_octree(std::vector<Boite> &oct)
+void ObjWriter::display_octree(const std::vector<Boite> &oct)
 {
     QFile fichier(m_chemin);
     int i, j;
@@ -384,7 +384,7 @@ void ObjWriter::display_octree(std::vector<Boite> &oct)
 
 // Méthodes
 
-std::vector<CoordVector> coordVertBoite(Boite &boite)
+std::vector<CoordVector> coordVertBoite(const Boite &boite)
 {
     CoordVector centre = boite.m_centre;
     float rayon = boite.m_rayon;
