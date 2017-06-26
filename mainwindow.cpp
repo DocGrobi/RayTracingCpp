@@ -130,7 +130,7 @@ void MainWindow::on_bouton_rayons_clicked()
             if (progress.wasCanceled())
                         break;
 
-            monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+            monRay.rebondSansMemoire(m_meshObj, -1, m_octree); // calcul des points d'intersection entre rayons et faces
             monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, -1); // ecriture des vertex
 
         }

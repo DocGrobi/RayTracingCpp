@@ -1,7 +1,8 @@
 #include "octree.h"
 #include "QDebug"
 #include <math.h>
-#include <algorithm>    // std::swap
+//#include <algorithm>    // std::swap
+#include <QMessageBox>
 
 //methodes
 
@@ -15,10 +16,8 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
 {
 
     // Declaration
-    int seuil = nbFaceFeuille;
-    int k(0), i(0), j(0), nbBoiteNew, nbBoiteOld(1); // on demarre à 1 boite (boite racine)
-
-
+    m_seuil = nbFaceFeuille;
+    int k(0), i(0), j(0), nbBoiteNew(0), nbBoiteOld(0);
 
     // création du cube racine
     std::vector<float> vert = monMesh.getVertex();
@@ -76,9 +75,6 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     // II- Stockage de la boite racine
     m_vectBoite.push_back(boiteRacine);
 
-    // III- Premiere ramification (les huit nouvelles boites sont ajoutée à m_vectBoite)
-    etagesuivant(vert,m_vectBoite, 0);
-
     // Tant que le nombre de boite augmente
     while (m_vectBoite.size() > nbBoiteOld)
     {
@@ -88,13 +84,21 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
         // pour chaque boite du nouvel étage
         for(i = nbBoiteOld - nbBoiteNew ; i <nbBoiteOld ; i++ )
         {
-            // IV- Si la boite n'est pas une feuille : Découpage de la boite courante en huit
-            if (!estUneFeuille(m_vectBoite[i], seuil))
-            {
-                etagesuivant(vert,m_vectBoite, i);
-            }
+            // III- Si la boite n'est pas une feuille : Découpage de la boite courante en huit
+             etagesuivant(vert, i);
         }
     }
+
+    // Vérification
+    int nbElt(0);
+    for (i = 0 ; i< m_vectBoite.size() ; i++)
+    {
+        nbElt+= m_vectBoite[i].m_numElt.size();
+    }
+    if(vert.size()/9 != nbElt)
+        QMessageBox::critical(NULL,"Erreur","Mauvaise mise en boite des faces");
+
+
 }
 
 Octree::~Octree()
@@ -105,12 +109,17 @@ Octree Octree::operator=(const Octree &oct)
 {
     m_vectBoite.resize(oct.getVectBoite().size(),Boite());
     m_vectBoite = oct.getVectBoite();
+    m_seuil = oct.getSeuil();
     return *this;
 }
 
 
 std::vector<Boite> Octree::getVectBoite() const{
     return m_vectBoite;
+}
+
+int Octree::getSeuil() const{
+    return m_seuil;
 }
 
 Boite::Boite()
@@ -140,6 +149,7 @@ Boite Boite::operator=(const Boite &boite)
     m_indiceBoite = boite.m_indiceBoite;
     m_numElt = boite.m_numElt;
     m_numRayon = boite.m_numRayon;
+    estUneFeuille = boite.estUneFeuille;
 
     return *this;
 }
@@ -186,47 +196,56 @@ void Boite::supprRay(int position)
 
 //Methodes
 
-void etagesuivant(std::vector<float> &vert, std::vector<Boite> &vectBoite, int indiceBoite)
+void Octree::etagesuivant(std::vector<float> &vert, int indiceBoite)
 {
-    float r, x, y, z; // valeurs tampon
-    // les valeurs tampon servent à comparer [Somme des x] à 3*centre +/-r.
-    int i, k, ind;
-    std::vector<int> elt;
-
-    // V- Création des 8 boites filles à partir de la boite actuelle
-    std::vector<Boite> boitesFilles = decoupage(vectBoite[indiceBoite]);
-
-    r = 3*vectBoite[indiceBoite].m_rayon/2; // valeur de comparaison tampon
-
-    // VI- Pour chaque nouvelle boite :
-    for (i = 0 ; i<8 ; i++)
+    // Si la boite n'est pas une feuille
+    if (m_vectBoite[indiceBoite].m_numElt.size() < m_seuil)
     {
-        // valeurs de comparaison tampon
-        x = 3*boitesFilles[i].m_centre.x;
-        y = 3*boitesFilles[i].m_centre.y;
-        z = 3*boitesFilles[i].m_centre.z;
-
-        elt = vectBoite[indiceBoite].getVectNumElt();
-
-        // Pour chaque face compris dans la boite père
-        for (k = elt.size()-1; k >=0  ; k--)
-        {
-            ind = elt[k];
-
-            if (fabs(vert[ind]  +vert[ind+3]+vert[ind+6] - x) <= r
-             && fabs(vert[ind+1]+vert[ind+4]+vert[ind+7] - y) <= r
-             && fabs(vert[ind+2]+vert[ind+5]+vert[ind+8] - z) <= r)
-            {
-                boitesFilles[i].chargerElt(ind);    // Si la face est inclue dans la boite fille en test on stock son indice
-                vectBoite[indiceBoite].supprElt(k); // et on le retire de la boite pere
-            }
-        }
-        boitesFilles[i].m_indiceBoite = vectBoite.size();
-        vectBoite.push_back(boitesFilles[i]); // Ajout de la boite fille
-
+        m_vectBoite[indiceBoite].estUneFeuille = true;
     }
-}
+    else
+    {
+        float r, x, y, z; // valeurs tampon
+        // les valeurs tampon servent à comparer [Somme des x] à 3*centre +/-r.
+        int i, k, ind;
+        std::vector<int> elt;
 
+        // V- Création des 8 boites filles à partir de la boite actuelle
+        std::vector<Boite> boitesFilles = decoupage(m_vectBoite[indiceBoite]);
+
+        r = 3*m_vectBoite[indiceBoite].m_rayon/2; // valeur de comparaison tampon
+
+        // VI- Pour chaque nouvelle boite :
+        for (i = 0 ; i<8 ; i++)
+        {
+            // valeurs de comparaison tampon
+            x = 3*boitesFilles[i].m_centre.x;
+            y = 3*boitesFilles[i].m_centre.y;
+            z = 3*boitesFilles[i].m_centre.z;
+
+            elt = m_vectBoite[indiceBoite].getVectNumElt();
+
+            // Pour chaque face compris dans la boite père
+            for (k = elt.size()-1; k >=0  ; k--)
+            {
+                ind = elt[k];
+
+                if (fabs(vert[ind]  +vert[ind+3]+vert[ind+6] - x) <= r
+                 && fabs(vert[ind+1]+vert[ind+4]+vert[ind+7] - y) <= r
+                 && fabs(vert[ind+2]+vert[ind+5]+vert[ind+8] - z) <= r)
+                {
+                    boitesFilles[i].chargerElt(ind);    // Si la face est inclue dans la boite fille en test on stock son indice
+                    m_vectBoite[indiceBoite].supprElt(k); // et on le retire de la boite pere
+                }
+            }
+            boitesFilles[i].m_indiceBoite = m_vectBoite.size();
+            m_vectBoite.push_back(boitesFilles[i]); // Ajout de la boite fille
+        }
+    }
+
+
+}
+/*
 bool estUneFeuille(Boite boite, int seuil)
 {
     if(boite.getNbElt()<seuil)
@@ -236,7 +255,15 @@ bool estUneFeuille(Boite boite, int seuil)
     else{return false;}
 }
 
-
+bool Boite::estUneFeuille()
+{
+    if(m_numElt.size()<m_seuil)
+    {
+        return true;
+    }
+    else{return false;}
+}
+*/
 std::vector<Boite> decoupage(Boite &boitePere)
 {
     // Recuperation des données du père
@@ -270,6 +297,8 @@ void Octree::chargerRayon(std::vector<float> &orig, std::vector<float> &dir)
 
     int i, j, ind;
 
+    std::vector<int> rayonStock; // On stock les rayons supprimés de la boite père le temps de les tester avec toutes ses boites filles
+
     // Chargement de la boite racine avec tous les indices rayons : pourra se mettre dans une fonction externe pour ne pas être répeté à chaque boucle
     for (j = 0; j<orig.size() ; j+=3)
     {
@@ -286,19 +315,57 @@ void Octree::chargerRayon(std::vector<float> &orig, std::vector<float> &dir)
 
         boitePere = m_vectBoite[m_vectBoite[i].m_indicePere];
 
+        // Si on change de père
+        if (m_vectBoite[i].m_indicePere != m_vectBoite[i-1].m_indicePere)
+        {
+            rayonStock.clear();  // Remise à zéro des rayons stockés
+        }
+
+        // Test parmis les rayons stockés
+        for(j = 0; j<rayonStock.size() ; j++)
+        {
+            // test intersection entre rayon ind et boite i
+            if (intersecBoiteRay(m_vectBoite[i], orig, dir, rayonStock[j]))
+            {
+                m_vectBoite[i].chargerRay(rayonStock[j]); // Ajout des rayons à la boite courante
+            }
+        }
+
         // Pour tous les rayons contenus dans la boite père.
         for (j = boitePere.m_numRayon.size()-1 ; j >=0  ; j--)
         {
             ind = boitePere.m_numRayon[j];
-            // rayon j en test : orig[j] et dir[j]
-            // test intersection entre rayon j et boite i
+
+            // test intersection entre rayon ind et boite i
             if (intersecBoiteRay(m_vectBoite[i], orig, dir, ind))
             {
                 m_vectBoite[i].chargerRay(ind); // Ajout des rayons à la boite courante
                 m_vectBoite[m_vectBoite[i].m_indicePere].supprRay(j); // Suppression des rayons de la boite père
+                rayonStock.push_back(ind); // Ajout au vecteur de stockage
             }
         }
+
+        // Vérification
+        qDebug() << "Numéro boite :" << i;
+        qDebug() << "Rayons boite pere :" << boitePere.m_numRayon.size();
+        qDebug() << "Rayons stocké :" << rayonStock.size();
     }
+
+    // Vérification
+    int nbRay(0), nbNonFeuille(0);
+    for (i = 0 ; i < m_vectBoite.size() ; i++)
+    {
+        if (!m_vectBoite[i].estUneFeuille)
+        {
+            nbRay += m_vectBoite[i].m_numRayon.size();
+            nbNonFeuille++;
+        }
+
+    }
+    qDebug() << "nombre rayons initial :" << orig.size()/3;
+    qDebug() << "nombre rayons rangés dans les boites non-feuilles :" << nbRay << "sur" << nbNonFeuille << "boite non feuille";
+
+
 }
 
 bool intersecBoiteRay(Boite &boite, std::vector<float>& orig, std::vector<float>& dir, int indice)

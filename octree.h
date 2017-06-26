@@ -21,6 +21,7 @@ public:
     void supprElt(int position);
     void supprRay(int position);
     int getNbElt();
+    //bool estUneFeuille();
     std::vector<int>& getVectNumElt();
 
 
@@ -32,6 +33,8 @@ public:
     int m_indiceBoite;
     std::vector<int> m_numRayon;
     std::vector<int> m_numElt;
+    bool estUneFeuille;
+
 };
 
 
@@ -42,20 +45,22 @@ public:
     ~Octree();
     Octree operator=(const Octree &oct);
     std::vector<Boite> getVectBoite() const;
+    int getSeuil() const;
     void chargerRayon(std::vector<float> &orig, std::vector<float> &dir);
+    void etagesuivant(std::vector<float>& vert, int indicePere);
 
 
 private:
     std::vector<Boite> m_vectBoite;
+    int m_seuil;
 };
 
 
 
 // methodes
-void etagesuivant(std::vector<float>& vert, std::vector<Boite>& vectBoite, int indicePere);
 bool appartientBoite(Boite boite, float valeur);
 std::vector<Boite> decoupage(Boite &boitePere);
-bool estUneFeuille(Boite boite, int seuil);
+//bool estUneFeuille(Boite boite, int seuil);
 bool intersecBoiteRay(Boite &boite, std::vector<float>& orig, std::vector<float>& dir, int indice);
 
 #endif // OCTREE_H
