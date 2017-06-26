@@ -8,7 +8,7 @@
 class Boite{
 public:
     Boite();// Constructeur de base
-    Boite(const CoordVector &centre, float rayon, int indPere); // Constructeur surchargé
+    Boite(const CoordVector &centre, float arrete, int indPere); // Constructeur surchargé
     ~Boite();
     Boite operator=(const Boite &boite);
     /*
@@ -27,8 +27,9 @@ public:
 
 
 //private:
-    float m_rayon;
+    float m_arrete;
     CoordVector m_centre;
+    CoordVector m_coinMin;
     int m_indicePere;
     int m_indiceBoite;
     std::vector<int> m_numRayon;

@@ -129,8 +129,16 @@ void MainWindow::on_bouton_rayons_clicked()
             progress.setValue(i);
             if (progress.wasCanceled())
                         break;
+            if (m_methodeRapide)
+            {
+                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                monRay.rebondSansMemoire(m_meshObj, -1, m_octree); // calcul des points d'intersection entre rayons et faces
 
-            monRay.rebondSansMemoire(m_meshObj, -1, m_octree); // calcul des points d'intersection entre rayons et faces
+            }
+            else
+            {
+                monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+            }
             monObjWriter.rec_Vert(m_source,monRay, nbRayons, i, -1); // ecriture des vertex
 
         }

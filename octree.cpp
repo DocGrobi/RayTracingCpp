@@ -51,22 +51,24 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
             zMax = vert[i+2];
         }
     }
-    float rayon;
+    float arrete;
     CoordVector centre((xMax + xMin)/2, (yMax + yMin)/2,(zMax + zMin)/2);
-    rayon = (xMax - xMin)/2;
-    if ((yMax - yMin)/2 > rayon)
+    arrete = (xMax - xMin)/2;
+    if ((yMax - yMin)/2 > arrete)
     {
-        rayon = (yMax - yMin)/2;
+        arrete = (yMax - yMin)/2;
     }
-    if ((zMax - zMin)/2 > rayon)
+    if ((zMax - zMin)/2 > arrete)
     {
-        rayon = (zMax - zMin)/2;
+        arrete = (zMax - zMin)/2;
     }
+
 
 
     //I- Création de la boite root
-    Boite boiteRacine(centre, rayon, -1);
+    Boite boiteRacine(centre, arrete, -1);
     boiteRacine.m_indiceBoite = 0;
+    boiteRacine.m_coinMin = CoordVector(xMin, yMin, zMin);
     for (k = 0 ; k < vert.size() ; k+=9)
     {
         boiteRacine.chargerElt(k);
@@ -125,15 +127,15 @@ int Octree::getSeuil() const{
 Boite::Boite()
 {
     m_centre = CoordVector(0,0,0);
-    m_rayon = 0;
+    m_arrete = 0;
     m_indicePere = 0;
     m_indiceBoite = 0;
 }
 
-Boite::Boite(const CoordVector &centre, float rayon, int indPere)
+Boite::Boite(const CoordVector &centre, float arrete, int indPere)
 {
     m_centre = centre;
-    m_rayon = rayon;
+    m_arrete = arrete;
     m_indicePere = indPere;
 }
 
@@ -144,7 +146,8 @@ Boite::~Boite()
 Boite Boite::operator=(const Boite &boite)
 {
     m_centre = boite.m_centre;
-    m_rayon = boite.m_rayon;
+    m_coinMin = boite.m_coinMin;
+    m_arrete = boite.m_arrete;
     m_indicePere = boite.m_indicePere;
     m_indiceBoite = boite.m_indiceBoite;
     m_numElt = boite.m_numElt;
@@ -159,7 +162,7 @@ CoordVector Boite::getCentre(){
 }
 
 float Boite::getRayon(){
-    return m_rayon;
+    return m_arrete;
 }
 
 int Boite::getIndPere(){
@@ -213,11 +216,13 @@ void Octree::etagesuivant(std::vector<float> &vert, int indiceBoite)
         // V- Création des 8 boites filles à partir de la boite actuelle
         std::vector<Boite> boitesFilles = decoupage(m_vectBoite[indiceBoite]);
 
-        r = 3*m_vectBoite[indiceBoite].m_rayon/2; // valeur de comparaison tampon
+        //r = 3*m_vectBoite[indiceBoite].m_arrete/2; // valeur de comparaison tampon
+        r = m_vectBoite[indiceBoite].m_arrete/2; // valeur de comparaison tampon
 
         // VI- Pour chaque nouvelle boite :
         for (i = 0 ; i<8 ; i++)
         {
+
             // valeurs de comparaison tampon
             x = 3*boitesFilles[i].m_centre.x;
             y = 3*boitesFilles[i].m_centre.y;
@@ -229,10 +234,20 @@ void Octree::etagesuivant(std::vector<float> &vert, int indiceBoite)
             for (k = elt.size()-1; k >=0  ; k--)
             {
                 ind = elt[k];
-
+                /*
                 if (fabs(vert[ind]  +vert[ind+3]+vert[ind+6] - x) <= r
                  && fabs(vert[ind+1]+vert[ind+4]+vert[ind+7] - y) <= r
                  && fabs(vert[ind+2]+vert[ind+5]+vert[ind+8] - z) <= r)
+                 */
+                if (fabs(vert[ind]   - boitesFilles[i].m_centre.x) <= r
+                 && fabs(vert[ind+3] - boitesFilles[i].m_centre.x) <= r
+                 && fabs(vert[ind+6] - boitesFilles[i].m_centre.x) <= r
+                 && fabs(vert[ind+1] - boitesFilles[i].m_centre.y) <= r
+                 && fabs(vert[ind+4] - boitesFilles[i].m_centre.y) <= r
+                 && fabs(vert[ind+7] - boitesFilles[i].m_centre.y) <= r
+                 && fabs(vert[ind+2] - boitesFilles[i].m_centre.z) <= r
+                 && fabs(vert[ind+5] - boitesFilles[i].m_centre.z) <= r
+                 && fabs(vert[ind+8] - boitesFilles[i].m_centre.z) <= r)
                 {
                     boitesFilles[i].chargerElt(ind);    // Si la face est inclue dans la boite fille en test on stock son indice
                     m_vectBoite[indiceBoite].supprElt(k); // et on le retire de la boite pere
@@ -268,7 +283,8 @@ std::vector<Boite> decoupage(Boite &boitePere)
 {
     // Recuperation des données du père
     CoordVector centre = boitePere.m_centre;
-    float rayon = boitePere.m_rayon;
+    CoordVector coinMin = boitePere.m_coinMin;
+    float arrete = boitePere.m_arrete;
     int indicePere = boitePere.m_indiceBoite;
 
     // Initialisation du vecteur de boites filles
@@ -277,14 +293,24 @@ std::vector<Boite> decoupage(Boite &boitePere)
     boitesFilles.resize(8, Boite());
 
     // Remplissage des boites filles (code binaire pour le centre)
-    boitesFilles[0] = Boite(CoordVector(centre.x - rayon/2, centre.y - rayon/2, centre.z - rayon/2), rayon/2, indicePere);
-    boitesFilles[1] = Boite(CoordVector(centre.x + rayon/2, centre.y - rayon/2, centre.z - rayon/2), rayon/2, indicePere);
-    boitesFilles[2] = Boite(CoordVector(centre.x - rayon/2, centre.y + rayon/2, centre.z - rayon/2), rayon/2, indicePere);
-    boitesFilles[3] = Boite(CoordVector(centre.x + rayon/2, centre.y + rayon/2, centre.z - rayon/2), rayon/2, indicePere);
-    boitesFilles[4] = Boite(CoordVector(centre.x - rayon/2, centre.y - rayon/2, centre.z + rayon/2), rayon/2, indicePere);
-    boitesFilles[5] = Boite(CoordVector(centre.x + rayon/2, centre.y - rayon/2, centre.z + rayon/2), rayon/2, indicePere);
-    boitesFilles[6] = Boite(CoordVector(centre.x - rayon/2, centre.y + rayon/2, centre.z + rayon/2), rayon/2, indicePere);
-    boitesFilles[7] = Boite(CoordVector(centre.x + rayon/2, centre.y + rayon/2, centre.z + rayon/2), rayon/2, indicePere);
+    boitesFilles[0] = Boite(CoordVector(centre.x - arrete/2, centre.y - arrete/2, centre.z - arrete/2), arrete/2, indicePere);
+    boitesFilles[1] = Boite(CoordVector(centre.x + arrete/2, centre.y - arrete/2, centre.z - arrete/2), arrete/2, indicePere);
+    boitesFilles[2] = Boite(CoordVector(centre.x - arrete/2, centre.y + arrete/2, centre.z - arrete/2), arrete/2, indicePere);
+    boitesFilles[3] = Boite(CoordVector(centre.x + arrete/2, centre.y + arrete/2, centre.z - arrete/2), arrete/2, indicePere);
+    boitesFilles[4] = Boite(CoordVector(centre.x - arrete/2, centre.y - arrete/2, centre.z + arrete/2), arrete/2, indicePere);
+    boitesFilles[5] = Boite(CoordVector(centre.x + arrete/2, centre.y - arrete/2, centre.z + arrete/2), arrete/2, indicePere);
+    boitesFilles[6] = Boite(CoordVector(centre.x - arrete/2, centre.y + arrete/2, centre.z + arrete/2), arrete/2, indicePere);
+    boitesFilles[7] = Boite(CoordVector(centre.x + arrete/2, centre.y + arrete/2, centre.z + arrete/2), arrete/2, indicePere);
+
+    boitesFilles[0].m_coinMin = CoordVector(coinMin.x           , coinMin.y          , coinMin.z         );
+    boitesFilles[1].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z         );
+    boitesFilles[2].m_coinMin = CoordVector(coinMin.x           , coinMin.y + arrete , coinMin.z         );
+    boitesFilles[3].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z         );
+    boitesFilles[4].m_coinMin = CoordVector(coinMin.x           , coinMin.y          , coinMin.z + arrete);
+    boitesFilles[5].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z + arrete);
+    boitesFilles[6].m_coinMin = CoordVector(coinMin.x           , coinMin.y + arrete , coinMin.z + arrete);
+    boitesFilles[7].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z + arrete);
+
 
     return boitesFilles;
 
@@ -296,8 +322,7 @@ void Octree::chargerRayon(std::vector<float> &orig, std::vector<float> &dir)
     Boite boitePere;
 
     int i, j, ind;
-
-    std::vector<int> rayonStock; // On stock les rayons supprimés de la boite père le temps de les tester avec toutes ses boites filles
+    int nbRay(0);
 
     // Chargement de la boite racine avec tous les indices rayons : pourra se mettre dans une fonction externe pour ne pas être répeté à chaque boucle
     for (j = 0; j<orig.size() ; j+=3)
@@ -315,22 +340,6 @@ void Octree::chargerRayon(std::vector<float> &orig, std::vector<float> &dir)
 
         boitePere = m_vectBoite[m_vectBoite[i].m_indicePere];
 
-        // Si on change de père
-        if (m_vectBoite[i].m_indicePere != m_vectBoite[i-1].m_indicePere)
-        {
-            rayonStock.clear();  // Remise à zéro des rayons stockés
-        }
-
-        // Test parmis les rayons stockés
-        for(j = 0; j<rayonStock.size() ; j++)
-        {
-            // test intersection entre rayon ind et boite i
-            if (intersecBoiteRay(m_vectBoite[i], orig, dir, rayonStock[j]))
-            {
-                m_vectBoite[i].chargerRay(rayonStock[j]); // Ajout des rayons à la boite courante
-            }
-        }
-
         // Pour tous les rayons contenus dans la boite père.
         for (j = boitePere.m_numRayon.size()-1 ; j >=0  ; j--)
         {
@@ -340,38 +349,31 @@ void Octree::chargerRayon(std::vector<float> &orig, std::vector<float> &dir)
             if (intersecBoiteRay(m_vectBoite[i], orig, dir, ind))
             {
                 m_vectBoite[i].chargerRay(ind); // Ajout des rayons à la boite courante
-                m_vectBoite[m_vectBoite[i].m_indicePere].supprRay(j); // Suppression des rayons de la boite père
-                rayonStock.push_back(ind); // Ajout au vecteur de stockage
+                // On ne supprime pas de la boite père car il se peut qu'il y est des faces stockées dedans
+                //m_vectBoite[m_vectBoite[i].m_indicePere].supprRay(j); // Suppression des rayons de la boite père
+                //rayonStock.push_back(ind); // Ajout au vecteur de stockage
             }
         }
-
-        // Vérification
-        qDebug() << "Numéro boite :" << i;
-        qDebug() << "Rayons boite pere :" << boitePere.m_numRayon.size();
-        qDebug() << "Rayons stocké :" << rayonStock.size();
-    }
-
-    // Vérification
-    int nbRay(0), nbNonFeuille(0);
-    for (i = 0 ; i < m_vectBoite.size() ; i++)
-    {
-        if (!m_vectBoite[i].estUneFeuille)
+/*
+        // Vérification - Pour chaque étage on compte les rayons
+        if (m_vectBoite[i+1].m_arrete == m_vectBoite[i].m_arrete)
         {
-            nbRay += m_vectBoite[i].m_numRayon.size();
-            nbNonFeuille++;
+            nbRay+=m_vectBoite[i].m_numRayon.size();
         }
-
+        else // Si à la boite suivante on change d'étage
+        {
+            qDebug() << "nombre rayons :" << nbRay;
+            nbRay = 0;
+        }
     }
-    qDebug() << "nombre rayons initial :" << orig.size()/3;
-    qDebug() << "nombre rayons rangés dans les boites non-feuilles :" << nbRay << "sur" << nbNonFeuille << "boite non feuille";
-
+*/
 
 }
 
 bool intersecBoiteRay(Boite &boite, std::vector<float>& orig, std::vector<float>& dir, int indice)
 {
     CoordVector centre = boite.m_centre;
-    float r = boite.m_rayon;
+    float r = boite.m_arrete;
     float t0x, t0y, t0z, t1x, t1y, t1z;
 
     t0x =  centre.x - r;

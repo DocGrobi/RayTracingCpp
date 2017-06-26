@@ -387,7 +387,7 @@ void ObjWriter::display_octree(const std::vector<Boite> &oct)
 std::vector<CoordVector> coordVertBoite(const Boite &boite)
 {
     CoordVector centre = boite.m_centre;
-    float rayon = boite.m_rayon;
+    float rayon = boite.m_arrete;
     std::vector<CoordVector> coordVert;
     coordVert.resize(8,CoordVector(0,0,0));
 
