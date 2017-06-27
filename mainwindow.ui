@@ -456,7 +456,7 @@
     <property name="title">
      <string>Boutons</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -754,7 +754,7 @@
        <x>0</x>
        <y>20</y>
        <width>321</width>
-       <height>51</height>
+       <height>55</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
@@ -772,6 +772,9 @@
        <widget class="QSpinBox" name="spinBox_nbFaceFeuille">
         <property name="alignment">
          <set>Qt::AlignCenter</set>
+        </property>
+        <property name="maximum">
+         <number>10000</number>
         </property>
         <property name="value">
          <number>10</number>
@@ -1185,16 +1188,7 @@
       </item>
      </layout>
     </widget>
-    <zorder>label_freq</zorder>
-    <zorder>gridLayoutWidget_6</zorder>
    </widget>
-   <zorder>groupBox</zorder>
-   <zorder>groupBox_3</zorder>
-   <zorder>groupBox_4</zorder>
-   <zorder>checkBox_methodeRapide</zorder>
-   <zorder>groupBox_5</zorder>
-   <zorder>groupBox_6</zorder>
-   <zorder>groupBox_7</zorder>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">

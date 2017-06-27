@@ -18,7 +18,7 @@ ObjWriter::ObjWriter(QString chemin, int nbRay) // recupere en attribue le nom d
 {
 
     QFile fichier(chemin);
-    int i=0;
+
     QString newName(chemin);
     m_buff_rayMort.resize(nbRay, 0); // 0 = rayon vivant
 
@@ -28,6 +28,7 @@ ObjWriter::ObjWriter(QString chemin, int nbRay) // recupere en attribue le nom d
 
     // A CONSERVER : INCREMENTATION DES FICHIERS
 /*
+    int i=0;
     while(fichier.exists()) // incrementation de version de fichier s'il existe deja
     {
         //qDebug() << fichier.fileName() << "existe !";
@@ -387,10 +388,13 @@ void ObjWriter::display_octree(const std::vector<Boite> &oct)
 std::vector<CoordVector> coordVertBoite(const Boite &boite)
 {
     CoordVector centre = boite.m_centre;
-    float rayon = boite.m_arrete;
+    float rayon = boite.m_arrete/2;
+    CoordVector coinMin = boite.m_coinMin;
+    float arrete = boite.m_arrete;
     std::vector<CoordVector> coordVert;
     coordVert.resize(8,CoordVector(0,0,0));
 
+    /*
     coordVert[0] = CoordVector(centre.x -rayon, centre.y -rayon, centre.z -rayon);
     coordVert[1] = CoordVector(centre.x +rayon, centre.y -rayon, centre.z -rayon);
     coordVert[2] = CoordVector(centre.x -rayon, centre.y +rayon, centre.z -rayon);
@@ -399,6 +403,18 @@ std::vector<CoordVector> coordVertBoite(const Boite &boite)
     coordVert[5] = CoordVector(centre.x +rayon, centre.y -rayon, centre.z +rayon);
     coordVert[6] = CoordVector(centre.x -rayon, centre.y +rayon, centre.z +rayon);
     coordVert[7] = CoordVector(centre.x +rayon, centre.y +rayon, centre.z +rayon);
+    */
+
+    ///*
+    coordVert[0] = CoordVector(coinMin.x           , coinMin.y          , coinMin.z         );
+    coordVert[1] = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z         );
+    coordVert[2] = CoordVector(coinMin.x           , coinMin.y + arrete , coinMin.z         );
+    coordVert[3] = CoordVector(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z         );
+    coordVert[4] = CoordVector(coinMin.x           , coinMin.y          , coinMin.z + arrete);
+    coordVert[5] = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z + arrete);
+    coordVert[6] = CoordVector(coinMin.x           , coinMin.y + arrete , coinMin.z + arrete);
+    coordVert[7] = CoordVector(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z + arrete);
+    //*/
 
     return coordVert;
 

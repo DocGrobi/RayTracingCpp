@@ -48,6 +48,7 @@ public:
     std::vector<Boite> getVectBoite() const;
     int getSeuil() const;
     void chargerRayon(std::vector<float> &orig, std::vector<float> &dir);
+    void chargerRayonRacine(int nbRay);
     void etagesuivant(std::vector<float>& vert, int indicePere);
 
 
