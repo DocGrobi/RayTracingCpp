@@ -19,24 +19,26 @@ float triangle_intersection(const CoordVector &orig, const CoordVector &dir,
     float det = produitScalaire(e1, pvec);
 
     // Si le rayon est parralelle au plan
-    if (det <= 0.000001) // det proche de 0 dans la version originale
+    //if (det <= 0.000001) // det proche de 0 dans la version originale
+    if (det < 1e-8 && det > -1e-8)
     {
         return 0;
     }
+    float invDet = 1/det;
     CoordVector tvec = vecteur(v0, orig);
-    float u = produitScalaire(tvec, pvec)/det;
+    float u = produitScalaire(tvec, pvec)*invDet;
     if (u < 0 || u > 1)
     {
             return 0;
     }
     CoordVector qvec = produitVectoriel(tvec,e1);
-    float v = produitScalaire(dir,qvec)/det;
+    float v = produitScalaire(dir,qvec)*invDet;
 
     if (v < 0 || u + v > 1)
     {
             return 0;
     }
-    return produitScalaire(e2,qvec)/det; // distance entre le point d'origine et le point d'intersection
+    return produitScalaire(e2,qvec)*invDet; // distance entre le point d'origine et le point d'intersection
 
 }
 
@@ -716,140 +718,6 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
     return rayonsExistent;
 }
 
-/*
-// rayons puis faces avec octree
-bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
-{
-    // chargement du mesh
-    std::vector<float> normales(mesh.getNormals());
-    std::vector<float> vertex(mesh.getVertex());
-    std::vector<float> indiceMat(mesh.getIndMat());
-    std::vector<Boite> vectBoite(oct.getVectBoite());
-
-    // Declarations
-    std::vector<float> absAir = absorptionAir(20);
-    CoordVector point, vect_dir, vect_ref,vect_norm;
-    CoordVector A,B,C; // trois points
-    float longueur_inst(0),nor(0);
-    int compteur(0),face(0);
-    bool rayonsExistent = false;
-    int j(0), k(0), l(0), ind(0), indRay(0), indElt(0);
-    int nbVertex = vertex.size();
-
-    stockage();
-
-    m_long.resize(m_Nray/3, 1000000); // Avant de commencer on met une grande valeur aux rayons pour pouvoir faire une comparaison de taille
-
-
-    for (ind = 0 ; ind< vectBoite.size() ; ind ++) // pour chaque boite
-    {
-        // Si la boite contient des éléments
-        if (vectBoite[ind].m_numElt.size() > 0)
-        {
-            for(j=0; j< vectBoite[ind].m_numRayon.size() ;j++) // pour chaque rayon compris dans la boite
-            {
-                indRay = vectBoite[ind].m_numRayon[j];
-                //SI LE RAYON N'EST PAS MORT
-                if (m_rayVivant[j])
-                {
-
-                    // recuperation d'un point et du vecteur directeur
-                    point.x = m_ray[indRay];
-                    point.y = m_ray[indRay+1];
-                    point.z = m_ray[indRay+2];
-
-                    //timer.restart();
-
-                    vect_dir.x = m_vDir[indRay];
-                    vect_dir.y = m_vDir[indRay+1];
-                    vect_dir.z = m_vDir[indRay+2];
-
-                    // Stockage de la longeur du nouveau rayon
-                    //m_long[indRay/3] = 1000000;
-
-                    for (k=0; k < vectBoite[ind].m_numElt.size(); k++) // pour chaque face compris dans la boite
-                    {
-                        indElt = indRay = vectBoite[ind].m_numElt[k];
-
-                        // ALTERNATIVE
-
-                        A.x = vertex[indElt];
-                        A.y = vertex[indElt+1];
-                        A.z = vertex[indElt+2];
-                        B.x = vertex[indElt+3];
-                        B.y = vertex[indElt+4];
-                        B.z = vertex[indElt+5];
-                        C.x = vertex[indElt+6];
-                        C.y = vertex[indElt+7];
-                        C.z = vertex[indElt+8];
-
-
-                        // longueur du rayon depuis point de depart dans le sens du vecteur directeur et intersectant avec la face ABC
-                        longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
-
-                        if (longueur_inst > 0 && longueur_inst < m_long[indRay/3]) // Rayon dans le sens du vecteur directeur et le plus petit trouvé
-                        {
-                            // On sauvegrade la plus petite longueur
-                            m_long[indRay/3] = longueur_inst;
-                            //on sauvegarde la dernière face testée
-                            face = indElt;
-                        }
-                    }
-
-                    // POUR CHAQUE NOUVEAU RAYON
-
-                    // on remplace le bout du rayon par le point d'intersection
-                    m_ray[indRay]   = point.x + vect_dir.x*m_long[indRay/3];
-                    m_ray[indRay+1] = point.y + vect_dir.y*m_long[indRay/3];
-                    m_ray[indRay+2] = point.z + vect_dir.z*m_long[indRay/3];
-
-                    // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
-                    vect_norm.x = normales[face];
-                    vect_norm.y = normales[face+1];
-                    vect_norm.z = normales[face+2];
-
-                    vect_ref = vecteur_reflechi(vect_dir,vect_norm);
-                    nor = norme(vect_ref);
-                    //nor = vect_ref*vect_ref;
-                    m_vDir[indRay]   = vect_ref.x/nor;
-                    m_vDir[indRay+1] = vect_ref.y/nor;
-                    m_vDir[indRay+2] = vect_ref.z/nor;
-
-
-                    // On ajoute à la longueur du nouveau rayon à la longueur totale
-                    m_dist[indRay/3] = m_dist[indRay/3] + m_long[indRay/3];
-
-                    //On met à jour l'énergie du nouveau rayon pour chaque bande
-                    compteur = 0;
-                    for (l=0; l<8; l++)
-                    {
-                        m_nrg[indRay/3*8 + l] = m_nrg[indRay/3*8+l] * (1-indiceMat[face+l+1]) * exp(-absAir[l]*m_long[indRay/3]);
-                        //m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]);
-                        // test si le rayon est mort
-                        if (m_nrg[indRay/3*8 + l] > seuil) // s'il existe au moins un rayon vivant
-                        {
-                            rayonsExistent = true;
-                        }
-                        else
-                        {
-                            compteur++;
-                        }
-                    }
-                    // si l'énergie sur les 8 bandes est inférieure au seuil le rayons est déclaré mort
-                    if (compteur == 8)
-                    {
-                        m_rayVivant[indRay/3] = false;
-                        //comptage des rayons morts pour la progress bar
-                        m_nbRayMort++;
-                    }
-                    compteur = 0;
-                }
-            }
-        }
-    }
-    return rayonsExistent;
-}
-*/
 
 // faces puis rayons + octree
 bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
@@ -871,13 +739,13 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
     face.resize(m_Nray/3, 0);
     m_long.assign(m_Nray/3, 1000000);
     CoordVector A,B,C, e1, e2, pvec, tvec, qvec; // trois points
-    float longueur_inst(0),nor(0), det, u, v;
+    float longueur_inst(0),nor(0), det, u, v, invDet;
 
     stockage();
 
     for (i = 0 ; i< vectBoite.size() ; i ++) // pour chaque boite
     {
-        if (vectBoite[i].m_numRayon.size() > 0) // Si la boite comprend des rayons
+        if (vectBoite[i].estUneFeuille && vectBoite[i].m_numRayon.size() > 0) // Si la boite est une feuille et comprend des rayons
         {
             for (indE=0; indE < vectBoite[i].m_numElt.size(); indE ++) // pour chaque face comprise dans la boite
             {
@@ -897,8 +765,8 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                 C.y = vertex[k+7];
                 C.z = vertex[k+8];
 
-                //e1 = vecteur(A,B);
-                //e2 = vecteur(A,C);
+                e1 = vecteur(A,B);
+                e2 = vecteur(A,C);
 
                 for(indR=0; indR<vectBoite[i].m_numRayon.size() ; indR++) // pour chaque rayon compris dans la boite
                 //for (j = 0 ; j < m_Nray ; j+=3)
@@ -918,34 +786,68 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                         vect_dir.z = m_dir[j+2];
 
                         /*
+                        // fonction de Möller–Trumbore
                         pvec = produitVectoriel(vect_dir,e2);
                         det = produitScalaire(e1,pvec);
-                        if(det>0.000001)
-                        {
+
+                        if (det < 1e-8 && det > -1e-8) {
+                            longueur_inst = 0;
+                        }
+                        else {
+                            invDet = 1/det;
                             tvec = vecteur(A, point);
-                            u = produitScalaire(tvec, pvec)/det;
-                            if(u>=0 && u <=1)
-                            {
-                                qvec = produitScalaire(tvec,e1);
-                                v = produitScalaire(vect_dir,qvec)/det;
-                                if(v >=0 && u+v <=1)
-                                {
-                                    longueur_inst = produitScalaire(e2, qvec)/det;
+                            u = produitScalaire(tvec, pvec)*invDet;
+                            if (u < 0 || u > 1) {
+                                    longueur_inst = 0;
+                                }
+                            else {
+                                qvec = produitVectoriel(tvec,e1);
+                                v = produitScalaire(vect_dir,qvec)*invDet;
+                                if (v < 0 || u + v > 1) {
+                                        longueur_inst = 0;
+                                    }
+                                else {
+                                    longueur_inst = produitScalaire(e2, qvec)*invDet;
                                 }
                             }
                         }
                         */
 
-                        longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
+                        // fonction de Möller–Trumbore
+                        pvec = produitVectoriel(vect_dir,e2);
+                        det = produitScalaire(e1,pvec);
+                        if (det > 1e-8 || det < -1e-8) {
+                            invDet = 1/det;
+                            tvec = vecteur(A, point);
+                            u = produitScalaire(tvec, pvec)*invDet;
+                            if (u >= 0 && u <= 1) {
+                                qvec = produitVectoriel(tvec,e1);
+                                v = produitScalaire(vect_dir,qvec)*invDet;
+                                if (v >= 0 && u + v <= 1) {
+                                    longueur_inst = produitScalaire(e2, qvec)*invDet;
+                                    if (longueur_inst<m_long[j/3]){
+                                        m_long[j/3] = longueur_inst;
+
+                                        // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
+                                        vect_ref = vecteur_reflechi(vect_dir,vect_norm);
+                                        nor = norme(vect_ref);
+                                        m_vDir[j] = vect_ref.x/nor;
+                                        m_vDir[j+1] = vect_ref.y/nor;
+                                        m_vDir[j+2] = vect_ref.z/nor;
+
+                                        //on sauvegarde la dernière face testée
+                                        face[j/3] = k;
+                                    }
+                                }
+                            }
+                        }
+
+                        /*
+                        //longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
                         if (longueur_inst >0 && longueur_inst<m_long[j/3])
                         {
                             m_long[j/3] = longueur_inst;
-    /*
-                            // on remplace le bout du rayon par le point d'intersection
-                            m_ray[3*j] = point.x + vect_dir.x*longueur_inst;
-                            m_ray[3*j+1] = point.y + vect_dir.y*longueur_inst;
-                            m_ray[3*j+2] = point.z + vect_dir.z*longueur_inst;
-    */
+
                             // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
                             vect_ref = vecteur_reflechi(vect_dir,vect_norm);
                             nor = norme(vect_ref);
@@ -956,6 +858,7 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                             //on sauvegarde la dernière face testée
                             face[j/3] = k;
                         }
+                        */
                     }
                 }
             }
@@ -968,6 +871,14 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
         //SI LE RAYON N'EST PAS MORT
         if (m_rayVivant[j])
         {
+            // Sécurité si problème d'intersection
+            if(m_long[j] == 1000000)
+            {
+                QMessageBox::critical(NULL,"Erreur","Le " + QString::number(j) + "ème rayon n'a pas atteind de face", "Arreter le programme");
+                return false;
+            }
+
+
             for (l=0; l<3; l++)
             {
                 m_ray[3*j+l] = m_pos[3*j+l] + m_dir[3*j+l]*m_long[j];

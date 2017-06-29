@@ -12,6 +12,8 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
     //dirOld = rayon.getDir();
     rayNew = rayon.getRay();
 
+    float alpha, normeAL;
+
     //int n(rayon.getNbRay());
 
     CoordVector L(listener.getCentre()); // Point au centre du Listener
@@ -19,95 +21,29 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
 
     for(int i = 0; i<rayon.getNbRay() ; i=i+3)
     {
-
        CoordVector A(posOld[i],posOld[i+1],posOld[i+2]); // Point de départ du rayon
        CoordVector B(rayNew[i],rayNew[i+1],rayNew[i+2]); // Point d'arrivée du rayon
        //CoordVector vectDir(rayNew[n+i]-rayNew[i],rayNew[n+i+1]-rayNew[i+1],rayNew[n+i+2]-rayNew[i+2]);
 
-       float alpha = angle(vecteur(A,B),vecteur(A,L));
-/*
-
-       // test sur l'angle
-       if (norme(vecteur(A,L)) == 0)
-       {
-            hypA = true;
-       }
-       else if (alpha <= asin(r/norme(vecteur(A,L))))
-       {
-           hypA = true;
-       }
-       else
-       {
-           hypA = false;
-       }
+       alpha = angle(vecteur(A,B),vecteur(A,L));
 
        // test sur la direction
-       if (cos(alpha) >= 0)
-       {
-           hypB = true;
-       }
-       else
-       {
-           hypB = false;
-       }
-
-       // test sur la distance
-       if ( norme(vecteur(A,B)) >= norme(vecteur(A,L)) * (tan(alpha) + 1) - r)
-       {
-           hypC = true;
-       }
-       else
-       {
-           hypC = false;
-       }
-
-       if (hypA && hypB && hypC)
-       {
-           resultat.push_back(true);
-       }
-       else
-       {
-           resultat.push_back(false);
-       }
-       */
-
-
-
-       // test sur la direction
-       if (cos(alpha) >= 0)
+       if (cos(alpha) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
        {
            // test sur la distance
-           //if ( norme(vecteur(A,B)) >= norme(vecteur(A,L)) * (tan(alpha) + 1) - r)
-           if ( norme(vecteur(A,B)) >= norme(vecteur(A,L)))
+           normeAL = norme(vecteur(A,L));
+           if (norme(vecteur(A,B)) >= normeAL)
            {
                // test sur l'angle
-               if (norme(vecteur(A,L)) == 0)
-               {
-                    resultat.push_back(true);
-               }
-               else if (alpha <= asin(r/norme(vecteur(A,L))))
-               {
-                   resultat.push_back(true);
-               }
-               else
-               {
-                   resultat.push_back(false);
-               }
+               if (normeAL == 0)                    resultat.push_back(true);
+               else if (alpha <= asin(r/normeAL))   resultat.push_back(true);
+               else                                             resultat.push_back(false);
            }
-           else
-           {
-               resultat.push_back(false);
-           }
+           else resultat.push_back(false);
        }
-       else
-       {
-           resultat.push_back(false);
-       }
-
+       else resultat.push_back(false);
     }
-
     return resultat;
-
 }
 
 CoordVector sourceImage(Ray rayon)

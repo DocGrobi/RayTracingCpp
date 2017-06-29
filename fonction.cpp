@@ -30,7 +30,6 @@ CoordVector vecteur(const CoordVector &a,const CoordVector &b)
 }
 
 
-
 CoordVector vecteur(std::vector<float>& a, int indA, std::vector<float>& b, int indB)
 {
     CoordVector resultat;
@@ -56,7 +55,7 @@ float produitScalaire(const CoordVector &a,const CoordVector &b)
 {
     float resultat = a.x*b.x + a.y*b.y + a.z*b.z;
 
-    if(resultat< 0.00001 && resultat > -0.00001)
+    if(resultat< 0.000001 && resultat > -0.000001)
     {
         return 0;
         //qDebug() << "vecteurs colinéaires";
@@ -68,25 +67,13 @@ float produitScalaire(const CoordVector &a,const CoordVector &b)
 float produitScalaire(std::vector<float>& a, int indA,const CoordVector &b)
 {
     float resultat = a[indA]*b.x + a[indA+1]*b.y + a[indA+2]*b.z;
-    if(resultat< 0.0001 && resultat > -0.0001)
+    if(resultat< 0.000001 && resultat > -0.000001)
     {
         return 0;
     }
     return resultat;
 }
 
-/*
-float produitScalaire(float x1,float y1,float z1,float x2,float y2,float z2)
-{
-    float resultat = x1*x2 + y1*y2 + z1*z2;
-    if(resultat< 0.0001 && resultat > -0.0001)
-    {
-        resultat =0;
-        //qDebug() << "vecteurs colinéaires";
-    }
-    return resultat;
-}
-*/
 
 // produit scalaire qui prend l'adresse de gros vecteurs ansi que l'indice du x
 float produitScalaire(std::vector<float>& a, int indA, std::vector<float>& b, int indB)
@@ -97,7 +84,7 @@ float produitScalaire(std::vector<float>& a, int indA, std::vector<float>& b, in
     {
        resultat = resultat + a[indA+i]*b[indB+i];
     }
-    if(resultat< 0.0001 && resultat > -0.0001)
+    if(resultat< 0.000001 && resultat > -0.000001)
     {
         return 0;
         //qDebug() << "vecteurs colinéaires";
@@ -115,22 +102,14 @@ CoordVector produitVectoriel(const CoordVector &a,const CoordVector &b)
     resultat.z = a.x*b.y - a.y*b.x;
 
     return resultat;
-
 }
 
 
 float angle(const CoordVector &a,const CoordVector &b) // angle entre les deux vecteurs
 {
 
-    if (norme(a) == 0 || norme(b) == 0)
-    {
-        return 0;
-    }
-    else
-    {
-        return acos(produitScalaire(a,b)/(norme(a)*norme(b)));
-    }
-
+    if (norme(a) == 0 || norme(b) == 0) return 0;
+    else return acos(produitScalaire(a,b)/(norme(a)*norme(b)));
 }
 
 float norme(const CoordVector &a)
@@ -138,86 +117,6 @@ float norme(const CoordVector &a)
     return sqrt(produitScalaire(a,a));
 }
 
-
-//CoordVector coord_New_Base(CoordVector point, std::vector<float> mat) // pour matrice 3x3 pour l'instant
-//{
-//    // calcul déterminant
-//    float determinant(0);
-//    for (int i =0; i< 3; i++)
-//    {
-//        float produit(1);
-//        i = i*3;
-//        for(int ind=0; ind <mat.size(); ind=ind+4) // dependra de la taille de la matrice
-//        {
-//            /*ind = 4*ind;
-//            if ((ind+i) > mat.size())
-//            {
-//                ind = ind - mat.size();
-//            }
-//            */
-//            produit = produit*mat[(ind+i) % mat.size()];
-//        }
-//        determinant = determinant + produit;
-//    }
-//    for (int i =0; i< 3; i++)
-//    {
-//        float produit(1);
-//        for(int ind=6; ind >1; ind=ind-2) // dependra de la taille de la matrice
-//        {
-//            produit = produit*mat[ind+i];
-//        }
-//        determinant = determinant - produit;
-//    }
-
-
-//    // matrice
-//    /*
-//    for (int i; i<mat.size(); i++)
-//    {
-//        float r(0);
-//        for (int k = 0; k<2 ;k ++)
-//        {
-//            //int ind = (i + 4) % 9; //modulo
-//            r = (mat[(i + 4) % mat.size()]*mat[(i + 8) % mat.size()]) - (mat[(i + 7) % mat.size()]*mat[(i + 5) % mat.size()]);
-//        }
-
-//        mat[i]= r/determinant;
-//    }*/
-
-//    // nouvelle matrice ---- utiliser des produit vectoriel
-//    std::vector<float> newMat;
-//    newMat.push_back(mat[4]*mat[8] - mat[5]*mat[7]);
-//    newMat.push_back(mat[5]*mat[6] - mat[3]*mat[8]);
-//    newMat.push_back(mat[3]*mat[7] - mat[4]*mat[6]);
-//    newMat.push_back(mat[2]*mat[7] - mat[1]*mat[8]);
-//    newMat.push_back(mat[0]*mat[8] - mat[2]*mat[6]);
-//    newMat.push_back(mat[1]*mat[6] - mat[0]*mat[7]);
-//    newMat.push_back(mat[1]*mat[5] - mat[2]*mat[4]);
-//    newMat.push_back(mat[2]*mat[3] - mat[0]*mat[5]);
-//    newMat.push_back(mat[3]*mat[4] - mat[1]*mat[3]);
-
-//    //debugStdVect(mat);
-//    //debugStdVect(newMat);
-
-//    CoordVector resultat(0,0,0);
-//    std::vector<float> coordpoint;
-//    coordpoint.push_back(point.x);
-//    coordpoint.push_back(point.y);
-//    coordpoint.push_back(point.z);
-
-//    //point.debug();
-
-//    for (int i = 0; i<3; i++)
-//    {
-//        resultat.x = resultat.x + (newMat[i]*coordpoint[i]/determinant);
-//        resultat.y= resultat.y + (newMat[i+3]*coordpoint[i]/determinant);
-//        resultat.z= resultat.z + (newMat[i+6]*coordpoint[i]/determinant);
-//        //qDebug()<< resultat.x;
-//    }
-//    qDebug() << "dans nouvelle base :";
-//    resultat.debug();
-//    return resultat;
-//}
 
 bool proche(float a, float b)
 {
@@ -233,8 +132,6 @@ bool proche(float a, float b)
     }
 }
 
-
-
 // Les classes
 
 CoordVector::CoordVector(float px,float py,float pz):x(px),y(py),z(pz)
@@ -248,7 +145,6 @@ CoordVector CoordVector::operator=(const CoordVector &fv)
     x=fv.x;
     y=fv.y;
     z=fv.z;
-    //a=fv.a;
 
     return *this;
 }

@@ -45,7 +45,7 @@ public:
     Octree(MeshObj monMesh, int nbFaceFeuille);
     ~Octree();
     Octree operator=(const Octree &oct);
-    std::vector<Boite> getVectBoite() const;
+    const std::vector<Boite>& getVectBoite() const;
     int getSeuil() const;
     void chargerRayon(std::vector<float> &orig, std::vector<float> &dir);
     void chargerRayonRacine(int nbRay);
@@ -60,9 +60,9 @@ private:
 
 
 // methodes
-bool appartientBoite(Boite boite, float valeur);
-std::vector<Boite> decoupage(Boite &boitePere);
+bool appartientBoite(Boite &boite, std::vector<float> &vert, int indice);
+void decoupage(Boite &boitePere, std::vector<Boite> &boitesFilles); // 4fois plus long si on retourne une reference
 //bool estUneFeuille(Boite boite, int seuil);
 bool intersecBoiteRay(Boite &boite, std::vector<float>& orig, std::vector<float>& dir, int indice);
-
+bool intersecSphereRay(Boite &boite, std::vector<float>& orig, std::vector<float>& dir, int indice);
 #endif // OCTREE_H

@@ -28,10 +28,10 @@ MainWindow::MainWindow(QWidget *parent) :
    ui->label_listener->setText(m_listener.afficher());
 
    // CHARGEMENT PARAMETRES
-   on_checkBox__rebFixe_toggled(false);
+   on_checkBox__rebFixe_toggled(true);
+   ui->checkBox__rebFixe->setChecked(true);
    on_radioButton_Fibonacci_toggled(true);
    on_checkBox_rayAuto_toggled(false);
-   on_checkBox_methodeRapide_toggled(false);
    m_nbRebond = ui->spinBox_nbRebond->value();
    m_seuilAttenuation = pow(10,(-(ui->spinBox_attenuation->value()/10)));
    m_temperature = ui->spinBox_temperature->value();
@@ -43,8 +43,8 @@ MainWindow::MainWindow(QWidget *parent) :
    // On limite le nombre de faces par feuille au nombre de face total
    ui->spinBox_nbFaceFeuille->setMaximum(m_meshObj.getVertex().size()/9);
 
-  //Octree monOctree(m_meshObj);
-
+   on_checkBox_methodeRapide_toggled(true);
+   ui->checkBox_methodeRapide->setChecked(true);
 }
 
 
@@ -342,7 +342,6 @@ void MainWindow::on_bouton_octree_clicked()
     on_checkBox_methodeRapide_toggled(true); // recalcule l'octree
     ui->checkBox_methodeRapide->setChecked(true);
 
-    //monObjWriter.display_octree(m_octree);
     monObjWriter.display_octree(m_octree.getVectBoite());
 
 }
@@ -443,8 +442,6 @@ void MainWindow::on_spinBox_freqEchan_valueChanged(int arg1)
 
 void MainWindow::on_checkBox_rayAuto_toggled(bool checked)
 {
-
-   //ui->spinBox_nbRay->setEnabled(!checked);
    m_rayAuto = checked;
 }
 
@@ -457,7 +454,7 @@ void MainWindow::on_spinBox_seuilArret_valueChanged(int arg1)
 void MainWindow::on_spinBox_nbFaceFeuille_valueChanged(int arg1)
 {
     m_nbFaceFeuille = arg1;
-    on_checkBox_methodeRapide_toggled(true);
+    if (arg1 > 0) on_checkBox_methodeRapide_toggled(true);
     ui->checkBox_methodeRapide->setChecked(true);
 }
 
@@ -465,13 +462,9 @@ void MainWindow::on_checkBox_methodeRapide_toggled(bool checked)
 {
     if(checked)
     {
-        //m_octree = Octree(m_meshObj,m_nbFaceFeuille).getVectBoite();
+        //m_timer.restart();
         m_octree = Octree(m_meshObj,m_nbFaceFeuille);
-        /*
-        // RAYONS
-        Ray monRay(m_nbRayon, m_source, m_fibonacci);
-        m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
-        */
+        //qDebug() << "temps octree : " << m_timer.restart() << "ms";
     }
     m_methodeRapide = checked;
 }
