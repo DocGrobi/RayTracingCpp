@@ -251,24 +251,12 @@ void Octree::etagesuivant(std::vector<float> &vert, int indiceBoite)
 void decoupage(Boite &boitePere, std::vector<Boite>& boitesFilles)
 {
     // Recuperation des données du père
-    CoordVector centre = boitePere.m_centre;
     CoordVector coinMin = boitePere.m_coinMin;
     float arrete = boitePere.m_arrete/2;
-    int indicePere = boitePere.m_indiceBoite;
 
     // Initialisation du vecteur de boites filles
     //std::vector<Boite> boitesFilles;
     boitesFilles.resize(8, Boite());
-
-    // Remplissage des boites filles (code binaire pour le centre)
-    boitesFilles[0] = Boite(CoordVector(centre.x - arrete/2, centre.y - arrete/2, centre.z - arrete/2), arrete, indicePere);
-    boitesFilles[1] = Boite(CoordVector(centre.x + arrete/2, centre.y - arrete/2, centre.z - arrete/2), arrete, indicePere);
-    boitesFilles[2] = Boite(CoordVector(centre.x - arrete/2, centre.y + arrete/2, centre.z - arrete/2), arrete, indicePere);
-    boitesFilles[3] = Boite(CoordVector(centre.x + arrete/2, centre.y + arrete/2, centre.z - arrete/2), arrete, indicePere);
-    boitesFilles[4] = Boite(CoordVector(centre.x - arrete/2, centre.y - arrete/2, centre.z + arrete/2), arrete, indicePere);
-    boitesFilles[5] = Boite(CoordVector(centre.x + arrete/2, centre.y - arrete/2, centre.z + arrete/2), arrete, indicePere);
-    boitesFilles[6] = Boite(CoordVector(centre.x - arrete/2, centre.y + arrete/2, centre.z + arrete/2), arrete, indicePere);
-    boitesFilles[7] = Boite(CoordVector(centre.x + arrete/2, centre.y + arrete/2, centre.z + arrete/2), arrete, indicePere);
 
     boitesFilles[0].m_coinMin = CoordVector(coinMin.x           , coinMin.y          , coinMin.z         );
     boitesFilles[1].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z         );
@@ -279,8 +267,12 @@ void decoupage(Boite &boitePere, std::vector<Boite>& boitesFilles)
     boitesFilles[6].m_coinMin = CoordVector(coinMin.x           , coinMin.y + arrete , coinMin.z + arrete);
     boitesFilles[7].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z + arrete);
 
-
-    //return boitesFilles;
+    for (int i = 0 ; i< 8 ; i++)
+    {
+        boitesFilles[i].m_centre     = CoordVector(boitesFilles[i].m_coinMin.x + arrete/2, boitesFilles[i].m_coinMin.y + arrete/2, boitesFilles[i].m_coinMin.z + arrete/2);
+        boitesFilles[i].m_arrete     = arrete;
+        boitesFilles[i].m_indicePere = boitePere.m_indiceBoite;
+    }
 
 }
 
@@ -333,7 +325,7 @@ void Octree::chargerRayon(std::vector<float> &orig, std::vector<float> &dir)
 
     //Boite boitePere;
 
-    int i, j, ind;
+    int i, ind;
 
     // Pour chaque boite : chargement de l'indice des rayons qui intersectent avec elle
     for (i = 1 ; i < m_vectBoite.size() ; i++)
@@ -363,9 +355,7 @@ void Octree::chargerRayon(std::vector<float> &orig, std::vector<float> &dir)
             }
         }
     }
-
-
-
+/*
     // Vérification
     int nbRay(0);
     for (i = 0 ; i< m_vectBoite.size() ; i++)
@@ -373,7 +363,7 @@ void Octree::chargerRayon(std::vector<float> &orig, std::vector<float> &dir)
         nbRay+= m_vectBoite[i].m_numRayon.size();
     }
     qDebug() << "Nombre total de rayon stocké :" << nbRay;
-
+*/
 }
 
 bool intersecSphereRay(Boite &boite, std::vector<float>& orig, std::vector<float>& dir, int indice)
@@ -417,30 +407,29 @@ bool intersecBoiteRay(Boite &boite, std::vector<float>& orig, std::vector<float>
     // Il faut calculer l'inverse avant car sinon il y a des problème de signe lors de la division par 0 et on perd des rayons
     float invDirx = 1/ dir[indice];
     float invDiry = 1/ dir[indice+1];
-    float invDirz = 1/ dir[indice+2];
 
-    float tmin, tmax, tymin, tymax, tzmin, tzmax;
+    float tmin, tmax, tymin, tymax;
 
     if (invDirx >=0)
     {
-        tmin = (boite.m_coinMin.x     - orig[indice]) * invDirx;
-        tmax = (boite.m_coinMin.x +boite.m_arrete- orig[indice]) * invDirx;
+        tmin = (boite.m_coinMin.x                  - orig[indice]) * invDirx;
+        tmax = (boite.m_coinMin.x + boite.m_arrete - orig[indice]) * invDirx;
     }
     else
     {
-        tmax = (boite.m_coinMin.x     - orig[indice]) * invDirx;
-        tmin = (boite.m_coinMin.x +boite.m_arrete- orig[indice]) * invDirx;
+        tmax = (boite.m_coinMin.x                  - orig[indice]) * invDirx;
+        tmin = (boite.m_coinMin.x + boite.m_arrete - orig[indice]) * invDirx;
     }
 
     if (invDiry >=0)
     {
-        tymin = (boite.m_coinMin.y     - orig[indice+1]) * invDiry;
-        tymax = (boite.m_coinMin.y +boite.m_arrete- orig[indice+1]) * invDiry;
+        tymin = (boite.m_coinMin.y                    - orig[indice+1]) * invDiry;
+        tymax = (boite.m_coinMin.y + boite.m_arrete - orig[indice+1]) * invDiry;
     }
     else
     {
-        tymax = (boite.m_coinMin.y     - orig[indice+1]) * invDiry;
-        tymin = (boite.m_coinMin.y +boite.m_arrete- orig[indice+1]) * invDiry;
+        tymax = (boite.m_coinMin.y                  - orig[indice+1]) * invDiry;
+        tymin = (boite.m_coinMin.y + boite.m_arrete - orig[indice+1]) * invDiry;
     }
 
    if ((tmin > tymax) || (tymin > tmax)) return false;
@@ -450,15 +439,18 @@ bool intersecBoiteRay(Boite &boite, std::vector<float>& orig, std::vector<float>
    if (tymax < tmax)
    tmax = tymax;
 
+   float tzmin, tzmax;
+   float invDirz = 1/ dir[indice+2];
+
    if(invDirz >= 0)
    {
-       tzmin = (boite.m_coinMin.z     - orig[indice+2]) * invDirz;
-       tzmax = (boite.m_coinMin.z +boite.m_arrete- orig[indice+2]) * invDirz;
+       tzmin = (boite.m_coinMin.z                   - orig[indice+2]) * invDirz;
+       tzmax = (boite.m_coinMin.z + boite.m_arrete  - orig[indice+2]) * invDirz;
    }
    else
    {
-       tzmax = (boite.m_coinMin.z     - orig[indice+2]) * invDirz;
-       tzmin = (boite.m_coinMin.z +boite.m_arrete- orig[indice+2]) * invDirz;
+       tzmax = (boite.m_coinMin.z                   - orig[indice+2]) * invDirz;
+       tzmin = (boite.m_coinMin.z + boite.m_arrete  - orig[indice+2]) * invDirz;
    }
 
    if ((tmin > tzmax) || (tzmin > tmax)) return false;

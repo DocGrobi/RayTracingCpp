@@ -346,7 +346,7 @@ void ObjWriter::display_octree(const std::vector<Boite> &oct)
     // Pour chaque boite
     for ( i = 0 ; i<oct.size() ; i++)
     {
-        if (oct[i].estUneFeuille)
+        if (oct[i].estUneFeuille) // Affichage des feuilles uniquement
         {
             coordVertexBoite = coordVertBoite(oct[i]);
             // Ecriture des huit vertex ligne par ligne

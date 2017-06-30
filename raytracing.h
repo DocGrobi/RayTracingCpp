@@ -12,7 +12,7 @@ bool appartient_face(std::vector<float>& point, int iP, std::vector<float>& face
 bool appartient_face(const CoordVector &point, const CoordVector &a, const CoordVector &b, const CoordVector &c);
 std::vector<float> vecteur_reflechi(std::vector<float> &i, int ii, std::vector<float> &n, int in);
 CoordVector vecteur_reflechi(const CoordVector &i, const CoordVector &n);
-
+CoordVector vecteur_reflechi(const std::vector<float> &i, int ind, const CoordVector &n);
 float triangle_intersection(const CoordVector &orig, const CoordVector &dir,
                             const CoordVector &v0, const CoordVector &v1, const CoordVector &v2);
 float triangle_intersection(const Vect3f &orig, const Vect3f &dir,

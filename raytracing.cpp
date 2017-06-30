@@ -194,12 +194,13 @@ std::vector<float> intersection(std::vector<float>& point_ray, std::vector<float
 CoordVector vecteur_reflechi(const CoordVector &i, const CoordVector &n)
 {
     float p= produitScalaire(i,n);
-    CoordVector resultat;
-    resultat.x = -2*p*n.x + i.x;
-    resultat.y = -2*p*n.y + i.y;
-    resultat.z = -2*p*n.z + i.z;
+    return CoordVector(-2*p*n.x + i.x, -2*p*n.y + i.y, -2*p*n.z + i.z);
+}
 
-    return resultat;
+CoordVector vecteur_reflechi(const std::vector<float> &i, int ind, const CoordVector &n)
+{
+    float p= produitScalaire(i,ind,n);
+    return CoordVector(-2*p*n.x + i[ind], -2*p*n.y + i[ind+1], -2*p*n.z + i[ind+2]);
 }
 
 Vect3f vecteur_reflechi(const Vect3f &i, const Vect3f &n)
@@ -777,6 +778,7 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                     if (m_rayVivant[j/3])
                     {
                         // recuperation d'un point et du vecteur directeur
+
                         point.x = m_pos[j];
                         point.y = m_pos[j+1];
                         point.z = m_pos[j+2];
@@ -785,44 +787,19 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                         vect_dir.y = m_dir[j+1];
                         vect_dir.z = m_dir[j+2];
 
-                        /*
                         // fonction de Möller–Trumbore
                         pvec = produitVectoriel(vect_dir,e2);
-                        det = produitScalaire(e1,pvec);
-
-                        if (det < 1e-8 && det > -1e-8) {
-                            longueur_inst = 0;
-                        }
-                        else {
-                            invDet = 1/det;
-                            tvec = vecteur(A, point);
-                            u = produitScalaire(tvec, pvec)*invDet;
-                            if (u < 0 || u > 1) {
-                                    longueur_inst = 0;
-                                }
-                            else {
-                                qvec = produitVectoriel(tvec,e1);
-                                v = produitScalaire(vect_dir,qvec)*invDet;
-                                if (v < 0 || u + v > 1) {
-                                        longueur_inst = 0;
-                                    }
-                                else {
-                                    longueur_inst = produitScalaire(e2, qvec)*invDet;
-                                }
-                            }
-                        }
-                        */
-
-                        // fonction de Möller–Trumbore
-                        pvec = produitVectoriel(vect_dir,e2);
+                        //pvec = produitVectoriel(m_dir, j, e2);
                         det = produitScalaire(e1,pvec);
                         if (det > 1e-8 || det < -1e-8) {
                             invDet = 1/det;
                             tvec = vecteur(A, point);
+                            //tvec = vecteur(A, m_pos, j);
                             u = produitScalaire(tvec, pvec)*invDet;
                             if (u >= 0 && u <= 1) {
                                 qvec = produitVectoriel(tvec,e1);
                                 v = produitScalaire(vect_dir,qvec)*invDet;
+                                //v = produitScalaire(m_dir, j, qvec)*invDet;
                                 if (v >= 0 && u + v <= 1) {
                                     longueur_inst = produitScalaire(e2, qvec)*invDet;
                                     if (longueur_inst<m_long[j/3]){
@@ -830,6 +807,7 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
 
                                         // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
                                         vect_ref = vecteur_reflechi(vect_dir,vect_norm);
+                                        //vect_ref = vecteur_reflechi(m_dir,j,vect_norm);
                                         nor = norme(vect_ref);
                                         m_vDir[j] = vect_ref.x/nor;
                                         m_vDir[j+1] = vect_ref.y/nor;

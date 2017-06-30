@@ -10,50 +10,39 @@ void debugStdVect(std::vector<float>& vect)//pour le debug
     qDebug() << vector;
 }
 
-
 CoordVector sph2cart(float ro, float theta, float phi)
 {
     float x,y,z;
     x = ro*cos(phi)*cos(theta);
     y = ro*cos(phi)*sin(theta);
-    z = ro*sin(phi);
-    CoordVector coord(x,y,z);
+    z = ro*sin(phi);    
 
-    return coord;
+    return CoordVector(x,y,z);
 }
-
 
 CoordVector vecteur(const CoordVector &a,const CoordVector &b)
 {
-    CoordVector resultat(b.x-a.x,b.y-a.y,b.z-a.z);
-    return resultat;
+    return CoordVector(b.x-a.x,b.y-a.y,b.z-a.z);
 }
-
 
 CoordVector vecteur(std::vector<float>& a, int indA, std::vector<float>& b, int indB)
 {
-    CoordVector resultat;
-    resultat.x = b[indB]-a[indA];
-    resultat.y = b[indB+1]-a[indA+1];
-    resultat.z = b[indB+2]-a[indA+2];
-
-    return resultat;
+    return CoordVector(b[indB]-a[indA], b[indB+1]-a[indA+1], b[indB+2]-a[indA+2]);
 }
 
 CoordVector vecteur(std::vector<float>& a, int indA, const CoordVector &b)
 {
-    CoordVector resultat;
-    resultat.x = b.x-a[indA];
-    resultat.y = b.y-a[indA+1];
-    resultat.z = b.z-a[indA+2];
-
-    return resultat;
+    return CoordVector(b.x-a[indA], b.y-a[indA+1], b.z-a[indA+2]);
 }
 
+CoordVector vecteur(const CoordVector &a, std::vector<float>& b, int indB)
+{
+    return CoordVector(b[indB]-a.x, b[indB+1]-a.y, b[indB+2]-a.z);
+}
 
 float produitScalaire(const CoordVector &a,const CoordVector &b)
 {
-    float resultat = a.x*b.x + a.y*b.y + a.z*b.z;
+    /*float resultat = a.x*b.x + a.y*b.y + a.z*b.z;
 
     if(resultat< 0.000001 && resultat > -0.000001)
     {
@@ -62,16 +51,21 @@ float produitScalaire(const CoordVector &a,const CoordVector &b)
     }
 
     return resultat;
+    */
+    return (a.x*b.x + a.y*b.y + a.z*b.z);
 }
 
-float produitScalaire(std::vector<float>& a, int indA,const CoordVector &b)
+float produitScalaire(const std::vector<float>& a, int indA,const CoordVector &b)
 {
+    /*
     float resultat = a[indA]*b.x + a[indA+1]*b.y + a[indA+2]*b.z;
     if(resultat< 0.000001 && resultat > -0.000001)
     {
         return 0;
     }
     return resultat;
+    */
+    return (a[indA]*b.x + a[indA+1]*b.y + a[indA+2]*b.z);
 }
 
 
@@ -96,19 +90,35 @@ float produitScalaire(std::vector<float>& a, int indA, std::vector<float>& b, in
 
 CoordVector produitVectoriel(const CoordVector &a,const CoordVector &b)
 {
+    /*
     CoordVector resultat;
     resultat.x = a.y*b.z - a.z*b.y;
     resultat.y = a.z*b.x - a.x*b.z;
     resultat.z = a.x*b.y - a.y*b.x;
 
     return resultat;
+    */
+    return CoordVector(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
+}
+
+CoordVector produitVectoriel(const std::vector<float> &a,int i, const CoordVector &b)
+{
+    /*
+    CoordVector resultat;
+    resultat.x = a.y*b.z - a.z*b.y;
+    resultat.y = a.z*b.x - a.x*b.z;
+    resultat.z = a.x*b.y - a.y*b.x;
+
+    return resultat;
+    */
+    return CoordVector(a[i+1]*b.z - a[i+2]*b.y, a[i+2]*b.x - a[i]*b.z, a[i]*b.y - a[i+1]*b.x);
 }
 
 
 float angle(const CoordVector &a,const CoordVector &b) // angle entre les deux vecteurs
 {
 
-    if (norme(a) == 0 || norme(b) == 0) return 0;
+    if (norme(a) < 1e-8 || norme(b) < 1e-8) return 0;
     else return acos(produitScalaire(a,b)/(norme(a)*norme(b)));
 }
 

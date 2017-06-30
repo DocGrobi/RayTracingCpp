@@ -32,11 +32,13 @@ CoordVector sph2cart(float ro, float theta, float phi); // convertion coordonné
 CoordVector vecteur(const CoordVector &a,const CoordVector &b);
 CoordVector vecteur(std::vector<float>& a, int indA, std::vector<float>& b, int indB);
 CoordVector vecteur(std::vector<float>& a, int indA, const CoordVector &b);
+CoordVector vecteur(const CoordVector &a, std::vector<float>& b, int indB);
 float produitScalaire(const CoordVector &a,const CoordVector &b);
-float produitScalaire(std::vector<float>& a, int indA,const CoordVector &b);
+float produitScalaire(const std::vector<float>& a, int indA,const CoordVector &b);
 //float produitScalaire(float x1,float y1,float z1,float x2,float y2,float z2);
 float produitScalaire(std::vector<float>& a, int indA, std::vector<float>& b, int indB);
 CoordVector produitVectoriel(const CoordVector &a,const CoordVector &b);
+CoordVector produitVectoriel(const std::vector<float> &a,int i, const CoordVector &b);
 float norme(const CoordVector &a);
 float angle(const CoordVector &a,const CoordVector &b);
 void debugStdVect(std::vector<float>& vect); // permet d'afficher un std::vector dans la console
