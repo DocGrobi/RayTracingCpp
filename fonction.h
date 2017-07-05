@@ -17,6 +17,8 @@ class CoordVector
         CoordVector(float px=0,float py=0,float pz=0); // Constructeur
         ~CoordVector();// Destructeur
         CoordVector operator=(const CoordVector &fv);
+        CoordVector operator+=(const CoordVector &fv);
+        CoordVector operator-=(CoordVector const&a);
         QVector<float> CoordVector2Qvector(CoordVector coord);
         void debug();
         /*
@@ -45,7 +47,15 @@ void debugStdVect(std::vector<float>& vect); // permet d'afficher un std::vector
 //CoordVector coord_New_Base(const CoordVector &point, std::vector<float> &mat );
 bool proche(float a, float b);
 
-
+CoordVector operator+(const CoordVector &a, const CoordVector &b);
+CoordVector operator+(const CoordVector &a, float b);
+CoordVector operator-(const CoordVector &a, float b);
+CoordVector operator*(const CoordVector &a, float b);
+CoordVector operator/(const CoordVector &a, float b);
+inline CoordVector operator-(CoordVector const& a){return CoordVector(-a.x,-a.y,-a.z);}
+inline CoordVector operator-(CoordVector const&a,CoordVector const&b){CoordVector c(a);c-=b;return c;}
+CoordVector inverse(CoordVector const& a);
+// inline permet de mettre les fonction dans le .h
 
 
 // Vect3f

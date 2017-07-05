@@ -72,6 +72,14 @@ std::vector<float> absorptionAir(int temperature)
     return resultat;
 }
 
+
+float tempsEyring(std::vector<float> &vert , std::vector<float> &abs)
+{
+    // Calcul du volume
+
+    // Calcul des surfaces
+}
+
 //Les classes
 
 Material::Material()

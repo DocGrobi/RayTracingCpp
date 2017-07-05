@@ -102,35 +102,38 @@ Listener MeshObj::getListener() const //accesseur aux parametres du listener
 
 
 
-MeshObj::MeshObj(QString s) : m_nbData(1)// : m_vertice(NULL), m_normals(NULL), m_indicesMateriaux(NULL)
+MeshObj::MeshObj(QString s) : m_nbData(1)
 {
     charger_obj(s);
 }
 
 MeshObj::~MeshObj()
 {
-
 }
 
 
-std::vector<float> &MeshObj::getVertex()  //accesseur au pointeur de vertex
-{
+std::vector<float> &MeshObj::getVertex()  {
     return m_vert;
 }
 
-std::vector<float> &MeshObj::getNormals()  //accesseur au pointeur de vertex
-{
+std::vector<CoordVector> &MeshObj::getVert()  {
+    return m_vertex;
+}
+
+std::vector<CoordVector> &MeshObj::getNorm()  {
+    return m_normales;
+}
+
+std::vector<float> &MeshObj::getNormals()  {
     return m_norm;
 }
 
-std::vector<float> &MeshObj::getIndMat()  //accesseur au pointeur de vertex
-{
+std::vector<float> &MeshObj::getIndMat()  {
 
     return m_indMat;
 }
 
-int MeshObj::getNb_data() const //accesseur au pointeur de vertex
-{
+int MeshObj::getNb_data() const {
     return m_nbData;
 }
 
@@ -266,28 +269,11 @@ void MeshObj::charger_obj(QString file_obj)
                     QStringList materiau = ligne.split(" ");
                     QStringList indice = materiau[1].split("_"); // ne prend que le premier "mot" du nom du materiau
 
-                    /*
-                    int i = m_materiaux.indexOf(materiau[1]);
-
-                    if(i == -1) // si c'est la première fois qu'on rencontre ce materiau
-                    {
-
-                       indiceMat_Curr = indiceMat; // on affecte ce numero à l'indice courant
-                       indiceMat++; // on incremente l'indice du materiau
-                       m_materiaux.push_back(materiau[1]); // on sauvegarde son nom dans le vecteur mat
-                    }
-                    else
-                    {
-                        indiceMat_Curr = i; // on affecte ce numero à l'indice courant
-                    }*/
-
-                    //indiceMat_Curr = 0.1; // valeur par default de l'attenuation du materiau
                     rangCoeff = 7; // valeur par default de l'absorption du materiau correspond à 50% sur toutes les bandes
                     for(int i=0 ; i < matOdeon_vect.size(); i++ )
                     {
                         if (matOdeon_vect[i] == indice[0]) // si le materiau existe dans le tableau odeon
                         {
-                            //indiceMat_Curr = matOdeon.getIndMat(i);// on a 8 indices par materiau
                             nomMat = indice[0];
                             rangCoeff = i;
                         }
@@ -315,7 +301,6 @@ void MeshObj::charger_obj(QString file_obj)
 
                         iv.push_back(v); // indice des vertex
                         in.push_back(n); // indice des normales
-                        //imat.push_back(indiceMat_Curr); // indice du matériau
                     }
                     // pour chaque face on rempli le vecteur materiau avec son nom et ses 8 coefficients d'absorption
                     m_indMat.push_back(nomMat.toFloat());
@@ -379,6 +364,8 @@ void MeshObj::charger_obj(QString file_obj)
             m_vert.push_back(ver[iv[i]].x);
             m_vert.push_back(ver[iv[i]].y);
             m_vert.push_back(ver[iv[i]].z);
+
+            m_vertex.push_back(ver[iv[i]]);
         }
     }
     for(int i=0; i<in.size(); i++) //normales - pour ne prendre qu'une normale par face on prendrai comme increment i =i+3
@@ -389,11 +376,8 @@ void MeshObj::charger_obj(QString file_obj)
             m_norm.push_back(nor[in[i]].y);
             m_norm.push_back(nor[in[i]].z);
 
-            /*
-            m_indMat.push_back(imat[i]); // dupliqué trois fois pour que l'indice du materiaux soit associé à chaque coordonée de vertice
-            m_indMat.push_back(imat[i]);
-            m_indMat.push_back(imat[i]);
-            */
+            m_normales.push_back(nor[in[i]]);
+
         }
     }
 

@@ -156,14 +156,15 @@ void ObjWriter::display_ray(Source &source, std::vector<float> &ray, int nbRay, 
     QString text("o Rayons \n");
     fichier.write(text.toLatin1());
 
-    int nbCoord = nbRay*3; // nombre de données pour un ordre (ordre 0, ordre 1, etc)
+    int nbCoord = nbRay; // nombre de données pour un ordre (ordre 0, ordre 1, etc)
     int ordre = nb_rebond + 1;
 
     // ecriture des vertex par "étage" : source, puis rebond 1, etc
-    for (int i = 0; i < nbCoord*ordre ; i=i+3)
+    for (int i = 0; i < nbCoord*ordre ; i++)
     {
-        CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
-        text = "v "+ CoordVector2QString(vertCoord) + "\n";
+        //CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
+
+        text = "v "+ CoordVector2QString(ray[i]) + "\n";
         fichier.write(text.toLatin1());
     }
 
@@ -186,7 +187,7 @@ void ObjWriter::display_ray(Source &source, std::vector<float> &ray, int nbRay, 
 void ObjWriter::rec_Vert(Source &source, Ray &monRay, int nbRay, int num_rebond, float seuil)
 {
     QFile fichier(m_chemin);
-    std::vector<float> ray = monRay.getRay();
+    std::vector<CoordVector> ray = monRay.getRay();
     std::vector<float> nrg = monRay.getNRG();
 
     if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier
@@ -202,21 +203,21 @@ void ObjWriter::rec_Vert(Source &source, Ray &monRay, int nbRay, int num_rebond,
         }
 
         // ecriture des vertex pour tous les rayons
-        for (int i = 0; i < nbRay*3 ; i=i+3) // on n'ecrit que le premier point
+        for (int i = 0; i < nbRay ; i++) // on n'ecrit que le premier point
         {
-            if (m_buff_rayMort[i/3] == 0) // si le rayon est toujours vivant
+            if (m_buff_rayMort[i] == 0) // si le rayon est toujours vivant
             {
                 // si l'énergie sur au moins une bande est au dessus du seuil le rayon reste vivant
                 bool rayVivant = false;
                 for (int l=0; l<8; l++)
                 {
-                    if (nrg[i/3*8+l] > seuil)
+                    if (nrg[i*8+l] > seuil)
                     {
                         rayVivant = true;
                     }
                 }
-                CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
-                text = "v "+ CoordVector2QString(vertCoord) + "\n";
+                //CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
+                text = "v "+ CoordVector2QString(ray[i]) + "\n";
                 fichier.write(text.toLatin1());
 
                 if (rayVivant) // S'il reste vivant
@@ -226,7 +227,7 @@ void ObjWriter::rec_Vert(Source &source, Ray &monRay, int nbRay, int num_rebond,
                 else // S'il meurt
                 {
                     m_rayMort.push_back(1);
-                    m_buff_rayMort[i/3] = 1;
+                    m_buff_rayMort[i] = 1;
                 }
             }
             else // S'il était deja mort
@@ -346,7 +347,7 @@ void ObjWriter::display_octree(const std::vector<Boite> &oct)
     // Pour chaque boite
     for ( i = 0 ; i<oct.size() ; i++)
     {
-        if (oct[i].estUneFeuille)
+        if (!oct[i].m_numElt.empty()) // Affichage des feuilles non vide uniquement
         {
             coordVertexBoite = coordVertBoite(oct[i]);
             // Ecriture des huit vertex ligne par ligne

@@ -16,7 +16,7 @@ public:
     float getRayon();
     int getIndPere();
     */
-    void chargerElt(int indice);
+    void chargerElt(const std::vector<float> &vert, int indice);
     void chargerRay(int indice);
     void supprElt(int position);
     void supprRay(int position);
@@ -28,7 +28,7 @@ public:
 
 //private:
     float m_arrete;
-    CoordVector m_centre;
+    CoordVector m_centre, m_min, m_max;
     CoordVector m_coinMin;
     int m_indicePere;
     int m_indiceBoite;
@@ -47,7 +47,7 @@ public:
     Octree operator=(const Octree &oct);
     const std::vector<Boite>& getVectBoite() const;
     int getSeuil() const;
-    void chargerRayon(std::vector<float> &orig, std::vector<float> &dir);
+    void chargerRayon(std::vector<CoordVector> &orig, std::vector<CoordVector> &dir);
     void chargerRayonRacine(int nbRay);
     void etagesuivant(std::vector<float>& vert, int indicePere);
 
@@ -63,6 +63,7 @@ private:
 bool appartientBoite(Boite &boite, std::vector<float> &vert, int indice);
 void decoupage(Boite &boitePere, std::vector<Boite> &boitesFilles); // 4fois plus long si on retourne une reference
 //bool estUneFeuille(Boite boite, int seuil);
-bool intersecBoiteRay(Boite &boite, std::vector<float>& orig, std::vector<float>& dir, int indice);
-bool intersecSphereRay(Boite &boite, std::vector<float>& orig, std::vector<float>& dir, int indice);
+bool intersecBoiteRay(const Boite &boite, const CoordVector &orig, const CoordVector &invDir);
+bool intersecSphereRay(Boite &boite, const CoordVector &orig, const CoordVector &dir);
+
 #endif // OCTREE_H

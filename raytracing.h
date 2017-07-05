@@ -10,7 +10,7 @@ std::vector<float> intersection(std::vector<float>& point_ray, std::vector<float
 bool appartient_face(const CoordVector &point, std::vector<float>& face);
 bool appartient_face(std::vector<float>& point, int iP, std::vector<float>& face, int iF);
 bool appartient_face(const CoordVector &point, const CoordVector &a, const CoordVector &b, const CoordVector &c);
-std::vector<float> vecteur_reflechi(std::vector<float> &i, int ii, std::vector<float> &n, int in);
+std::vector<float> &vecteur_reflechi(std::vector<float> &i, int ii, std::vector<float> &n, int in);
 CoordVector vecteur_reflechi(const CoordVector &i, const CoordVector &n);
 CoordVector vecteur_reflechi(const std::vector<float> &i, int ind, const CoordVector &n);
 float triangle_intersection(const CoordVector &orig, const CoordVector &dir,
@@ -27,19 +27,18 @@ class Ray
 public:
     Ray(int Nray, Source S, bool fibonacci);   //Constructeur
     ~Ray();                               //Destructeur
-    std::vector<float>& getRay() ;
+    std::vector<CoordVector>& getRay() ;
     std::vector<float>& getNRG() ;
     std::vector<float>& getNRGbackup() ;
-    std::vector<float>& getPos() ;
-    std::vector<float>& getDir() ;
-    std::vector<float>& getvDir();
+    std::vector<CoordVector>& getPos() ;
+    std::vector<CoordVector>& getDir() ;
+    std::vector<CoordVector>& getvDir();
     std::vector<float>& getDist() ;
     std::vector<float>& getLong() ;
 
     int getNbRay() const;
     int getRayMorts() const;
 
-    void rebond(MeshObj mesh, int nb_rebond);
     bool rebondSansMemoire(MeshObj mesh, float seuil);
     bool rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct); // fonction surchargée avec octree
     bool rebondSansMemoireBis(MeshObj mesh, float seuil);
@@ -58,17 +57,15 @@ private:
     std::vector<float> m_nrg;   // Energie portee par le rayon au moment t
     std::vector<float> m_nrgBackup;   // Energie portee par le rayon
 
-    std::vector<float> m_pos;   // Position du point de départ du rayon stockée
-    std::vector<float> m_ray;   // Position du point de départ du rayon au moment t
-    std::vector<float> m_dir;   // Direction des rayons stockée
-    std::vector<float> m_vDir;  // vecteur directeur des rayons au moment t
+    std::vector<CoordVector> m_pos;   // Position du point de départ du rayon stockée
+    std::vector<CoordVector> m_ray;   // Position du point de départ du rayon au moment t
+    std::vector<CoordVector> m_dir;   // Direction des rayons stockée
+    std::vector<CoordVector> m_vDir;  // vecteur directeur des rayons au moment t
     std::vector<float> m_long;  // longueur du dernier segment de rayon
     std::vector<float> m_dist;  // Distance totale parcourue par les rayons au moment t
 
     std::vector<bool> m_rayVivant;  // longueur du dernier segment de rayon
     int m_nbRayMort;
-
-    //std::vector<CoordVector> m_test;
 
 };
 

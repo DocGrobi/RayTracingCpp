@@ -7,7 +7,7 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
     std::vector<bool> resultat;
     //bool hypA, hypB, hypC;
 
-    std::vector<float> posOld, rayNew;
+    std::vector<CoordVector> posOld, rayNew;
     posOld = rayon.getPos();
     //dirOld = rayon.getDir();
     rayNew = rayon.getRay();
@@ -19,10 +19,16 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
     CoordVector L(listener.getCentre()); // Point au centre du Listener
     float r(listener.getRayon()); // Rayon du Listener
 
-    for(int i = 0; i<rayon.getNbRay() ; i=i+3)
+    CoordVector A, B;
+
+    for(int i = 0; i<rayon.getNbRay() ; i++)
     {
-       CoordVector A(posOld[i],posOld[i+1],posOld[i+2]); // Point de départ du rayon
+       /*
+        CoordVector A(posOld[i],posOld[i+1],posOld[i+2]); // Point de départ du rayon
        CoordVector B(rayNew[i],rayNew[i+1],rayNew[i+2]); // Point d'arrivée du rayon
+       */
+        A = posOld[i];
+        B = rayNew[i];
        //CoordVector vectDir(rayNew[n+i]-rayNew[i],rayNew[n+i+1]-rayNew[i+1],rayNew[n+i+2]-rayNew[i+2]);
 
        alpha = angle(vecteur(A,B),vecteur(A,L));
@@ -90,19 +96,27 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener, float longueurM
 
     std::vector<float> longueurRayonTot = rayon.getDist();
     std::vector<float> longueurRayonFin = rayon.getLong();
-    std::vector<float> point = rayon.getPos();
-    std::vector<float> vec = rayon.getDir();
+    std::vector<CoordVector> point = rayon.getPos();
+    std::vector<CoordVector> vec = rayon.getDir();
     std::vector<float> nrg = rayon.getNRGbackup();
+    CoordVector A, vect;
+    float longueurRay, temps;
+
+    int i, k;
 
 
-    for (int i = 0 ; i< touche.size() ; i++) // rayon par rayon
+    for (i = 0 ; i< touche.size() ; i++) // rayon par rayon
     {
         if ((rayAuto && longueurRayonTot[i]<longueurMax && touche[i]) || (!rayAuto && touche[i]) ) // si le rayon touche le listener
         {
+            /*
             CoordVector A (point[3*i], point[3*i + 1], point[3*i + 2]);
             CoordVector vect(vec[3*i], vec[3*i + 1], vec[3*i + 2]);
+            */
+            A = point[i];
+            vect = vec[i];
             //float norm = norme(vect);
-            float longueurRay = longueurRayonTot[i] - longueurRayonFin[i];
+            longueurRay = longueurRayonTot[i] - longueurRayonFin[i];
             /*
             C.x = -longueurRay * vect.x / norm + A.x;
             C.y = -longueurRay * vect.y / norm + A.y;
@@ -113,19 +127,19 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener, float longueurM
             C.z = -longueurRay * vect.z + A.z;
 
             // BONNE METHODE (on garde toutes les sources images) :
-            // On ajoute les coordonnée au vecteur sources images
+            // On ajoute les coordonnées au vecteur sources images
             m_sourcesImages.push_back(C.x);
             m_sourcesImages.push_back(C.y);
             m_sourcesImages.push_back(C.z);
 
             // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
-            for (int k = 0 ; k<8 ; k ++)
+            for (k = 0 ; k<8 ; k ++)
             {
                 //m_nrgSI.push_back(nrg[8*i+k]);
                 m_nrgSI.push_back(nrg[8*i+k] * exp(-absAir[k]*longueurRay));
             }
 
-            float temps = 1000 * norme(vecteur(C,listener.getCentre())) / VITESSE_SON; // en ms
+            temps = 1000 * norme(vecteur(C,listener.getCentre())) / VITESSE_SON; // en ms
 
             // On créé le vecteur des valeurs en temps
             m_sourcesImages_Tps.push_back(temps);

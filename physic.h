@@ -27,6 +27,7 @@ class Material
 // Méthodes
 
 std::vector<float> absorptionAir(int temperature);
+float tempsEyring(std::vector<float> &vert , std::vector<float> &abs);
 
 
 

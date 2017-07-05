@@ -124,6 +124,8 @@ void MainWindow::on_bouton_rayons_clicked()
         progress.show();
 
     // lancer le timer
+    QElapsedTimer timer2;
+    timer2.start();
     m_timer.start();
 
     if (m_nbRebondFixe)
@@ -135,17 +137,17 @@ void MainWindow::on_bouton_rayons_clicked()
         {
             // progress bar
             progress.setValue(i);
-            if (progress.wasCanceled())
-                        break;
+            if (progress.wasCanceled()) i=m_nbRebond;
             if (m_methodeRapide)
             {
                 m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
-                monRay.rebondSansMemoire(m_meshObj, -1, m_octree); // calcul des points d'intersection entre rayons et faces
-
+                if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) // calcul des points d'intersection entre rayons et faces
+                        i=m_nbRebond;
             }
             else
             {
-                monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+                if(!monRay.rebondSansMemoire(m_meshObj, -1)) // calcul des points d'intersection entre rayons et faces
+                        i=m_nbRebond;
             }
             monObjWriter.rec_Vert(m_source,monRay, m_nbRayon, i, -1); // ecriture des vertex
 
@@ -198,7 +200,7 @@ void MainWindow::on_bouton_rayons_clicked()
         progress.setValue(m_nbRayon);
     }
 
-    double temps = m_timer.elapsed();
+    double temps = timer2.elapsed();
     temps = temps /1000;
     ui->lcd_timer->display(temps);
 
@@ -240,8 +242,9 @@ void MainWindow::on_bouton_sourcesImages_clicked()
         progress.show();
 
     // lancer le timer
+    QElapsedTimer timer2;
+    timer2.start();
     m_timer.start();
-    //qDebug() << "creation rayons" << m_timer.restart() << "ms";
 
 
     if (m_nbRebondFixe)
@@ -253,32 +256,26 @@ void MainWindow::on_bouton_sourcesImages_clicked()
         {
             // progress bar
             progress.setValue(i);
-            if (progress.wasCanceled())
-                        break;
+            if (progress.wasCanceled()) i=m_nbRebond;                        
 
             if (m_methodeRapide)
             {
                 m_timer.restart();
                 m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
                 qDebug() << "temps octree : " << m_timer.restart() << "ms";
-                monRay.rebondSansMemoire(m_meshObj, -1, m_octree);
+                if (!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) i=m_nbRebond;
                 qDebug() << "temps rayons : " << m_timer.restart() << "ms";
             }
             else
             {
                 m_timer.restart();
-                monRay.rebondSansMemoire(m_meshObj, -1); // calcul des points d'intersection entre rayons et faces
+                if (!monRay.rebondSansMemoire(m_meshObj, -1)) i=m_nbRebond;
                 qDebug() << "temps rayons : " << m_timer.restart() << "ms";
             }
-
-            //qDebug() << i << "eme iteration (rayons) : " << m_timer.restart() << "ms";
             maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
-            //qDebug() << i << "eme iteration (src img) : " << m_timer.restart() << "ms";
         }
-        //maSourceImage.filtrerSourceImages();
         monObjWriter.display_sourceImages(maSourceImage, -1);
         progress.setValue(m_nbRebond);
-        //qDebug() << "creation src img : " << m_timer.restart() << "ms";
 
     }
     else
@@ -317,13 +314,12 @@ void MainWindow::on_bouton_sourcesImages_clicked()
         }
 
         maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto); // On le refait une fois à la sortie de boucle pour les dernier rayon
-        //maSourceImage.filtrerSourceImages();
         monObjWriter.display_sourceImages(maSourceImage, m_seuilAttenuation);
 
         progress.setValue(m_nbRayon);
 
     }
-    double temps = m_timer.elapsed();
+    double temps = timer2.elapsed();
     temps = temps /1000;
     ui->lcd_timer->display(temps);
 

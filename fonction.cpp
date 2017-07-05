@@ -42,17 +42,17 @@ CoordVector vecteur(const CoordVector &a, std::vector<float>& b, int indB)
 
 float produitScalaire(const CoordVector &a,const CoordVector &b)
 {
-    /*float resultat = a.x*b.x + a.y*b.y + a.z*b.z;
+    float resultat = a.x*b.x + a.y*b.y + a.z*b.z;
 
-    if(resultat< 0.000001 && resultat > -0.000001)
+    if(resultat< 1e-8 && resultat > -1e-8)
     {
         return 0;
         //qDebug() << "vecteurs colinéaires";
     }
 
     return resultat;
-    */
-    return (a.x*b.x + a.y*b.y + a.z*b.z);
+
+    //return (a.x*b.x + a.y*b.y + a.z*b.z);
 }
 
 float produitScalaire(const std::vector<float>& a, int indA,const CoordVector &b)
@@ -157,6 +157,56 @@ CoordVector CoordVector::operator=(const CoordVector &fv)
     z=fv.z;
 
     return *this;
+}
+
+CoordVector CoordVector::operator+=(const CoordVector &fv)
+{
+    x+=fv.x;
+    y+=fv.y;
+    z+=fv.z;
+
+    return *this;
+}
+CoordVector CoordVector::operator-=(const CoordVector &a)
+{
+    x-=a.x;
+    y-=a.y;
+    z-=a.z;
+
+    return *this;
+}
+
+
+CoordVector operator+(const CoordVector &a, const CoordVector &b)
+{
+    CoordVector c(a);
+    c+=b;
+    return c;
+}
+
+CoordVector operator+(const CoordVector &a, float b) {
+    return CoordVector (a.x+b, a.y+b, a.z+b);
+}
+CoordVector operator-(const CoordVector &a, float b){
+    return a+(-b);
+}
+
+CoordVector operator*(const CoordVector &a, const CoordVector &b) {
+    return CoordVector (a.x*b.x, a.y*b.y, a.z*b.z);
+}
+
+CoordVector operator*(const CoordVector &a, float b) {
+    return CoordVector (a.x*b, a.y*b, a.z*b);
+}
+
+CoordVector operator/(const CoordVector &a, float b) {
+    return CoordVector (a.x/b, a.y/b, a.z/b);
+}
+
+
+CoordVector inverse(CoordVector const& a)
+{
+    return CoordVector(1/a.x, 1/a.y, 1/a.z);
 }
 
 QVector<float> CoordVector::CoordVector2Qvector(CoordVector coord)
