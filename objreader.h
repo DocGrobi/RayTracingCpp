@@ -55,24 +55,27 @@ class MeshObj
 
         Source getSource() const; //accesseur aux parametres de source
         Listener getListener()const; //accesseur aux parametres du listener
-        std::vector<float>& getVertex() ; //accesseur aux vertex
-        std::vector<float>& getNormals() ;
+        //std::vector<float>& getVertex() ; //accesseur aux vertex
+        //std::vector<float>& getNormals() ;
         std::vector<float>& getIndMat() ;
-        int getNb_data() const;
+        //int getNb_data() const;
 
         std::vector<CoordVector> &getVert() ;
         std::vector<CoordVector> &getNorm() ;
+        std::vector<CoordVector> &getVectFace() ;
 
     private:
 
-        std::vector<float> m_vert;
-        std::vector<float> m_norm;
+        //std::vector<float> m_vert;
+        //std::vector<float> m_norm;
         std::vector<float> m_indMat;
 
         std::vector<CoordVector> m_vertex;
         std::vector<CoordVector> m_normales;
 
-        int m_nbData;
+        std::vector<CoordVector> m_vecteurFace;
+
+        //int m_nbData;
         Source m_source;
         Listener m_listener;
         QVector<QString> m_materiaux;

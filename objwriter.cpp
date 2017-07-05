@@ -146,6 +146,46 @@ void ObjWriter::display_normales(std::vector<float> &vertex, std::vector<float> 
     difference.clear();
 }
 
+void ObjWriter::display_normales(std::vector<CoordVector> &vertex)
+{
+    QFile fichier(m_chemin);
+
+    fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
+
+    // creation d'un entete
+    QString text("o Normales \n");
+    fichier.write(text.toLatin1());
+
+    QString vertices;
+
+    CoordVector centre;
+
+    // ecriture des coordonnées de vertex représentant les normales :
+    for(int i=0; i<vertex.size() ; i+=3) // incrementation par face
+    {
+        centre = (vertex[i]+vertex[i+1]+vertex[i+2])/3;
+        vertices += "v " + CoordVector2QString(centre)+ "\n"; // retour la la ligne
+
+        CoordVector nor = produitVectoriel(vecteur(vertex[i],vertex[i+1]), vecteur(vertex[i],vertex[i+2])); // normale à la face
+        nor = nor/norme(nor);
+
+        vertices += "v " + CoordVector2QString(centre+nor)+ "\n"; // retour la la ligne
+
+    }
+
+    fichier.write(vertices.toLatin1()); // ecriture d'une ligne : v x1 y1 z1
+
+    // ecriture des lignes commençant par l pour relier les vertex
+    QString ligne("");
+    for(int i=0 ; i < 2*vertex.size()/3 ; i+=2)
+    {
+        ligne = "l " + QString::number(i+1) + " " + QString::number(i+2) + "\n";
+        fichier.write(ligne.toLatin1());
+    }
+
+    fichier.close(); // ferme le fichier
+}
+
 void ObjWriter::display_ray(Source &source, std::vector<float> &ray, int nbRay, int nb_rebond)
 {
     QFile fichier(m_chemin);
@@ -393,25 +433,11 @@ void ObjWriter::display_octree(const std::vector<Boite> &oct)
 
 std::vector<CoordVector> coordVertBoite(const Boite &boite)
 {
-    CoordVector centre = boite.m_centre;
-    float rayon = boite.m_arrete/2;
     CoordVector coinMin = boite.m_coinMin;
     float arrete = boite.m_arrete;
     std::vector<CoordVector> coordVert;
     coordVert.resize(8,CoordVector(0,0,0));
 
-    /*
-    coordVert[0] = CoordVector(centre.x -rayon, centre.y -rayon, centre.z -rayon);
-    coordVert[1] = CoordVector(centre.x +rayon, centre.y -rayon, centre.z -rayon);
-    coordVert[2] = CoordVector(centre.x -rayon, centre.y +rayon, centre.z -rayon);
-    coordVert[3] = CoordVector(centre.x +rayon, centre.y +rayon, centre.z -rayon);
-    coordVert[4] = CoordVector(centre.x -rayon, centre.y -rayon, centre.z +rayon);
-    coordVert[5] = CoordVector(centre.x +rayon, centre.y -rayon, centre.z +rayon);
-    coordVert[6] = CoordVector(centre.x -rayon, centre.y +rayon, centre.z +rayon);
-    coordVert[7] = CoordVector(centre.x +rayon, centre.y +rayon, centre.z +rayon);
-    */
-
-    ///*
     coordVert[0] = CoordVector(coinMin.x           , coinMin.y          , coinMin.z         );
     coordVert[1] = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z         );
     coordVert[2] = CoordVector(coinMin.x           , coinMin.y + arrete , coinMin.z         );
@@ -420,7 +446,6 @@ std::vector<CoordVector> coordVertBoite(const Boite &boite)
     coordVert[5] = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z + arrete);
     coordVert[6] = CoordVector(coinMin.x           , coinMin.y + arrete , coinMin.z + arrete);
     coordVert[7] = CoordVector(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z + arrete);
-    //*/
 
     return coordVert;
 

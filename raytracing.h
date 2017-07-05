@@ -41,7 +41,6 @@ public:
 
     bool rebondSansMemoire(MeshObj mesh, float seuil);
     bool rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct); // fonction surchargée avec octree
-    bool rebondSansMemoireBis(MeshObj mesh, float seuil);
 
     void stockage();
 

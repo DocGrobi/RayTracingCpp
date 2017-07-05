@@ -167,6 +167,7 @@ CoordVector CoordVector::operator+=(const CoordVector &fv)
 
     return *this;
 }
+
 CoordVector CoordVector::operator-=(const CoordVector &a)
 {
     x-=a.x;
@@ -203,6 +204,14 @@ CoordVector operator/(const CoordVector &a, float b) {
     return CoordVector (a.x/b, a.y/b, a.z/b);
 }
 
+float coordMax(const CoordVector &a)
+{
+    float max = a.x;
+    if (max < a.y) max = a.y;
+    if (max < a.z) max = a.z;
+
+    return max;
+}
 
 CoordVector inverse(CoordVector const& a)
 {

@@ -100,9 +100,7 @@ Listener MeshObj::getListener() const //accesseur aux parametres du listener
     return m_listener;
 }
 
-
-
-MeshObj::MeshObj(QString s) : m_nbData(1)
+MeshObj::MeshObj(QString s) //: m_nbData(1)
 {
     charger_obj(s);
 }
@@ -111,10 +109,17 @@ MeshObj::~MeshObj()
 {
 }
 
-
+/*
 std::vector<float> &MeshObj::getVertex()  {
     return m_vert;
 }
+std::vector<float> &MeshObj::getNormals()  {
+    return m_norm;
+}
+int MeshObj::getNb_data() const {
+    return m_nbData;
+}
+*/
 
 std::vector<CoordVector> &MeshObj::getVert()  {
     return m_vertex;
@@ -123,9 +128,8 @@ std::vector<CoordVector> &MeshObj::getVert()  {
 std::vector<CoordVector> &MeshObj::getNorm()  {
     return m_normales;
 }
-
-std::vector<float> &MeshObj::getNormals()  {
-    return m_norm;
+std::vector<CoordVector> &MeshObj::getVectFace()  {
+    return m_vecteurFace;
 }
 
 std::vector<float> &MeshObj::getIndMat()  {
@@ -133,9 +137,6 @@ std::vector<float> &MeshObj::getIndMat()  {
     return m_indMat;
 }
 
-int MeshObj::getNb_data() const {
-    return m_nbData;
-}
 
 
 void MeshObj::charger_obj(QString file_obj)
@@ -146,7 +147,7 @@ void MeshObj::charger_obj(QString file_obj)
     //float indiceMat = 0, indiceMat_Curr = 0; // Indice du materiaux
     bool lecture_source = false, lecture_listener = false;
     CoordVector coordFloat (0,0,0);
-    int nb_ver = 0, nb_verSource = 0, nb_verListener = 0, nb_norSource = 0, nb_norListener = 0;
+    int nb_ver = 0, nb_verSource = 0, nb_verListener = 0, nb_norSource = 0, nb_norListener = 0, i;
     float x_max = -10000000, rayon = 0;
 
     Material matOdeon; // chargement des materiaux Odéons
@@ -154,10 +155,6 @@ void MeshObj::charger_obj(QString file_obj)
 
     int rangCoeff = 7; // par default c'est le materiaux 50% absorbant
     QString nomMat;
-
-    m_vert.clear();
-    m_norm.clear();
-    m_indMat.clear();
 
     QFile fichier(file_obj); // fichier .obj
 
@@ -183,36 +180,26 @@ void MeshObj::charger_obj(QString file_obj)
                         }
                     }
 
-                    coordFloat.x = coordFloat.x + coord[1].toFloat();
-                    coordFloat.y = coordFloat.y + coord[2].toFloat();
-                    coordFloat.z = coordFloat.z + coord[3].toFloat();
-                    nb_ver= nb_ver+1; // incrementation du nombre d'element dans la source
+                    coordFloat.x += coord[1].toFloat();
+                    coordFloat.y += coord[2].toFloat();
+                    coordFloat.z += coord[3].toFloat();
+                    nb_ver++; // incrementation du nombre d'element dans la source
 
                     if (lecture_listener) // mesure de x max pour calcul du rayon
                     {
-                        if(x_max < coord[1].toFloat())
-                        {
-                            x_max = coord[1].toFloat();
-                        }
+                        if(x_max < coord[1].toFloat()) x_max = coord[1].toFloat();
                     }
                 }
                 else if(ligne[1]=='n') // comptage des normales
                 {
-                    if(lecture_source)
-                    {
-                        nb_norSource++;
-                    }
-                    if(lecture_listener)
-                    {
-                        nb_norListener++;
-                    }
+                    if(lecture_source) nb_norSource++;
+
+                    if(lecture_listener) nb_norListener++;
                 }                                
                 else if(ligne[0]=='o') // fin des vertices et des normales
                 {
                     // le centre de la source et la moyenne de ses coordonnées
-                    coordFloat.x = coordFloat.x/nb_ver;
-                    coordFloat.y = coordFloat.y/nb_ver;
-                    coordFloat.z = coordFloat.z/nb_ver;
+                    coordFloat = coordFloat/nb_ver;
 
                     if(lecture_source)
                     {
@@ -293,7 +280,7 @@ void MeshObj::charger_obj(QString file_obj)
 
                     int nbDonnees = indice.size()/3; //nombre de donnees V1/T1/N1 par face (dans le cas de faces triangles) : 10/3
 
-                    for(int i= 1; i<=nbDonnees;i++)
+                    for(i= 1; i<=nbDonnees;i++)
                     {
                         unsigned int v,n;
                         v=indice[i*3-2].toInt() - (nb_verSource + nb_verListener) -1; // on enleve le nombre de vertex de source et listener s'il y en a car ils ne s'enregistrent pas dans les vecteurs de coordonnées et 1 pour que indice 1 corresponde à 0
@@ -304,7 +291,7 @@ void MeshObj::charger_obj(QString file_obj)
                     }
                     // pour chaque face on rempli le vecteur materiau avec son nom et ses 8 coefficients d'absorption
                     m_indMat.push_back(nomMat.toFloat());
-                    for (int i = 0; i< 8; i++)
+                    for (i = 0; i< 8; i++)
                     {
                         m_indMat.push_back(matOdeon.getIndMat(rangCoeff*8+i));
                     }
@@ -332,9 +319,7 @@ void MeshObj::charger_obj(QString file_obj)
         if(lecture_source || lecture_listener)
         {
             // le centre de la source et la moyenne de ses coordonnées
-            coordFloat.x = coordFloat.x/nb_ver;
-            coordFloat.y = coordFloat.y/nb_ver;
-            coordFloat.z = coordFloat.z/nb_ver;
+            coordFloat = coordFloat/nb_ver;
 
             if(lecture_source)
             {
@@ -357,31 +342,37 @@ void MeshObj::charger_obj(QString file_obj)
     }
 
     // classement des coordonnées face par face
-    for(int i=0; i<iv.size(); i++) // vertex
+    for(i=0; i<iv.size(); i++) // vertex
     {
         if(iv[i]<ver.size())
-        {
+        {   /*
             m_vert.push_back(ver[iv[i]].x);
             m_vert.push_back(ver[iv[i]].y);
             m_vert.push_back(ver[iv[i]].z);
-
+            */
             m_vertex.push_back(ver[iv[i]]);
         }
     }
-    for(int i=0; i<in.size(); i++) //normales - pour ne prendre qu'une normale par face on prendrai comme increment i =i+3
+    for(i=0; i<in.size(); i++) //normales - pour ne prendre qu'une normale par face on prendrai comme increment i =i+3
     {
         if(in[i]<nor.size())
-        {
+        {   /*
             m_norm.push_back(nor[in[i]].x);
             m_norm.push_back(nor[in[i]].y);
             m_norm.push_back(nor[in[i]].z);
-
+            */
             m_normales.push_back(nor[in[i]]);
 
         }
     }
 
-    m_nbData = m_vert.size();
+    for(i = 0; i < m_vertex.size() ; i+=3)
+    {
+        m_vecteurFace.push_back(vecteur(m_vertex[i], m_vertex[i+1]));
+        m_vecteurFace.push_back(vecteur(m_vertex[i], m_vertex[i+2]));
+    }
+
+   // m_nbData = m_vert.size();
 
     // nettoyage
     ver.clear();

@@ -391,9 +391,12 @@ void Ray::stockage(){
 bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 {
     // chargement du mesh
-    std::vector<float> normales(mesh.getNormals());
-    std::vector<float> vertex(mesh.getVertex());
+    //std::vector<float> normales(mesh.getNormals());
+    //std::vector<float> vertex(mesh.getVertex());
     std::vector<float> indiceMat(mesh.getIndMat());
+
+    std::vector<CoordVector> normales(mesh.getNorm());
+    std::vector<CoordVector> vertex(mesh.getVert());
 
     // Declarations
     std::vector<float> absAir = absorptionAir(20);
@@ -403,7 +406,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
     int compteur(0),face(0);
     bool rayonsExistent = false;
     int j(0), k(0), l(0);
-    int nbVertex = vertex.size();
+   // int nbVertex = vertex.size();
 
     stockage();
 
@@ -419,8 +422,9 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 // Stockage de la longeur du nouveau rayon
                 m_long[j] = 1000000;
 
-                for (k=0; k < nbVertex; k = k+9) // pour chaque face
+                for (k=0; k < vertex.size(); k+=3) // pour chaque face
                 {
+                    /*
                     A.x = vertex[k];
                     A.y = vertex[k+1];
                     A.z = vertex[k+2];
@@ -430,7 +434,11 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                     C.x = vertex[k+6];
                     C.y = vertex[k+7];
                     C.z = vertex[k+8];
+                    */
 
+                    A=vertex[k];
+                    B=vertex[k+1];
+                    C=vertex[k+2];
 
                     // longueur du rayon depuis point de depart dans le sens du vecteur directeur et intersectant avec la face ABC
                     longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
@@ -539,11 +547,14 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 m_ray[j]+= m_vDir[j]*m_long[j];
 
                 // Mise à jour du vecteur directeur
+                /*
                 vect_norm.x = normales[face];
                 vect_norm.y = normales[face+1];
                 vect_norm.z = normales[face+2];
-
                 vect_ref = vecteur_reflechi(vect_dir,vect_norm);
+                */
+
+                vect_ref = vecteur_reflechi(vect_dir,normales[face]);
                 nor = norme(vect_ref);
                 m_vDir[j] = vect_ref/nor;
 
@@ -554,7 +565,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 compteur = 0;
                 for (l=0; l<8; l++)
                 {
-                    m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[face+l+1]) * exp(-absAir[l]*m_long[j]);
+                    m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face+l+1]) * exp(-absAir[l]*m_long[j]);
                     //m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]);
                     // test si le rayon est mort
                     if (m_nrg[j*8 + l] > seuil) // s'il existe au moins un rayon vivant
@@ -586,12 +597,13 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
 {
     // chargement du mesh
     //std::vector<float> normales(mesh.getNormals());
-    std::vector<float> vertex(mesh.getVertex());
+    //std::vector<float> vertex(mesh.getVertex());
     std::vector<float> indiceMat(mesh.getIndMat());
     std::vector<Boite> vectBoite(oct.getVectBoite());
 
     std::vector<CoordVector> vert(mesh.getVert());
     std::vector<CoordVector> norm(mesh.getNorm());
+    std::vector<CoordVector> vectFace(mesh.getVectFace());
 
     // Declarations
     std::vector<float> absAir = absorptionAir(20);
@@ -614,10 +626,15 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
         {
             for (indE=0; indE < vectBoite[i].m_numElt.size(); indE ++) // pour chaque face comprise dans la boite
             {
-                k = vectBoite[i].m_numElt[indE]/3;
+                //k = vectBoite[i].m_numElt[indE]/3;
+                k = vectBoite[i].m_numElt[indE];
 
+                /*
                 e1 = vecteur(vert[k],vert[k+1]);
                 e2 = vecteur(vert[k],vert[k+2]);
+                */
+                e1 = vectFace[2*k/3];
+                e2 = vectFace[2*k/3+1];
 
                 for(indR=0; indR<vectBoite[i].m_numRayon.size() ; indR++) // pour chaque rayon compris dans la boite
                 //for (j = 0 ; j < m_Nray ; j++)
@@ -628,9 +645,10 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                     if (m_rayVivant[j])
                     {
                         // fonction de Möller–Trumbore
-                        //pvec = produitVectoriel(vect_dir,e2);
+                        //pvec = produitVectoriel(m_dir[j],vectFace[2*k/3+1]);
                         pvec = produitVectoriel(m_dir[j], e2);
                         det = produitScalaire(e1,pvec);
+                        //det = produitScalaire(vectFace[2*k/3],pvec);
                         if (det > 1e-8) {
                             invDet = 1/det;
                             //tvec = vecteur(A, point);
@@ -638,10 +656,12 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                             u = produitScalaire(tvec, pvec)*invDet;
                             if (u >= 0 && u <= 1) {
                                 qvec = produitVectoriel(tvec,e1);
+                                //qvec = produitVectoriel(tvec,vectFace[2*k/3]);
                                 //v = produitScalaire(vect_dir,qvec)*invDet;
                                 v = produitScalaire(m_dir[j], qvec)*invDet;
                                 if (v >= 0 && u + v <= 1.00001) { // probleme d'arrondis
                                     longueur_inst = produitScalaire(e2, qvec)*invDet;
+                                    //longueur_inst = produitScalaire(vectFace[2*k/3+1], qvec)*invDet;
                                     if (longueur_inst >0 && longueur_inst<m_long[j]){
                                         m_long[j] = longueur_inst; // On sauvegarde la longueur
                                         face[j] = k;               //on sauvegarde la dernière face testée
@@ -682,7 +702,7 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
             compteur = 0;
             for (l=0; l<8; l++)
             {
-                m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[face[j]+l+1]) * exp(-absAir[l]*m_long[j]);
+                m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face[j]+l+1]) * exp(-absAir[l]*m_long[j]);
                 //m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]);
                 // test si le rayon est mort
                 if (m_nrg[j*8 + l] > seuil) // s'il existe au moins un rayon vivant
@@ -710,149 +730,3 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
     }
     return rayonsExistent;
 }
-
-// faces puis rayons
-bool Ray::rebondSansMemoireBis(MeshObj mesh, float seuil)
-{
-    // chargement du mesh
-    std::vector<float> normales(mesh.getNormals());
-    std::vector<float> vertex(mesh.getVertex());
-    std::vector<float> indiceMat(mesh.getIndMat());
-
-    // Declarations
-    std::vector<float> absAir = absorptionAir(20);
-    CoordVector point, vect_dir, vect_ref, vect_norm;
-    //CoordVector  intersec;
-    //CoordVector A,B,C; // trois points
-    //float longueur_inst(0), nor(0);
-    //float cons(0);
-    int compteur(0);
-    bool rayonsExistent = false;
-    int j(0), k(0), ind(0), l(0);
-    int nbVertex = vertex.size();
-    std::vector<int> face;
-    face.resize(m_Nray/3, 0);
-    m_long.assign(m_Nray/3, 1000000);
-    CoordVector A,B,C, e1, e2, pvec, tvec, qvec; // trois points
-    float longueur_inst(0),nor(0), det, u, v;
-
-    stockage();
-
-    for (k=0; k < nbVertex; k = k+9) // pour chaque face
-    {
-        vect_norm.x = normales[k];
-        vect_norm.y = normales[k+1];
-        vect_norm.z = normales[k+2];
-        // les trois points de la face k
-        A.x = vertex[k];
-        A.y = vertex[k+1];
-        A.z = vertex[k+2];
-        B.x = vertex[k+3];
-        B.y = vertex[k+4];
-        B.z = vertex[k+5];
-        C.x = vertex[k+6];
-        C.y = vertex[k+7];
-        C.z = vertex[k+8];
-
-        e1 = vecteur(A,B);
-        e2 = vecteur(A,C);
-
-        for(j=0; j<m_Nray;j++) // pour chaque rayon
-            {
-                //SI LE RAYON N'EST PAS MORT
-                if (m_rayVivant[j])
-                {
-                    // recuperation d'un point et du vecteur directeur
-                    point = m_pos[j];
-                    vect_dir = m_dir[j];
-
-                    pvec = produitVectoriel(vect_dir,e2);
-                    det = produitScalaire(e1,pvec);
-                    if(det>0.000001)
-                    {
-                        tvec = vecteur(A, point);
-                        u = produitScalaire(tvec, pvec)/det;
-                        if(u>=0 && u <=1)
-                        {
-                            qvec = produitScalaire(tvec,e1);
-                            v = produitScalaire(vect_dir,qvec)/det;
-                            if(v >=0 && u+v <=1)
-                            {
-                                longueur_inst = produitScalaire(e2, qvec)/det;
-                            }
-                        }
-                    }
-
-                    //longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
-                    if (longueur_inst >0 && longueur_inst<m_long[j])
-                    {
-                        m_long[j] = longueur_inst;
-/*
-                        // on remplace le bout du rayon par le point d'intersection
-                        m_ray[3*j] = point.x + vect_dir.x*longueur_inst;
-                        m_ray[3*j+1] = point.y + vect_dir.y*longueur_inst;
-                        m_ray[3*j+2] = point.z + vect_dir.z*longueur_inst;
-*/
-                        // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
-                        vect_ref = vecteur_reflechi(vect_dir,vect_norm);
-                        nor = norme(vect_ref);
-                        m_vDir[3*j] = vect_ref.x/nor;
-                        m_vDir[3*j+1] = vect_ref.y/nor;
-                        m_vDir[3*j+2] = vect_ref.z/nor;
-
-                        //on sauvegarde la dernière face testée
-                        face[j] = k;
-                    }
-                }
-            }
-    }
-
-    // POUR CHAQUE RAYON
-    for (j = 0; j<m_Nray/3; j++)
-    {
-        //SI LE RAYON N'EST PAS MORT
-        if (m_rayVivant[j])
-        {
-            for (l=0; l<3; l++)
-            {
-                m_ray[3*j+l] = m_pos[3*j+l] + m_dir[3*j+l]*m_long[j];
-            }
-
-            // On ajoute à la longueur des nouveaux rayons à la longueur totale
-            m_dist[j] = m_dist[j] + m_long[j];
-
-            //On met à jour l'énergie des rayons pour chaque bande
-            compteur = 0;
-            for (l=0; l<8; l++)
-            {
-                m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[face[j]+l+1]) * exp(-absAir[l]*m_long[j]);
-                //m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]);
-                // test si le rayon est mort
-                if (m_nrg[j*8 + l] > seuil) // s'il existe au moins un rayon vivant
-                {
-                    rayonsExistent = true;
-                }
-                else
-                {
-                    compteur++;
-                }
-            }
-            // si l'énergie sur les 8 bandes est inférieure au seuil le rayons est déclaré mort
-            if (compteur == 8)
-            {
-                m_rayVivant[j] = false;
-                //comptage des rayons morts pour la progress bar
-                m_nbRayMort++;
-            }
-            compteur = 0;
-        }
-        else
-        {
-            m_long[j] = 0;
-        }
-    }
-
-
-    return rayonsExistent;
-}
-

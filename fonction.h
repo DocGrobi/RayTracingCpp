@@ -21,10 +21,8 @@ class CoordVector
         CoordVector operator-=(CoordVector const&a);
         QVector<float> CoordVector2Qvector(CoordVector coord);
         void debug();
-        /*
-           Affecte au vecteur courant le contenu du vecteur passé en argument.
-           Retourne le vecteur courant ainsi modifié.
-        */
+        inline float operator[](int i)const{return ((float*)this)[i%3];}
+        inline float& operator[](int i){return ((float*)this)[i%3];}
 
         float x,y,z;
 };
@@ -56,6 +54,7 @@ inline CoordVector operator-(CoordVector const& a){return CoordVector(-a.x,-a.y,
 inline CoordVector operator-(CoordVector const&a,CoordVector const&b){CoordVector c(a);c-=b;return c;}
 CoordVector inverse(CoordVector const& a);
 // inline permet de mettre les fonction dans le .h
+float coordMax(const CoordVector &a);
 
 
 // Vect3f

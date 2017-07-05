@@ -28,7 +28,6 @@ MainWindow::MainWindow(QWidget *parent) :
    ui->label_listener->setText(m_listener.afficher());
 
    // CHARGEMENT PARAMETRES
-   on_checkBox__rebFixe_toggled(true);
    ui->checkBox__rebFixe->setChecked(true);
    on_radioButton_Fibonacci_toggled(true);
    on_checkBox_rayAuto_toggled(false);
@@ -41,10 +40,10 @@ MainWindow::MainWindow(QWidget *parent) :
    m_nbFaceFeuille = ui->spinBox_nbFaceFeuille->value();
 
    // On limite le nombre de faces par feuille au nombre de face total
-   ui->spinBox_nbFaceFeuille->setMaximum(m_meshObj.getVertex().size()/9);
+   ui->spinBox_nbFaceFeuille->setMaximum(m_meshObj.getVert().size()/3);
 
-   on_checkBox_methodeRapide_toggled(true);
    ui->checkBox_methodeRapide->setChecked(true);
+
 }
 
 
@@ -64,7 +63,9 @@ void MainWindow::on_bouton_normales_clicked()
     QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
     ObjWriter monObjWriter(fichierObj_2, 1);
 
-    monObjWriter.display_normales(m_meshObj.getVertex(), m_meshObj.getNormals(), m_meshObj.getNb_data());
+    //monObjWriter.display_normales(m_meshObj.getVertex(), m_meshObj.getNormals(), m_meshObj.getNb_data());
+    monObjWriter.display_normales(m_meshObj.getVert());
+
 }
 
 void MainWindow::on_bouton_source_clicked()

@@ -7,33 +7,21 @@
 // classes
 class Boite{
 public:
-    Boite();// Constructeur de base
-    Boite(const CoordVector &centre, float arrete, int indPere); // Constructeur surchargé
+    Boite();// Constructeur
     ~Boite();
     Boite operator=(const Boite &boite);
-    /*
-    CoordVector getCentre();
-    float getRayon();
-    int getIndPere();
-    */
-    void chargerElt(const std::vector<float> &vert, int indice);
+    void chargerElt(std::vector<CoordVector> const& vert, int indice);
     void chargerRay(int indice);
     void supprElt(int position);
     void supprRay(int position);
     int getNbElt();
-    //bool estUneFeuille();
     std::vector<int>& getVectNumElt();
 
-
-
-//private:
+//attribus
     float m_arrete;
-    CoordVector m_centre, m_min, m_max;
-    CoordVector m_coinMin;
-    int m_indicePere;
-    int m_indiceBoite;
-    std::vector<int> m_numRayon;
-    std::vector<int> m_numElt;
+    CoordVector m_min, m_max, m_coinMin;
+    int m_indicePere, m_indiceBoite;
+    std::vector<int> m_numRayon, m_numElt;
     bool estUneFeuille;
 
 };
@@ -47,9 +35,9 @@ public:
     Octree operator=(const Octree &oct);
     const std::vector<Boite>& getVectBoite() const;
     int getSeuil() const;
-    void chargerRayon(std::vector<CoordVector> &orig, std::vector<CoordVector> &dir);
+    void chargerRayon(std::vector<CoordVector> const& orig, std::vector<CoordVector> const& dir);
     void chargerRayonRacine(int nbRay);
-    void etagesuivant(std::vector<float>& vert, int indicePere);
+    void etagesuivant(std::vector<CoordVector> const& vert, int indicePere);
 
 
 private:
@@ -60,10 +48,8 @@ private:
 
 
 // methodes
-bool appartientBoite(Boite &boite, std::vector<float> &vert, int indice);
+bool appartientBoite(Boite &boite, std::vector<CoordVector> const& vert, int indice);
 void decoupage(Boite &boitePere, std::vector<Boite> &boitesFilles); // 4fois plus long si on retourne une reference
-//bool estUneFeuille(Boite boite, int seuil);
 bool intersecBoiteRay(const Boite &boite, const CoordVector &orig, const CoordVector &invDir);
-bool intersecSphereRay(Boite &boite, const CoordVector &orig, const CoordVector &dir);
 
 #endif // OCTREE_H
