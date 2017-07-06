@@ -63,11 +63,15 @@ class MeshObj
         std::vector<CoordVector> &getVert() ;
         std::vector<CoordVector> &getNorm() ;
         std::vector<CoordVector> &getVectFace() ;
+        CoordVector &getMin();
+        CoordVector &getMax();
+
 
     private:
 
         //std::vector<float> m_vert;
         //std::vector<float> m_norm;
+        CoordVector m_min, m_max; // min et max du mesh pour création de boite englobante
         std::vector<float> m_indMat;
 
         std::vector<CoordVector> m_vertex;

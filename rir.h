@@ -6,7 +6,7 @@
 #include "raytracing.h"
 
 // les méthodes
-std::vector<bool> toucheListener(Ray rayon, Listener listener);
+std::vector<bool> toucheListener(Ray &rayon, Listener &listener);
 
 // Les classes
 
@@ -15,7 +15,7 @@ class SourceImage
     public:
         SourceImage();
         ~SourceImage();
-        std::vector<float> &getSourcesImages();
+        std::vector<CoordVector> &getSourcesImages();
         std::vector<float> &getNrgSI();
         std::vector<float> &getX();
         std::vector<float> &getY();
@@ -24,7 +24,7 @@ class SourceImage
         void calculerRIR(int f_ech);
 
     private:
-        std::vector<float> m_sourcesImages;
+        std::vector<CoordVector> m_sourcesImages;
         std::vector<float> m_nrgSI;
         std::vector<int> m_nbSI;
         std::vector<float> m_sourcesImages_Filtrees;

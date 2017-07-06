@@ -133,8 +133,15 @@ std::vector<CoordVector> &MeshObj::getVectFace()  {
 }
 
 std::vector<float> &MeshObj::getIndMat()  {
-
     return m_indMat;
+}
+
+CoordVector &MeshObj::getMin(){
+    return m_min;
+}
+
+CoordVector &MeshObj::getMax(){
+    return m_max;
 }
 
 
@@ -147,7 +154,7 @@ void MeshObj::charger_obj(QString file_obj)
     //float indiceMat = 0, indiceMat_Curr = 0; // Indice du materiaux
     bool lecture_source = false, lecture_listener = false;
     CoordVector coordFloat (0,0,0);
-    int nb_ver = 0, nb_verSource = 0, nb_verListener = 0, nb_norSource = 0, nb_norListener = 0, i;
+    int nb_ver = 0, nb_verSource = 0, nb_verListener = 0, nb_norSource = 0, nb_norListener = 0, i, j;
     float x_max = -10000000, rayon = 0;
 
     Material matOdeon; // chargement des materiaux Odéons
@@ -341,6 +348,8 @@ void MeshObj::charger_obj(QString file_obj)
         }
     }
 
+    m_min = ver[0];
+    m_max = ver[0];
     // classement des coordonnées face par face
     for(i=0; i<iv.size(); i++) // vertex
     {
@@ -351,6 +360,12 @@ void MeshObj::charger_obj(QString file_obj)
             m_vert.push_back(ver[iv[i]].z);
             */
             m_vertex.push_back(ver[iv[i]]);
+            for (j = 0 ; j<3 ; j++)
+            {
+                if(ver[iv[i]][j]<m_min[j])   m_min[j] = ver[iv[i]][j];
+                if(ver[iv[i]][j]>m_max[j])   m_max[j] = ver[iv[i]][j];
+            }
+
         }
     }
     for(i=0; i<in.size(); i++) //normales - pour ne prendre qu'une normale par face on prendrai comme increment i =i+3
@@ -366,6 +381,60 @@ void MeshObj::charger_obj(QString file_obj)
         }
     }
 
+    ///Boite englobante
+    // Leger offset pour eviter que la boite englobante ne soit considéré comme une surface
+    m_min-=0.01;
+    m_max+=0.01;
+    // Création des points
+    CoordVector v1(m_min.x ,m_min.y ,m_max.z);
+    CoordVector v2(m_min.x ,m_max.y ,m_max.z);
+    CoordVector v3(m_min.x ,m_min.y ,m_min.z);
+    CoordVector v4(m_min.x ,m_max.y ,m_min.z);
+    CoordVector v5(m_max.x ,m_min.y ,m_max.z);
+    CoordVector v6(m_max.x ,m_max.y ,m_max.z);
+    CoordVector v7(m_max.x ,m_min.y ,m_min.z);
+    CoordVector v8(m_max.x ,m_max.y ,m_min.z);
+
+    // Création des normales
+    CoordVector n1(0, 1, 0);
+    CoordVector n2(0, -1, 0);
+    CoordVector n3(0, 0, -1);
+    CoordVector n4(-1, 0, 0);
+    CoordVector n5(0, 0, 1);
+    CoordVector n6(1, 0, 0);
+
+    // Ajout des faces
+    m_vertex.push_back(v5);m_vertex.push_back(v7);m_vertex.push_back(v3);
+    m_vertex.push_back(v6);m_vertex.push_back(v2);m_vertex.push_back(v4);
+    m_vertex.push_back(v6);m_vertex.push_back(v4);m_vertex.push_back(v8);
+    m_vertex.push_back(v1);m_vertex.push_back(v5);m_vertex.push_back(v3);
+
+    m_vertex.push_back(v6);m_vertex.push_back(v5);m_vertex.push_back(v2);
+    m_vertex.push_back(v5);m_vertex.push_back(v1);m_vertex.push_back(v2);
+    m_vertex.push_back(v8);m_vertex.push_back(v7);m_vertex.push_back(v6);
+    m_vertex.push_back(v7);m_vertex.push_back(v5);m_vertex.push_back(v6);
+
+    m_vertex.push_back(v4);m_vertex.push_back(v3);m_vertex.push_back(v7);
+    m_vertex.push_back(v4);m_vertex.push_back(v7);m_vertex.push_back(v8);
+    m_vertex.push_back(v2);m_vertex.push_back(v1);m_vertex.push_back(v3);
+    m_vertex.push_back(v2);m_vertex.push_back(v3);m_vertex.push_back(v4);
+
+    // Ajout des normales
+    for (i = 0; i< 3 ; i++) m_normales.push_back(n1);
+    for (i = 0; i< 6 ; i++) m_normales.push_back(n2);
+    for (i = 0; i< 3 ; i++) m_normales.push_back(n1);
+    for (i = 0; i< 6 ; i++) m_normales.push_back(n3);
+    for (i = 0; i< 6 ; i++) m_normales.push_back(n4);
+    for (i = 0; i< 6 ; i++) m_normales.push_back(n5);
+    for (i = 0; i< 6 ; i++) m_normales.push_back(n6);
+
+    // Ajout des materiaux 100 absorbant (12 faces, le nom du materiau est 1: 100%absorbant et les 8 coefficients valent 1)
+    for (i = 0; i< 12*9; i++)
+    {
+        m_indMat.push_back(1);
+    }
+
+    // Création des vecteurs AB et AC pour chaque face ABC
     for(i = 0; i < m_vertex.size() ; i+=3)
     {
         m_vecteurFace.push_back(vecteur(m_vertex[i], m_vertex[i+1]));

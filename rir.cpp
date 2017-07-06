@@ -2,15 +2,15 @@
 #include "math.h"
 
 // les méthodes
-std::vector<bool> toucheListener(Ray rayon, Listener listener)
+std::vector<bool> toucheListener(Ray &rayon, Listener &listener)
 {
     std::vector<bool> resultat;
     //bool hypA, hypB, hypC;
 
-    std::vector<CoordVector> posOld, rayNew;
+    std::vector<CoordVector> posOld, posNew;
     posOld = rayon.getPos();
     //dirOld = rayon.getDir();
-    rayNew = rayon.getRay();
+    posNew = rayon.getRay();
 
     float alpha, normeAL;
 
@@ -28,7 +28,7 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
        CoordVector B(rayNew[i],rayNew[i+1],rayNew[i+2]); // Point d'arrivée du rayon
        */
         A = posOld[i];
-        B = rayNew[i];
+        B = posNew[i];
        //CoordVector vectDir(rayNew[n+i]-rayNew[i],rayNew[n+i+1]-rayNew[i+1],rayNew[n+i+2]-rayNew[i+2]);
 
        alpha = angle(vecteur(A,B),vecteur(A,L));
@@ -52,11 +52,6 @@ std::vector<bool> toucheListener(Ray rayon, Listener listener)
     return resultat;
 }
 
-CoordVector sourceImage(Ray rayon)
-{
-
-}
-
 // La classe
 
 SourceImage::SourceImage()
@@ -66,10 +61,9 @@ SourceImage::SourceImage()
 
 SourceImage::~SourceImage()
 {
-
 }
 
-std::vector<float> &SourceImage::getSourcesImages()
+std::vector<CoordVector> &SourceImage::getSourcesImages()
 {
     return m_sourcesImages;
 }
@@ -117,20 +111,12 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener, float longueurM
             vect = vec[i];
             //float norm = norme(vect);
             longueurRay = longueurRayonTot[i] - longueurRayonFin[i];
-            /*
-            C.x = -longueurRay * vect.x / norm + A.x;
-            C.y = -longueurRay * vect.y / norm + A.y;
-            C.z = -longueurRay * vect.z / norm + A.z;
-            */
-            C.x = -longueurRay * vect.x + A.x;
-            C.y = -longueurRay * vect.y + A.y;
-            C.z = -longueurRay * vect.z + A.z;
+
+            C = vect*(-longueurRay) + A;
 
             // BONNE METHODE (on garde toutes les sources images) :
             // On ajoute les coordonnées au vecteur sources images
-            m_sourcesImages.push_back(C.x);
-            m_sourcesImages.push_back(C.y);
-            m_sourcesImages.push_back(C.z);
+            m_sourcesImages.push_back(C);
 
             // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
             for (k = 0 ; k<8 ; k ++)
@@ -194,6 +180,7 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener, float longueurM
 void SourceImage::filtrerSourceImages()
 {
     // FAUX NE MARCHE PAS POUR LA SPHERE
+    /*
     // On ne garde que les sources images en plus de 10 exemplaires
     for (int i = 0 ; i< m_nbSI.size(); i++)
     {
@@ -210,6 +197,7 @@ void SourceImage::filtrerSourceImages()
             }
         }
     }
+    */
 }
 
 

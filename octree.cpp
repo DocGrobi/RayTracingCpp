@@ -18,6 +18,9 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     // création du cube racine
     //std::vector<float> vert = monMesh.getVertex();
     std::vector<CoordVector> vertex = monMesh.getVert();
+    CoordVector Min(monMesh.getMin()), Max(monMesh.getMax());
+
+    /*
     CoordVector Min(vertex[0]), Max(vertex[0]);
 
     for (i = 1 ; i <vertex.size() ; i++)
@@ -28,6 +31,8 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
             if(vertex[i][j]>Max[j])   Max[j] = vertex[i][j];
         }
     }
+    */
+
 
     //I- Création de la boite root
     Boite boiteRacine;
