@@ -1,5 +1,6 @@
 #include "plotwindow.h"
 #include "ui_plotwindow.h"
+//#include <math.h>
 
 plotWindow::plotWindow(QWidget *parent) :
     QDialog(parent),
@@ -22,6 +23,8 @@ plotWindow::plotWindow(QWidget *parent) :
       // setup policy and connect slot for context menu popup:
       ui->customPlot->setContextMenuPolicy(Qt::CustomContextMenu);
       connect(ui->customPlot, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
+
+      m_echelleLog = true;
 }
 
 plotWindow::~plotWindow()
@@ -84,8 +87,9 @@ void plotWindow::makePlot(std::vector<float> &x, std::vector<float> &y)
     ui->customPlot->replot();
 }
 */
-void plotWindow::makePlot(std::vector<float> &x, std::vector<float> &y)
+void plotWindow::makePlot()
 {
+    /*
     // Conversion en double
     std::vector<double> vX(x.begin(),x.end());
     std::vector<double> vY(y.begin(),y.end());
@@ -106,6 +110,7 @@ void plotWindow::makePlot(std::vector<float> &x, std::vector<float> &y)
             yMax = vectY[i];
         }
     }
+    */
 
     // Normalisation sur les y et repartition sur les 8 courbes
     QVector<QVector<double> > courbe;
@@ -116,7 +121,8 @@ void plotWindow::makePlot(std::vector<float> &x, std::vector<float> &y)
     {
         for (i = 0 ; i < n ; i++)
         {
-            courbe[k].push_back(vectY[i+k*n]/yMax);
+            //courbe[k].push_back(vectY[i+k*n]/yMax);
+            courbe[k].push_back(vectY[i+k*n]);
         }
     }
 
@@ -132,13 +138,50 @@ void plotWindow::makePlot(std::vector<float> &x, std::vector<float> &y)
 
     // Noms des axes
     ui->customPlot->xAxis->setLabel("Temps (ms)");
-    ui->customPlot->yAxis->setLabel("Energie nomalisée");
+    if(m_echelleLog)
+        ui->customPlot->yAxis->setLabel("Energie nomalisée (log)");
+    else
+        ui->customPlot->yAxis->setLabel("Energie nomalisée (lineaire)");
 
     // Regalges des plages des axes
     //xMax = 40; //pour les tests
     ui->customPlot->xAxis->setRange(0, xMax);
-    ui->customPlot->yAxis->setRange(0, 1);
+    ui->customPlot->yAxis->setRange(yMin,yMax);
     ui->customPlot->replot();
+}
+
+void plotWindow::XY(std::vector<float> &x, std::vector<float> &y, float seuil)
+{
+    // Conversion en double
+    std::vector<double> vX(x.begin(),x.end());
+    std::vector<double> vY(y.begin(),y.end());
+
+    // Conversion en QVector
+    vectX = QVector<double>::fromStdVector(vX);
+    vectY = QVector<double>::fromStdVector(vY);
+
+    int i;
+    // Recupération des maximums
+    xMax = vectX[vectX.size() - 1];
+
+    yMax = vectY[0];
+    yMin = vectY[0];
+
+
+    for (i = 1 ; i < vectY.size() ; i++)
+    {
+        if (vectY[i] > yMax) yMax = vectY[i];
+        if (vectY[i] < yMin) yMin = vectY[i];
+    }
+
+    // Normalisation des y et mise à l'echelle log
+    for (i = 0 ; i < vectY.size() ; i++) {
+        if (vectY[i]/yMax < seuil) vectY[i] = 10*log10(seuil);
+        else vectY[i] = 10*log10(vectY[i]/yMax);
+    }
+
+    yMin = 10*log10(seuil);
+    yMax = 0;
 }
 
 // SLOTS :
@@ -228,6 +271,8 @@ void plotWindow::contextMenuRequest(QPoint pos)
         menu->addAction("Hide all graphs", this, SLOT(hideAllGraphs()));
         menu->addAction("Display all graphs", this, SLOT(displayAllGraphs()));
     }
+    if (m_echelleLog)  menu->addAction("Linear scale", this, SLOT(linScale()));
+    else           menu->addAction("Logarithme scale", this, SLOT(logScale()));
 
   menu->popup(ui->customPlot->mapToGlobal(pos));
 }
@@ -273,5 +318,39 @@ void plotWindow::displayAllGraphs()
         ui->customPlot->graph(i)->setVisible(true);
     }
     ui->customPlot->replot();
+}
+
+void plotWindow::linScale()
+{
+    if (m_echelleLog)
+    {
+        for(int i=0; i< vectY.size(); i++)
+        {
+            vectY[i] = pow(10, vectY[i]/10);
+        }
+        m_echelleLog = false;
+        yMax = pow(10, yMax/10);
+        yMin = pow(10, yMin/10);
+
+        ui->customPlot->clearGraphs();
+        makePlot();
+    }
+}
+
+void plotWindow::logScale()
+{
+    if (!m_echelleLog)
+    {
+        for(int i=0; i< vectY.size(); i++)
+        {
+            vectY[i] = 10*log10(vectY[i]);
+        }
+        m_echelleLog = true;
+        yMax = 10*log10(yMax);
+        yMin = 10*log10(yMin);
+
+        ui->customPlot->clearGraphs();
+        makePlot();
+    }
 }
 

@@ -65,7 +65,7 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     }
 
     // Mise à jour taille des boites
-    for (i = 0 ; i< m_vectBoite.size() ; i++) // pour chaque boite
+    for (i = 0 ; i< m_vectBoite.size() ; i++) // pour chaque boite qui n'est pas une feuille vide
     {
         if (!m_vectBoite[i].estUneFeuille || !m_vectBoite[i].m_numElt.empty())
         {
@@ -79,12 +79,10 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     for (i = 0 ; i< m_vectBoite.size() ; i++)
     {
         if (m_vectBoite[i].estUneFeuille)
-            nbEltFeuille+= m_vectBoite[i].m_numElt.size();
+        nbEltFeuille+= m_vectBoite[i].m_numElt.size();
     }
     if(vertex.size()/3 != nbEltFeuille)
         QMessageBox::critical(NULL,"Erreur","Mauvaise mise en boite des faces");
-
-
 }
 
 Octree::~Octree()
@@ -110,6 +108,7 @@ int Octree::getSeuil() const{
 
 Boite::Boite()
 {
+    estUneFeuille = false; // Sinon ne fonctionne pas en mode release
 }
 
 Boite::~Boite()
@@ -285,6 +284,7 @@ void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<Coor
 
     int numPere;
 
+    int val = 0;
     // Pour chaque boite : chargement de l'indice des rayons qui intersectent avec elle
     for (i = 1 ; i < m_vectBoite.size() ; i++)
     {
@@ -295,6 +295,8 @@ void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<Coor
             m_vectBoite[i].m_numRayon.clear();
 
             numPere = m_vectBoite[i].m_indicePere;
+
+            val++;
 
             for (j = 0 ; j < m_vectBoite[numPere].m_numRayon.size() ; j++) // Pour tous les rayons contenus dans la boite père
             {
@@ -308,7 +310,7 @@ void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<Coor
             }
         }
     }
-    /*
+/*
     // Vérification
     int nbRay(0);
     for (i = 0 ; i< m_vectBoite.size() ; i++)
@@ -316,7 +318,7 @@ void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<Coor
         nbRay+= m_vectBoite[i].m_numRayon.size();
     }
     qDebug() << "Nombre total de rayon stocké :" << nbRay;
-    */
+*/
 }
 
 

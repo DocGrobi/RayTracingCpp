@@ -44,6 +44,7 @@ float angle(const CoordVector &a,const CoordVector &b);
 void debugStdVect(std::vector<float>& vect); // permet d'afficher un std::vector dans la console
 //CoordVector coord_New_Base(const CoordVector &point, std::vector<float> &mat );
 bool proche(float a, float b);
+bool proche(CoordVector a, CoordVector b);
 
 CoordVector operator+(const CoordVector &a, const CoordVector &b);
 CoordVector operator+(const CoordVector &a, float b);
@@ -55,7 +56,7 @@ inline CoordVector operator-(CoordVector const&a,CoordVector const&b){CoordVecto
 CoordVector inverse(CoordVector const& a);
 // inline permet de mettre les fonction dans le .h
 float coordMax(const CoordVector &a);
-
+QString CoordVector2QString(const CoordVector &coord);
 
 // Vect3f
 

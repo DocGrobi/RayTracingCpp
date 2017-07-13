@@ -823,7 +823,7 @@
       <rect>
        <x>0</x>
        <y>20</y>
-       <width>599</width>
+       <width>605</width>
        <height>114</height>
       </rect>
      </property>
@@ -893,8 +893,11 @@
         <property name="prefix">
          <string/>
         </property>
+        <property name="minimum">
+         <number>2</number>
+        </property>
         <property name="maximum">
-         <number>10000000</number>
+         <number>1000000000</number>
         </property>
         <property name="value">
          <number>100000</number>
@@ -1055,8 +1058,11 @@
         <property name="readOnly">
          <bool>false</bool>
         </property>
+        <property name="maximum">
+         <number>120</number>
+        </property>
         <property name="value">
-         <number>30</number>
+         <number>60</number>
         </property>
        </widget>
       </item>

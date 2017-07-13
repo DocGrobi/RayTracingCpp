@@ -65,23 +65,11 @@ private:
     Listener m_listener;
     SourceImage m_sourceImage;
     Octree m_octree;
-    //std::vector<Boite> m_octree;
-    //Ray m_monRay;
-    int m_nbRebond;
-    float m_seuilAttenuation;
-    int m_temperature;
-    bool m_nbRebondFixe;
     QElapsedTimer m_timer;
-    bool m_fibonacci;
-    int m_nbRayon;
-    int m_freq;
-    int m_seuilArret;
-    bool m_rayAuto;
-    float m_longueurRayMax;
-    int m_nbFaceFeuille;
-    bool m_methodeRapide;
-
-
+    QString m_fichierExport;
+    float m_seuilAttenuation, m_longueurRayMax;
+    int m_temperature, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille;
+    bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe;
 };
 
 #endif // MAINWINDOW_H

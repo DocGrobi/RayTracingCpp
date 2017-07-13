@@ -10,18 +10,8 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_meshObj(QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj"),
-  m_listener(m_meshObj.getListener()), m_source(m_meshObj.getSource())//, m_octree(Octree(m_meshObj, ui->spinBox_nbFaceFeuille->value()))// , m_monRay(1,1,m_source)
+  m_listener(m_meshObj.getListener()), m_source(m_meshObj.getSource())
 {
-
-   // IMPORT
-   /*
-    * m_listener = m_meshObj.getListener();
-   m_source = m_meshObj.getSource();
-   int nbRayons = 30; // Si on n'utilise pas les vertex de la source comme rayons
-   Ray monRay(1,nbRayons,m_source);
-   m_monRay = monRay;
-   */
-
    // AFFICHAGE FENETRE
    ui->setupUi(this);
    ui->label_source->setText(m_source.afficher());
@@ -38,14 +28,13 @@ MainWindow::MainWindow(QWidget *parent) :
    m_seuilArret = ui->spinBox_seuilArret->value();
    m_nbRayon = ui->spinBox_nbRay->value();
    m_nbFaceFeuille = ui->spinBox_nbFaceFeuille->value();
+   m_fichierExport = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
 
    // On limite le nombre de faces par feuille au nombre de face total
    ui->spinBox_nbFaceFeuille->setMaximum(m_meshObj.getVert().size()/3);
 
    ui->checkBox_methodeRapide->setChecked(true);
-
 }
-
 
 MainWindow::~MainWindow()
 {
@@ -53,19 +42,13 @@ MainWindow::~MainWindow()
 }
 
 
-
 ////// LES BOUTONS
-
 void MainWindow::on_bouton_normales_clicked()
 {
-
     // EXPORT
-    QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
-    ObjWriter monObjWriter(fichierObj_2, 1);
+    ObjWriter monObjWriter(m_fichierExport, 1);
 
-    //monObjWriter.display_normales(m_meshObj.getVertex(), m_meshObj.getNormals(), m_meshObj.getNb_data());
     monObjWriter.display_normales(m_meshObj.getVert());
-
 }
 
 void MainWindow::on_bouton_source_clicked()
@@ -76,7 +59,6 @@ void MainWindow::on_bouton_source_clicked()
     m_source = monMeshObj.getSource();
 
     ui->label_source->setText(m_source.afficher());
-
 }
 
 void MainWindow::on_bouton_listener_clicked()
@@ -88,27 +70,19 @@ void MainWindow::on_bouton_listener_clicked()
 
     ui->label_listener->setText(m_listener.afficher());
 
-    if(m_rayAuto)
-    {
-        m_longueurRayMax = sqrt(m_nbRayon/m_seuilArret)*m_listener.getRayon();
-        QMessageBox msgBox;
-        msgBox.setText("Temps maximum pour mesure statistique : " + QString::number(m_longueurRayMax/VITESSE_SON)+ "s");
-        msgBox.setIcon(QMessageBox::Information);
-        msgBox.exec();
+    if(m_rayAuto) {
+        on_checkBox_rayAuto_toggled(true);
     }
-
 }
 
 void MainWindow::on_bouton_rayons_clicked()
 {
-
     // RAYONS
     Ray monRay(m_nbRayon, m_source, m_fibonacci);
     //int nbRayons = monRay.getRay().size()/3; // m_ray est composé de 3 coordonnées par rayon
 
     // EXPORT
-    QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
-    ObjWriter monObjWriter(fichierObj_2, m_nbRayon);
+    ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
 
     // OCTREE
     if (m_methodeRapide)
@@ -143,12 +117,12 @@ void MainWindow::on_bouton_rayons_clicked()
             {
                 m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
                 if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) // calcul des points d'intersection entre rayons et faces
-                        i=m_nbRebond;
+                        i=m_nbRebond; // arrete la boucle
             }
             else
             {
                 if(!monRay.rebondSansMemoire(m_meshObj, -1)) // calcul des points d'intersection entre rayons et faces
-                        i=m_nbRebond;
+                        i=m_nbRebond; // arrete la boucle
             }
             monObjWriter.rec_Vert(m_source,monRay, m_nbRayon, i, -1); // ecriture des vertex
 
@@ -170,9 +144,7 @@ void MainWindow::on_bouton_rayons_clicked()
             {
                 // progress bar
                 progress.setValue(monRay.getRayMorts());
-                if (progress.wasCanceled())
-                            break; // arrete la boucle
-
+                if (progress.wasCanceled()) break; // arrete la boucle
 
                 monObjWriter.rec_Vert(m_source,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
                 i++;
@@ -186,9 +158,7 @@ void MainWindow::on_bouton_rayons_clicked()
             {
                 // progress bar
                 progress.setValue(monRay.getRayMorts());
-                if (progress.wasCanceled())
-                            break; // arrete la boucle
-
+                if (progress.wasCanceled()) break; // arrete la boucle
 
                 monObjWriter.rec_Vert(m_source,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
                 i++;
@@ -206,23 +176,16 @@ void MainWindow::on_bouton_rayons_clicked()
     ui->lcd_timer->display(temps);
 
     progress.cancel();
-
 }
 
 
 void MainWindow::on_bouton_sourcesImages_clicked()
 {
-    // lancer le timer
-    //m_timer.start();
-
-
     // RAYONS
     Ray monRay(m_nbRayon, m_source, m_fibonacci);
-    //int nbRayons = monRay.getRay().size()/6; // m_ray est composé de 2 points par rayons chacun avec 3 coordonnées
 
     // OCTREE
-    if (m_methodeRapide)
-    {
+    if (m_methodeRapide) {
         m_octree.chargerRayonRacine(m_nbRayon);
     }
 
@@ -230,8 +193,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     SourceImage maSourceImage;
 
     // EXPORT
-    QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
-    ObjWriter monObjWriter(fichierObj_2, m_nbRayon);
+    ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
 
 
     // Ouvrir fenetre de progress bar
@@ -297,7 +259,6 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 
                 maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
                 m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
-
             }
         }
         else
@@ -313,13 +274,12 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                 maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
             }
         }
-
         maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto); // On le refait une fois à la sortie de boucle pour les dernier rayon
         monObjWriter.display_sourceImages(maSourceImage, m_seuilAttenuation);
 
         progress.setValue(m_nbRayon);
-
     }
+
     double temps = timer2.elapsed();
     temps = temps /1000;
     ui->lcd_timer->display(temps);
@@ -331,80 +291,66 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 
 void MainWindow::on_bouton_octree_clicked()
 {
-
     // EXPORT
-    QString fichierObj_2 = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
-    ObjWriter monObjWriter(fichierObj_2, 0);
+    ObjWriter monObjWriter(m_fichierExport, 0);
 
     on_checkBox_methodeRapide_toggled(true); // recalcule l'octree
     ui->checkBox_methodeRapide->setChecked(true);
 
     monObjWriter.display_octree(m_octree.getVectBoite());
-
 }
 
-void MainWindow::on_spinBox_nbRebond_valueChanged(int arg1)
-{
+void MainWindow::on_spinBox_nbRebond_valueChanged(int arg1) {
     m_nbRebond = arg1;
 }
 
 void MainWindow::on_checkBox__rebFixe_toggled(bool checked)
 {
     m_nbRebondFixe = checked;
-    if (checked)
-    {
+    if (checked) {
         ui->spinBox_attenuation->setEnabled(false);
         ui->spinBox_nbRebond->setEnabled(true);
     }
-    else
-    {
+    else {
         ui->spinBox_attenuation->setEnabled(true);
         ui->spinBox_nbRebond->setEnabled(false);
     }
 }
 
-void MainWindow::on_spinBox_attenuation_valueChanged(int arg1)
-{
+void MainWindow::on_spinBox_attenuation_valueChanged(int arg1) {
     m_seuilAttenuation = pow(10,(-arg1/10));
-
 }
 
-void MainWindow::on_spinBox_temperature_valueChanged(int arg1)
-{
+void MainWindow::on_spinBox_temperature_valueChanged(int arg1) {
     m_temperature = arg1;
 }
 
 void MainWindow::on_radioButton_vertexSource_toggled(bool checked)
 {
-    if(checked)
-    {
+    if(checked) {
         if (ui->radioButton_Fibonacci->isChecked())
         {
             on_radioButton_Fibonacci_toggled(false);
         }
     }
-    else
-    {
+    else {
         if (!ui->radioButton_Fibonacci->isChecked())
         {
             on_radioButton_Fibonacci_toggled(true);
         }
     }
-
 }
 
 void MainWindow::on_radioButton_Fibonacci_toggled(bool checked)
 {
-    if(checked)
-    {
+    if(checked) {
         m_fibonacci = true;
         if (ui->radioButton_vertexSource->isChecked())
         {
             on_radioButton_vertexSource_toggled(false);
         }
     }
-    else
-    {
+    else {
         m_fibonacci = false;
         if (!ui->radioButton_vertexSource->isChecked())
         {
@@ -413,40 +359,51 @@ void MainWindow::on_radioButton_Fibonacci_toggled(bool checked)
     }
 }
 
-void MainWindow::on_spinBox_nbRay_valueChanged(int arg1)
-{
+void MainWindow::on_spinBox_nbRay_valueChanged(int arg1) {
     m_nbRayon = arg1;
+    if(m_rayAuto) {
+        on_checkBox_rayAuto_toggled(true);
+    }
 }
 
 void MainWindow::on_bouton_RIR_clicked()
 {
-
      m_sourceImage.calculerRIR(m_freq);
 
     // ouvre une nouvelle fenetre
     plotWindow plot;
-    plot.makePlot(m_sourceImage.getX(), m_sourceImage.getY());
-    plot.setModal(true);
-    plot.exec();
-
+    if (m_sourceImage.getX().size() == 1) QMessageBox::warning(NULL,"Attention","Trajet direct uniquement");
+    else
+    {
+        plot.XY(m_sourceImage.getX(), m_sourceImage.getY(), m_seuilAttenuation);
+        plot.makePlot();
+        plot.setModal(true);
+        plot.exec();
+    }
 }
 
-void MainWindow::on_spinBox_freqEchan_valueChanged(int arg1)
-{
+void MainWindow::on_spinBox_freqEchan_valueChanged(int arg1) {
     m_freq = arg1;
 }
 
-
-void MainWindow::on_checkBox_rayAuto_toggled(bool checked)
-{
+void MainWindow::on_checkBox_rayAuto_toggled(bool checked) {
    m_rayAuto = checked;
+   if(m_rayAuto)
+   {
+       m_longueurRayMax = sqrt(m_nbRayon/m_seuilArret)*m_listener.getRayon();
+       QMessageBox msgBox;
+       msgBox.setText("Temps maximum pour mesure statistique : " + QString::number(m_longueurRayMax/VITESSE_SON)+ "s");
+       msgBox.setIcon(QMessageBox::Information);
+       msgBox.exec();
+   }
 }
 
-void MainWindow::on_spinBox_seuilArret_valueChanged(int arg1)
-{
+void MainWindow::on_spinBox_seuilArret_valueChanged(int arg1) {
     m_seuilArret = arg1;
+    if(m_rayAuto) {
+        on_checkBox_rayAuto_toggled(true);
+    }
 }
-
 
 void MainWindow::on_spinBox_nbFaceFeuille_valueChanged(int arg1)
 {
@@ -457,11 +414,6 @@ void MainWindow::on_spinBox_nbFaceFeuille_valueChanged(int arg1)
 
 void MainWindow::on_checkBox_methodeRapide_toggled(bool checked)
 {
-    if(checked)
-    {
-        //m_timer.restart();
-        m_octree = Octree(m_meshObj,m_nbFaceFeuille);
-        //qDebug() << "temps octree : " << m_timer.restart() << "ms";
-    }
+    if(checked) m_octree = Octree(m_meshObj,m_nbFaceFeuille);
     m_methodeRapide = checked;
 }

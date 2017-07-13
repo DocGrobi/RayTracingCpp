@@ -5,52 +5,40 @@
 #include "QDebug"
 
 
-Source::Source()
-{
+Source::Source() {
     m_centreSource = (0,0,0);
-
-}
-Source::~Source()
-{
 }
 
-void Source::chargerSource(const CoordVector &cs)
-{
-    m_centreSource = cs;
-    //qDebug() << cs.x << cs.y << cs.z;
+Source::~Source(){
 }
 
-void Source::chargerVertSource(float coord)
+void Source::chargerSource()
 {
-    m_vertSource.push_back(coord);
+    // Moyenne des vertex sur chaque coordonnée
+   for (int i = 0 ; i < m_vert.size() ; i++)
+   {
+       m_centreSource[i] += m_vert[i]; // l'operateur [] a un modulo 3
+   }
+   m_centreSource = m_centreSource/(m_vert.size()/3);
 }
 
-CoordVector Source::centre()
-{
+void Source::chargerVert(float coord){
+    m_vert.push_back(coord);
+}
+
+CoordVector Source::getCentre() {
     return m_centreSource;
 }
 
-std::vector<float> Source::vert()
-{
-
-    return m_vertSource;
+std::vector<float>& Source::getVert() {
+    return m_vert;
 }
 
-QString Source::afficher() const
-{
-    QString x,y,z;
-    x.setNum(m_centreSource.x);
-    y.setNum(m_centreSource.y);
-    z.setNum(m_centreSource.z);
-
-    QString centre = "Centre de la source : x = " + x + ", y = " + y + ", z = " + z;
-
-    return centre;
-
+QString Source::afficher() const {
+    return "Centre :" + CoordVector2QString(m_centreSource);
 }
 
-Source MeshObj::getSource() const //accesseur aux parametres de source
-{
+Source MeshObj::getSource() const {
     return m_source;
 }
 
@@ -61,78 +49,70 @@ Listener::Listener()
     m_rayon = 1;
 }
 
-Listener::~Listener()
-{
+Listener::~Listener(){
 }
 
-void Listener::chargerListener(const CoordVector &cs, float r)
+void Listener::chargerVert(float coord){
+    m_vert.push_back(coord);
+}
+
+void Listener::chargerListener()
 {
-    m_centreListener = cs;
-    m_rayon =r;
+    float min, max;
+   for (int i = 0 ; i < m_vert.size() ; i++)
+   {
+       m_centreListener[i] += m_vert[i]; // l'operateur [] a un modulo 3
+       if (min > m_vert[i]) min = m_vert[i];
+       if (max < m_vert[i]) max = m_vert[i];
+   }
+   m_centreListener = m_centreListener/(m_vert.size()/3);
+   m_rayon = (max-min)/2;
 }
 
 QString Listener::afficher()
 {    
-    QString x,y,z,ray;
-    x.setNum(m_centreListener.x);
-    y.setNum(m_centreListener.y);
-    z.setNum(m_centreListener.z);
+    QString ray;
     ray.setNum(m_rayon);
-
-    QString info = "Centre du listener : x = " + x + ", y = " + y + ", z = " + z + "\n" + "Rayon : " + ray;
-
+    QString info = "Centre : "+ CoordVector2QString(m_centreListener) +"\n"
+            + "Rayon : " + ray;
     return info;
-
 }
 
-CoordVector Listener::getCentre()
-{
+CoordVector Listener::getCentre() {
     return m_centreListener;
 }
 
-float Listener::getRayon()
-{
+float Listener::getRayon() {
     return m_rayon;
 }
 
-Listener MeshObj::getListener() const //accesseur aux parametres du listener
-{
+std::vector<float>& Listener::getVert() {
+    return m_vert;
+}
+
+Listener MeshObj::getListener() const {
     return m_listener;
 }
 
-MeshObj::MeshObj(QString s) //: m_nbData(1)
-{
+MeshObj::MeshObj(QString s) {
     charger_obj(s);
 }
 
-MeshObj::~MeshObj()
-{
+MeshObj::~MeshObj() {
 }
 
-/*
-std::vector<float> &MeshObj::getVertex()  {
-    return m_vert;
-}
-std::vector<float> &MeshObj::getNormals()  {
-    return m_norm;
-}
-int MeshObj::getNb_data() const {
-    return m_nbData;
-}
-*/
-
-std::vector<CoordVector> &MeshObj::getVert()  {
+std::vector<CoordVector> &MeshObj::getVert() {
     return m_vertex;
 }
 
-std::vector<CoordVector> &MeshObj::getNorm()  {
+std::vector<CoordVector> &MeshObj::getNorm() {
     return m_normales;
 }
-std::vector<CoordVector> &MeshObj::getVectFace()  {
+std::vector<CoordVector> &MeshObj::getVectFace() {
     return m_vecteurFace;
 }
 
-std::vector<float> &MeshObj::getIndMat()  {
+std::vector<float> &MeshObj::getIndMat() {
     return m_indMat;
 }
 
@@ -143,7 +123,6 @@ CoordVector &MeshObj::getMin(){
 CoordVector &MeshObj::getMax(){
     return m_max;
 }
-
 
 
 void MeshObj::charger_obj(QString file_obj)
@@ -174,57 +153,29 @@ void MeshObj::charger_obj(QString file_obj)
 
             if(lecture_source || lecture_listener) // Si l'objet lu est la source ou le listener
             {
-
                 if(ligne[0]=='v' && ligne[1]==' ') //Vertex
                 {
                     QStringList coord = ligne.split(" ");
 
                     if(lecture_source)
                     {
-                        for(int i=0; i<3;i++)
+                        for(i=0; i<3;i++)
                         {
-                            m_source.chargerVertSource(coord[i+1].toFloat());
+                            m_source.chargerVert(coord[i+1].toFloat());
                         }
-                    }
-
-                    coordFloat.x += coord[1].toFloat();
-                    coordFloat.y += coord[2].toFloat();
-                    coordFloat.z += coord[3].toFloat();
-                    nb_ver++; // incrementation du nombre d'element dans la source
-
-                    if (lecture_listener) // mesure de x max pour calcul du rayon
-                    {
-                        if(x_max < coord[1].toFloat()) x_max = coord[1].toFloat();
-                    }
-                }
-                else if(ligne[1]=='n') // comptage des normales
-                {
-                    if(lecture_source) nb_norSource++;
-
-                    if(lecture_listener) nb_norListener++;
-                }                                
-                else if(ligne[0]=='o') // fin des vertices et des normales
-                {
-                    // le centre de la source et la moyenne de ses coordonnées
-                    coordFloat = coordFloat/nb_ver;
-
-                    if(lecture_source)
-                    {
-                        m_source.chargerSource(coordFloat);// on affecte à la source les coordonnées du centre recupérés
-                        lecture_source = false; // on sort du mode lecture source
-                        nb_verSource = nb_ver; // ici il faut enlever le nombre d'elements de source aux indices car dans les vecteurs i.. on n'enregistre pas les element de source
-
                     }
                     if(lecture_listener)
                     {
-                        rayon = x_max - coordFloat.x; // VALABLE QUE POUR UNE SPHERE - calcul du rayon par coordonnee x max moins centre sur x
-                        m_listener.chargerListener(coordFloat, rayon);// on affecte au listener les coordonnées du centre recupérés
-                        lecture_listener = false; // on sort du mode lecture listener
-                        nb_verListener = nb_ver;
+                        for(i=0; i<3;i++)
+                        {
+                            m_listener.chargerVert(coord[i+1].toFloat());
+                        }
                     }
-
-                    nb_ver = 0; //remsie à 0 du compteur de vertex
-                    coordFloat = (0,0,0); //remsie à 0 de la somme des coordonnees
+                }
+                else if (ligne[0]=='o') // fin de l'objet
+                {
+                    lecture_source = false; // on sort du mode lecture source
+                    lecture_listener = false; // on sort du mode lecture listener
                 }
             }
 
@@ -302,63 +253,29 @@ void MeshObj::charger_obj(QString file_obj)
                     {
                         m_indMat.push_back(matOdeon.getIndMat(rangCoeff*8+i));
                     }
-
                 }
             }
 
             // condition qui se place apres les actions de ligne pour que l'activation du mode agisse à partir de la ligne suivante
-            if(ligne.contains("source"))
-            {
-                lecture_source = true; // on est en mode lecture de source
-                //qDebug() << lecture_source;
-            }
-
-            // Listener
-            if(ligne.contains("listener"))
-            {
-                lecture_listener = true; // on est en mode lecture de source
-            }
-
+            if(ligne.contains("source")) lecture_source = true; // on est en mode lecture de source
+            if(ligne.contains("listener")) lecture_listener = true; // on est en mode lecture de listener
         }
         fichier.close();
-
-        //si on n'est pas sortie du mode source/listener car il n'y a que des sources ou des listeners
-        if(lecture_source || lecture_listener)
-        {
-            // le centre de la source et la moyenne de ses coordonnées
-            coordFloat = coordFloat/nb_ver;
-
-            if(lecture_source)
-            {
-                m_source.chargerSource(coordFloat);// on affecte à la source les coordonnées du centre recupérés
-                lecture_source = false; // on sort du mode lecture source
-                nb_verSource = nb_ver; // ici il faut enlever le nombre d'elements de source aux indices car dans les vecteurs i.. on n'enregistre pas les element de source
-            }
-            if(lecture_listener)
-            {
-                rayon = x_max - coordFloat.x; // VALABLE QUE POUR UNE SPHERE - calcul du rayon par coordonnee x max moins centre sur x
-                m_listener.chargerListener(coordFloat, rayon);// on affecte au listener les coordonnées du centre recupérés
-                lecture_listener = false; // on sort du mode lecture listener
-                nb_verListener = nb_ver;
-            }
-
-            nb_ver = 0; //remsie à 0 du compteur de vertex
-            coordFloat = (0,0,0); //remsie à 0 de la somme des coordonnees
-
-        }
     }
 
-    m_min = ver[0];
-    m_max = ver[0];
+    if (!m_source.getVert().empty()) m_source.chargerSource();
+    if (!m_listener.getVert().empty()) m_listener.chargerListener();
+
+    // Recuperation des min et max
+    if (!ver.empty())
+         {m_min = ver[0]; m_max = ver[0];}
+    else {m_min = 0;      m_max = 0;}
+
     // classement des coordonnées face par face
     for(i=0; i<iv.size(); i++) // vertex
     {
         if(iv[i]<ver.size())
-        {   /*
-            m_vert.push_back(ver[iv[i]].x);
-            m_vert.push_back(ver[iv[i]].y);
-            m_vert.push_back(ver[iv[i]].z);
-            */
+        {
             m_vertex.push_back(ver[iv[i]]);
             for (j = 0 ; j<3 ; j++)
             {
@@ -371,13 +288,8 @@ void MeshObj::charger_obj(QString file_obj)
     for(i=0; i<in.size(); i++) //normales - pour ne prendre qu'une normale par face on prendrai comme increment i =i+3
     {
         if(in[i]<nor.size())
-        {   /*
-            m_norm.push_back(nor[in[i]].x);
-            m_norm.push_back(nor[in[i]].y);
-            m_norm.push_back(nor[in[i]].z);
-            */
+        {
             m_normales.push_back(nor[in[i]]);
-
         }
     }
 

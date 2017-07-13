@@ -136,24 +136,12 @@ bool appartient_face(const CoordVector &point, const CoordVector &a, const Coord
          if (hypoB >=0)
          {
              hypoC = produitScalaire(produitVectoriel(vecteur(c,a),vecteur(c,point)),produitVectoriel(vecteur(c,point),vecteur(c,b)));
-             if (hypoC>=0)
-             {
-                 return true;
-             }
-             else
-             {
-                 return false;
-             }
+             if (hypoC>=0) return true;
+             else return false;
          }
-         else
-         {
-             return false;
-         }
+         else return false;
      }
-     else
-     {
-         return false;
-     }
+     else return false;
 }
 
 
@@ -175,12 +163,6 @@ std::vector<float> intersection(std::vector<float>& point_ray, std::vector<float
     //CoordVector resultat;
     std::vector<float> resultat;
     float t = -(produitScalaire(point_ray,indRay,vect_norm,indFace)+k)/produitScalaire(vect_dir,indRay,vect_norm,indFace);
-
-    /*
-    resultat.x = vect_dir[indRay]*t + point_ray[indRay];
-    resultat.y = vect_dir[indRay+1]*t + point_ray[indRay+1];
-    resultat.z = vect_dir[indRay+2]*t + point_ray[indRay+2];
-    */
 
     for (int i = 0 ; i < 3 ; i ++)
     {
@@ -227,7 +209,7 @@ std::vector<float> &vecteur_reflechi(std::vector<float>& i, int ii,std::vector<f
 // Constructeur
 Ray::Ray(int Nray, Source S, bool fibonacci)
 {    
-    m_src = S.centre();
+    m_src = S.getCentre();
     float theta(0), phi(0), nor(0), N(Nray-1);
     CoordVector coord;
 
@@ -238,12 +220,6 @@ Ray::Ray(int Nray, Source S, bool fibonacci)
         for (float i=0; i<Nray; i++)
         {
             // creation des points initiaux
-            /*
-            m_ray.push_back(m_src.x);
-            m_ray.push_back(m_src.y);
-            m_ray.push_back(m_src.z);
-            */
-
             m_ray.push_back((m_src));
 
             // creation des vecteurs directeurs normalisés
@@ -252,73 +228,35 @@ Ray::Ray(int Nray, Source S, bool fibonacci)
 
             coord = sph2cart(1,theta,phi);
             nor = norme(coord);
-            /*
-            m_vDir.push_back(coord.x/nor);
-            m_vDir.push_back(coord.y/nor);
-            m_vDir.push_back(coord.z/nor);
-            */
-
             m_vDir.push_back(coord/nor);
         }
-
-
-/*
-        for (float i=0; i<Nray; i++)
-        {
-            float theta = fmod((i*2*M_PI/OR) , (2*M_PI));
-            float phi = asin(-1 + 2*i/(Nray-1));
-
-            CoordVector coord(sph2cart(1,theta,phi));
-
-            m_ray.push_back(coord.x + m_src.x);
-            m_ray.push_back(coord.y + m_src.y);
-            m_ray.push_back(coord.z + m_src.z);
-
-            m_vDir.push_back(coord.x);
-            m_vDir.push_back(coord.y);
-            m_vDir.push_back(coord.z);
-        }
-*/
             m_Nray = Nray; // nombre de rayon
 
     }
     else // utilisation des vertex de la source blender
     {
+        m_Nray = S.getVert().size()/3;
 
-        m_Nray = S.vert().size();
-
-        if (S.vert().size() == 0) // si pas de source chargée
+        if (S.getVert().empty()) // si pas de source chargée
         {
             QMessageBox::critical(NULL,"Erreur","Aucune source sélectionnée \nVeuillez charger une nouvelle source");
         }
         else
         {
-            // étage 0 : source
-            for (int i=0; i<m_Nray; i=i+3)
-            {
-            // creation du premier point
-                m_ray.push_back(m_src.x);
-                m_ray.push_back(m_src.y);
-                m_ray.push_back(m_src.z);
-            //  creation du vecteur directeur normalisé
-
-                coord.x = S.vert()[i]-m_src.x;
-                coord.y = S.vert()[i+1]-m_src.y;
-                coord.z = S.vert()[i+2]-m_src.z;
-                nor = norme(coord);
-                m_vDir.push_back(coord.x/nor);
-                m_vDir.push_back(coord.y/nor);
-                m_vDir.push_back(coord.z/nor);
-            }
-            /*
-            // étage 1 : coordonnées des vertex
+            std::vector<float> srcVert = S.getVert();
+            // étage 0 : centre source
             for (int i=0; i<m_Nray; i++)
             {
-                m_ray.push_back(S.vert()[i]);
+            // creation du premier point
+                m_ray.push_back(m_src);
+            //  creation du vecteur directeur normalisé
+                coord.x = srcVert[3*i]-m_src.x;
+                coord.y = srcVert[3*i+1]-m_src.y;
+                coord.z = srcVert[3*i+2]-m_src.z;
+                nor = norme(coord);
+                m_vDir.push_back(coord/nor);
             }
-            */
         }
-
     }
 
     // initialisation des attributs

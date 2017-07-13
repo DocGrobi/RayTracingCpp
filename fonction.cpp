@@ -142,6 +142,15 @@ bool proche(float a, float b)
     }
 }
 
+bool proche(CoordVector a, CoordVector b)
+{
+    float seuil = 0.001;
+    if (fabs(a.x-b.x) > seuil) return false;
+    if (fabs(a.y-b.y) > seuil) return false;
+    if (fabs(a.z-b.z) > seuil) return false;
+    return true;
+}
+
 // Les classes
 
 CoordVector::CoordVector(float px,float py,float pz):x(px),y(py),z(pz)
@@ -236,4 +245,10 @@ void CoordVector::debug()
     My.setNum(y);
     Mz.setNum(z);
     qDebug() << "(" + Mx + "," + My + "," + Mz +")";
+}
+
+QString CoordVector2QString(const CoordVector &coord)
+{
+    QString text = QString::number(coord.x) + " " + QString::number(coord.y) + " " + QString::number(coord.z);
+     return text;
 }

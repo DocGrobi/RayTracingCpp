@@ -1,53 +1,48 @@
 #include "rir.h"
 #include "math.h"
+#include <QMessageBox>
 
 // les méthodes
 std::vector<bool> toucheListener(Ray &rayon, Listener &listener)
 {
     std::vector<bool> resultat;
-    //bool hypA, hypB, hypC;
 
     std::vector<CoordVector> posOld, posNew;
     posOld = rayon.getPos();
-    //dirOld = rayon.getDir();
     posNew = rayon.getRay();
 
     float alpha, normeAL;
 
-    //int n(rayon.getNbRay());
-
     CoordVector L(listener.getCentre()); // Point au centre du Listener
     float r(listener.getRayon()); // Rayon du Listener
 
-    CoordVector A, B;
+    CoordVector AB, AL;
 
-    for(int i = 0; i<rayon.getNbRay() ; i++)
+    for(int i = 0; i<posOld.size() ; i++)
     {
-       /*
-        CoordVector A(posOld[i],posOld[i+1],posOld[i+2]); // Point de départ du rayon
-       CoordVector B(rayNew[i],rayNew[i+1],rayNew[i+2]); // Point d'arrivée du rayon
-       */
-        A = posOld[i];
-        B = posNew[i];
-       //CoordVector vectDir(rayNew[n+i]-rayNew[i],rayNew[n+i+1]-rayNew[i+1],rayNew[n+i+2]-rayNew[i+2]);
+        AB = vecteur(posOld[i], posNew[i]);
+        AL = vecteur(posOld[i], L);
 
-       alpha = angle(vecteur(A,B),vecteur(A,L));
+       alpha = angle(AB,AL);
+       normeAL = norme(AL);
 
-       // test sur la direction
-       if (cos(alpha) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
-       {
-           // test sur la distance
-           normeAL = norme(vecteur(A,L));
-           if (norme(vecteur(A,B)) >= normeAL)
+       // test si le point A est dans le listener
+       if (normeAL > r)
            {
-               // test sur l'angle
-               if (normeAL == 0)                    resultat.push_back(true);
-               else if (alpha <= asin(r/normeAL))   resultat.push_back(true);
-               else                                             resultat.push_back(false);
-           }
-           else resultat.push_back(false);
-       }
-       else resultat.push_back(false);
+           // test sur la direction
+           if (cos(alpha) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
+           {
+               // test sur la distance
+               if (norme(AB) >= normeAL)
+               {
+                   // test sur l'angle
+                   if (normeAL == 0)                  resultat.push_back(true);
+                   else if (alpha <= asin(r/normeAL)) resultat.push_back(true);
+
+                   else resultat.push_back(false);
+               }   else resultat.push_back(false);
+           }       else resultat.push_back(false);
+        }          else resultat.push_back(true);
     }
     return resultat;
 }
@@ -103,13 +98,8 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener, float longueurM
     {
         if ((rayAuto && longueurRayonTot[i]<longueurMax && touche[i]) || (!rayAuto && touche[i]) ) // si le rayon touche le listener
         {
-            /*
-            CoordVector A (point[3*i], point[3*i + 1], point[3*i + 2]);
-            CoordVector vect(vec[3*i], vec[3*i + 1], vec[3*i + 2]);
-            */
             A = point[i];
             vect = vec[i];
-            //float norm = norme(vect);
             longueurRay = longueurRayonTot[i] - longueurRayonFin[i];
 
             C = vect*(-longueurRay) + A;
@@ -175,6 +165,7 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener, float longueurM
             */
         }
     }
+
 }
 
 void SourceImage::filtrerSourceImages()
@@ -213,37 +204,49 @@ void SourceImage::calculerRIR(int f_ech)
         nb_ech = 1;
     }
 
-    m_x.clear();
-    m_y.clear();
-    m_x.resize(nb_ech, 0);
-    m_y.resize(nb_ech*8, 0);
+    if (nb_ech <= 0) QMessageBox::critical(NULL,"Erreur","Aucune source image");
+    else {
+
+        m_x.clear();
+        m_y.clear();
+        m_x.resize(nb_ech, 0);
+        m_y.resize(nb_ech*8, 0);
 
 
-   // Abscisses
-    for (float i = 0 ; i <nb_ech ; i++)
-   {
-       m_x[i] = i/freq; // valeurs en ms
-   }
-/*
-    // Ordonnées
-    for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
-    {      
-        for (int k = 0 ; k < 8 ; k++) // pour chaque bande
-        {
-            m_y[round(8*m_sourcesImages_Tps[i]*freq + k) ] += m_nrgSI[i*8 + k];
-
-        }
-
-    }
-*/
-    // Ordonnées
-    for (int k = 0 ; k < 8 ; k++) // pour chaque bande
-    {
+       // Abscisses
+        for (float i = 0 ; i <nb_ech ; i++)
+       {
+           m_x[i] = i/freq; // valeurs en ms
+       }
+    /*
+        // Ordonnées
         for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
         {
-           m_y[floor(m_sourcesImages_Tps[i]*freq) + k*nb_ech] += m_nrgSI[i*8 + k];
+            for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+            {
+                m_y[round(8*m_sourcesImages_Tps[i]*freq + k) ] += m_nrgSI[i*8 + k];
+
+            }
+
+        }
+    */
+        // Ordonnées
+        for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+        {
+            for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
+            {
+               m_y[floor(m_sourcesImages_Tps[i]*freq) + k*nb_ech] += m_nrgSI[i*8 + k];
+            }
+
         }
 
+        /*
+        // Minoration par le seuil
+        for (int j = 0; j < m_y.size(); j++)
+        {
+            if (m_y[j] < seuil) m_y[j] = seuil;
+        }
+        */
     }
 
 }

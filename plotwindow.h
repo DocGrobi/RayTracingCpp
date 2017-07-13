@@ -16,7 +16,8 @@ public:
     explicit plotWindow(QWidget *parent = 0);
     ~plotWindow();
 
-    void makePlot(std::vector<float> &x, std::vector<float> &y);
+    void makePlot();
+    void XY(std::vector<float> &x, std::vector<float> &y, float seuil);
 
 private slots:
   void mousePress();
@@ -27,9 +28,14 @@ private slots:
   void displaySelectedGraph();
   void displayAllGraphs();
   void contextMenuRequest(QPoint pos);
+  void linScale();
+  void logScale();
 
 private:
     Ui::plotWindow *ui;
+    bool m_echelleLog;
+    QVector<double> vectX, vectY;
+    double xMax, yMax, yMin;
 };
 
 #endif // PLOTWINDOW_H

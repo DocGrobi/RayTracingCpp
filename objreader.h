@@ -15,15 +15,16 @@ class Source
     public:
         Source();// Constructeur
         ~Source();// Destructeur
-        void chargerSource(const CoordVector &cs);
-        void chargerVertSource(float coord);
-        CoordVector centre();
-        std::vector<float> vert();
+        void chargerSource();
+        void chargerVert(float coord);
         QString afficher() const;
+        //accesseurs
+        CoordVector getCentre();
+        std::vector<float>& getVert();
 
     private:
         CoordVector m_centreSource;
-        std::vector<float> m_vertSource;
+        std::vector<float> m_vert;
 };
 
 // Classe Listener : vecteur XYZ des coordonnees du point de reception et le rayon de mesure
@@ -32,16 +33,18 @@ class Listener
       public:
         Listener();// Constructeur
         ~Listener();// Destructeur
-        void chargerListener(const CoordVector &cs, float r); // affecte une valeur aux attribus
+        void chargerListener(); // affecte une valeur aux attribus
+        void chargerVert(float coord);
         QString afficher(); // pour afficher les coordonnées du centre et le rayon dans une fenetre
-
         //accesseurs
         CoordVector getCentre();
         float getRayon();
+        std::vector<float>& getVert();
 
     private:
         CoordVector m_centreListener;
         float m_rayon;
+        std::vector<float> m_vert;
 };
 
 

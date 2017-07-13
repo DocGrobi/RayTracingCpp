@@ -8,12 +8,6 @@
 #include <QMessageBox>
 
 
-QString ObjWriter::CoordVector2QString(const CoordVector &coord)
-{
-    QString text = QString::number(coord.x) + " " + QString::number(coord.y) + " " + QString::number(coord.z);
-     return text;
-}
-
 ObjWriter::ObjWriter(QString chemin, int nbRay) // recupere en attribue le nom de chemin de fichier specifié
 {
 
@@ -238,7 +232,7 @@ void ObjWriter::rec_Vert(Source &source, Ray &monRay, int nbRay, int num_rebond,
         if (num_rebond == 0)
         {
             // coordonnées du premier point
-            text = text + "v " + CoordVector2QString(source.centre()) + "\n";
+            text = text + "v " + CoordVector2QString(source.getCentre()) + "\n";
             fichier.write(text.toLatin1());
         }
 
