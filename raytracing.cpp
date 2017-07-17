@@ -207,9 +207,9 @@ std::vector<float> &vecteur_reflechi(std::vector<float>& i, int ii,std::vector<f
 // Les classes
 
 // Constructeur
-Ray::Ray(int Nray, Source S, bool fibonacci)
+Ray::Ray(int Nray, Source S, int nSrc, bool fibonacci)
 {    
-    m_src = S.getCentre();
+    m_src = S.getCentre(nSrc);
     float theta(0), phi(0), nor(0), N(Nray-1);
     CoordVector coord;
 
@@ -235,7 +235,8 @@ Ray::Ray(int Nray, Source S, bool fibonacci)
     }
     else // utilisation des vertex de la source blender
     {
-        m_Nray = S.getVert().size()/3;
+        std::vector<float> srcVert = S.getVert();
+        m_Nray = srcVert.size()/(3*S.getNbSource());
 
         if (S.getVert().empty()) // si pas de source chargée
         {
@@ -243,9 +244,9 @@ Ray::Ray(int Nray, Source S, bool fibonacci)
         }
         else
         {
-            std::vector<float> srcVert = S.getVert();
+
             // étage 0 : centre source
-            for (int i=0; i<m_Nray; i++)
+            for (int i=m_Nray*nSrc; i<m_Nray*(nSrc+1); i++)
             {
             // creation du premier point
                 m_ray.push_back(m_src);

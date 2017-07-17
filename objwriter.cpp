@@ -16,12 +16,8 @@ ObjWriter::ObjWriter(QString chemin, int nbRay) // recupere en attribue le nom d
     QString newName(chemin);
     m_buff_rayMort.resize(nbRay, 0); // 0 = rayon vivant
 
-    //suppression du fichier s'il existe deja
-    if(!fichier.remove())
-        QMessageBox::critical(NULL,"Erreur","Impossible de supprimer le fichier !");
-
     // A CONSERVER : INCREMENTATION DES FICHIERS
-/*
+
     int i=0;
     while(fichier.exists()) // incrementation de version de fichier s'il existe deja
     {
@@ -41,7 +37,7 @@ ObjWriter::ObjWriter(QString chemin, int nbRay) // recupere en attribue le nom d
         fichier.setFileName(newName);
         //qDebug() << "newname" << newName ;
     }
-*/
+
 
       m_chemin = newName; // attribution du dernier nom
 }
@@ -218,7 +214,7 @@ void ObjWriter::display_ray(Source &source, std::vector<float> &ray, int nbRay, 
 }
 
 
-void ObjWriter::rec_Vert(Source &source, Ray &monRay, int nbRay, int num_rebond, float seuil)
+void ObjWriter::rec_Vert(Source &source, int nSrc, Ray &monRay, int nbRay, int num_rebond, float seuil)
 {
     QFile fichier(m_chemin);
     std::vector<CoordVector> ray = monRay.getRay();
@@ -232,7 +228,7 @@ void ObjWriter::rec_Vert(Source &source, Ray &monRay, int nbRay, int num_rebond,
         if (num_rebond == 0)
         {
             // coordonnées du premier point
-            text = text + "v " + CoordVector2QString(source.getCentre()) + "\n";
+            text = text + "v " + CoordVector2QString(source.getCentre(nSrc)) + "\n";
             fichier.write(text.toLatin1());
         }
 

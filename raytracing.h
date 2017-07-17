@@ -25,7 +25,7 @@ Vect3f vecteur_reflechi(const Vect3f &i, const Vect3f &n);
 class Ray
 {
 public:
-    Ray(int Nray, Source S, bool fibonacci);   //Constructeur
+    Ray(int Nray, Source S, int nSrc, bool fibonacci);   //Constructeur
     ~Ray();                               //Destructeur
     std::vector<CoordVector>& getRay() ;
     std::vector<float>& getNRG() ;

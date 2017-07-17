@@ -6,7 +6,7 @@
 
 
 Source::Source() {
-    m_centreSource = (0,0,0);
+    m_nbDataSource = 0;
 }
 
 Source::~Source(){
@@ -14,12 +14,19 @@ Source::~Source(){
 
 void Source::chargerSource()
 {
+    // Remise à 0 du centre
+    m_centreSource = CoordVector();
+
     // Moyenne des vertex sur chaque coordonnée
-   for (int i = 0 ; i < m_vert.size() ; i++)
+   for (int i = m_nbDataSource ; i < m_vert.size() ; i++)
    {
        m_centreSource[i] += m_vert[i]; // l'operateur [] a un modulo 3
    }
-   m_centreSource = m_centreSource/(m_vert.size()/3);
+   if (!m_vert.empty()) m_centreSource = m_centreSource/((m_vert.size()-m_nbDataSource)/3); // S'il y a une source dans le fichier
+
+   // Ajout au vecteur de centres
+   m_centresSources.push_back(m_centreSource);
+   m_nbDataSource = m_vert.size(); // Si plusieurs sources : on indique à quel endroit du vecteur on change de source
 }
 
 void Source::chargerVert(float coord){
@@ -30,22 +37,31 @@ CoordVector Source::getCentre() {
     return m_centreSource;
 }
 
+CoordVector Source::getCentre(unsigned int n) {
+    if (n < m_centresSources.size())
+        return m_centresSources[n];
+    else qDebug() << "Erreur sur le numéro de source demandée";
+}
+
 std::vector<float>& Source::getVert() {
     return m_vert;
 }
 
 QString Source::afficher() const {
-    return "Centre :" + CoordVector2QString(m_centreSource);
+    return "Source\nCentre : " + CoordVector2QString(m_centreSource);
 }
 
 Source MeshObj::getSource() const {
     return m_source;
 }
 
+int Source::getNbSource(){
+    return m_centresSources.size();
+}
 
 Listener::Listener()
 {
-    m_centreListener = (0,0,0);
+    //m_centreListener = (0,0,0);
     m_rayon = 1;
 }
 
@@ -73,8 +89,8 @@ QString Listener::afficher()
 {    
     QString ray;
     ray.setNum(m_rayon);
-    QString info = "Centre : "+ CoordVector2QString(m_centreListener) +"\n"
-            + "Rayon : " + ray;
+    QString info = "Listener\nCentre : "+ CoordVector2QString(m_centreListener) +"\n"
+            + "Rayon : " + ray + "m";
     return info;
 }
 
@@ -140,22 +156,23 @@ void MeshObj::charger_obj(QString file_obj)
     std::vector<QString> matOdeon_vect = matOdeon.getNomMat();
 
     int rangCoeff = 7; // par default c'est le materiaux 50% absorbant
-    QString nomMat;
+    QString nomMat, ligne;
 
     QFile fichier(file_obj); // fichier .obj
+    QStringList coord, materiau, indice;
 
     if(fichier.open(QIODevice::ReadOnly | QIODevice::Text)) // Si on peut ouvrir le fichier
     {
         QTextStream flux(&fichier);
         while(!flux.atEnd())
         {
-            QString ligne = flux.readLine(); // Lecture ligne par ligne du fichier
+            ligne = flux.readLine(); // Lecture ligne par ligne du fichier
 
             if(lecture_source || lecture_listener) // Si l'objet lu est la source ou le listener
             {
                 if(ligne[0]=='v' && ligne[1]==' ') //Vertex
                 {
-                    QStringList coord = ligne.split(" ");
+                    coord = ligne.split(" ");
 
                     if(lecture_source)
                     {
@@ -174,7 +191,9 @@ void MeshObj::charger_obj(QString file_obj)
                 }
                 else if (ligne[0]=='o') // fin de l'objet
                 {
-                    lecture_source = false; // on sort du mode lecture source
+                    if (ligne.contains("source")) m_source.chargerSource(); // on reste en mode source
+                    else lecture_source = false; // on sort du mode lecture source
+
                     lecture_listener = false; // on sort du mode lecture listener
                 }
             }
@@ -186,7 +205,7 @@ void MeshObj::charger_obj(QString file_obj)
                 {
                     if(ligne[1]==' ') //Vertex
                     {
-                        QStringList coord = ligne.split(" ");
+                        coord = ligne.split(" ");
                         float x,y,z;
                         x = coord[1].toFloat();
                         y = coord[2].toFloat();
@@ -198,7 +217,7 @@ void MeshObj::charger_obj(QString file_obj)
 
                     else if(ligne[1]=='n') //Normales
                     {
-                        QStringList coord = ligne.split(" ");
+                        coord = ligne.split(" ");
                         float x,y,z;
                         x = coord[1].toFloat();
                         y = coord[2].toFloat();
@@ -211,8 +230,8 @@ void MeshObj::charger_obj(QString file_obj)
                 // Les matériaux
                 if(ligne[0]=='u')
                 {
-                    QStringList materiau = ligne.split(" ");
-                    QStringList indice = materiau[1].split("_"); // ne prend que le premier "mot" du nom du materiau
+                    materiau = ligne.split(" ");
+                    indice = materiau[1].split("_"); // ne prend que le premier "mot" du nom du materiau
 
                     rangCoeff = 7; // valeur par default de l'absorption du materiau correspond à 50% sur toutes les bandes
                     for(int i=0 ; i < matOdeon_vect.size(); i++ )
@@ -234,7 +253,7 @@ void MeshObj::charger_obj(QString file_obj)
                     }
                     ligne = supprimeSlash(ligne); // on supprime les slashs pour pourvoir ecrire les vecteurs :f V1 T1 N1 V2 T2 N2 V3 T3 N3
 
-                    QStringList indice = ligne.split(" ");
+                    indice = ligne.split(" ");
 
                     int nbDonnees = indice.size()/3; //nombre de donnees V1/T1/N1 par face (dans le cas de faces triangles) : 10/3
 
@@ -263,8 +282,10 @@ void MeshObj::charger_obj(QString file_obj)
         fichier.close();
     }
 
-    if (!m_source.getVert().empty()) m_source.chargerSource();
-    if (!m_listener.getVert().empty()) m_listener.chargerListener();
+
+    //if (!m_source.getVert().empty())
+    m_source.chargerSource(); // On charge la source 0 ou la dernière source trouvée et pas encore chargée
+    if (!m_listener.getVert().empty()) m_listener.chargerListener(); // Dans le cas où on a trouvé un listener
 
     // Recuperation des min et max
     if (!ver.empty())

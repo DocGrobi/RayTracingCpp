@@ -20,11 +20,15 @@ class Source
         QString afficher() const;
         //accesseurs
         CoordVector getCentre();
+        CoordVector getCentre(unsigned int n);
         std::vector<float>& getVert();
+        int getNbSource();
 
     private:
         CoordVector m_centreSource;
         std::vector<float> m_vert;
+        std::vector<CoordVector> m_centresSources;
+        int m_nbDataSource;
 };
 
 // Classe Listener : vecteur XYZ des coordonnees du point de reception et le rayon de mesure

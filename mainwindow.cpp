@@ -5,6 +5,8 @@
 #include "rir.h"
 #include <QProgressDialog>
 #include "plotwindow.h"
+#include "audio.h"
+
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -30,10 +32,25 @@ MainWindow::MainWindow(QWidget *parent) :
    m_nbFaceFeuille = ui->spinBox_nbFaceFeuille->value();
    m_fichierExport = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
 
+   player = new QMediaPlayer(this);
+   connect(player, &QMediaPlayer::positionChanged, this, &MainWindow::on_positionChanged);
+   connect(player, &QMediaPlayer::durationChanged, this, &MainWindow::on_durationChanged);
+   // Recupération du chemin de fichier audio
+   QFile fichierAudio(QCoreApplication::applicationDirPath() + "/config.txt");
+   if (fichierAudio.exists())
+   {
+       fichierAudio.open(QIODevice::ReadOnly | QIODevice::Text);
+       QTextStream flux(&fichierAudio);
+       m_fichierAudio = flux.readLine();
+       ui->textEdit_AudioFile->setText(m_fichierAudio);
+   }
+   else (m_fichierAudio = "/home");
+
    // On limite le nombre de faces par feuille au nombre de face total
    ui->spinBox_nbFaceFeuille->setMaximum(m_meshObj.getVert().size()/3);
 
    ui->checkBox_methodeRapide->setChecked(true);
+
 }
 
 MainWindow::~MainWindow()
@@ -41,10 +58,25 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::suppFichier()
+{
+    // Suppression des fichiers d'export existant
+    QDir repertoire(QCoreApplication::applicationDirPath()); // chemin de type QDir
+    QFileInfoList files = repertoire.entryInfoList(); //Liste des fichiers dans le répertoire contenant l'executable
+         foreach (QFileInfo file, files)
+         {
+             if (file.baseName().contains("EXPORT")) {
+                 QFile fichier(file.absoluteFilePath());
+                 if(!fichier.remove())
+                     QMessageBox::critical(NULL,"Erreur","Impossible de supprimer le fichier !");
+             }
+         }
+}
 
 ////// LES BOUTONS
 void MainWindow::on_bouton_normales_clicked()
 {
+    suppFichier(); // Suppression des fichiers d'export existant
     // EXPORT
     ObjWriter monObjWriter(m_fichierExport, 1);
 
@@ -77,12 +109,7 @@ void MainWindow::on_bouton_listener_clicked()
 
 void MainWindow::on_bouton_rayons_clicked()
 {
-    // RAYONS
-    Ray monRay(m_nbRayon, m_source, m_fibonacci);
-    //int nbRayons = monRay.getRay().size()/3; // m_ray est composé de 3 coordonnées par rayon
-
-    // EXPORT
-    ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
+    suppFichier(); // Suppression des fichiers d'export existant
 
     // OCTREE
     if (m_methodeRapide)
@@ -103,72 +130,80 @@ void MainWindow::on_bouton_rayons_clicked()
     timer2.start();
     m_timer.start();
 
-    if (m_nbRebondFixe)
+    for (int nSrc = 0; nSrc < m_source.getNbSource() ; nSrc++)
     {
-        progress.setRange(0,m_nbRebond);
+        // EXPORT
+        ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
+        // RAYONS
+        Ray monRay(m_nbRayon, m_source, nSrc, m_fibonacci);
 
-        //Méthode d'affichage incrémentale
-        for (int i =0; i<m_nbRebond ; i++)
+        if (m_nbRebondFixe)
         {
-            // progress bar
-            progress.setValue(i);
-            if (progress.wasCanceled()) i=m_nbRebond;
-            if (m_methodeRapide)
-            {
-                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
-                if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) // calcul des points d'intersection entre rayons et faces
-                        i=m_nbRebond; // arrete la boucle
-            }
-            else
-            {
-                if(!monRay.rebondSansMemoire(m_meshObj, -1)) // calcul des points d'intersection entre rayons et faces
-                        i=m_nbRebond; // arrete la boucle
-            }
-            monObjWriter.rec_Vert(m_source,monRay, m_nbRayon, i, -1); // ecriture des vertex
+            progress.setRange(0,m_nbRebond);
 
-        }
-        monObjWriter.rec_Line(m_nbRayon,m_nbRebond); // ecriture des edges entre les vertex
-        progress.setValue(m_nbRebond);
-    }
-    else
-    {
-        progress.setRange(0,m_nbRayon);
-        progress.setValue(1);
-
-        int i(0);
-        if (m_methodeRapide)
-        {
-            m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
-            // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-            while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+            //Méthode d'affichage incrémentale
+            for (int i =0; i<m_nbRebond ; i++)
             {
                 // progress bar
-                progress.setValue(monRay.getRayMorts());
-                if (progress.wasCanceled()) break; // arrete la boucle
+                progress.setValue(i);
+                if (progress.wasCanceled()) i=m_nbRebond;
+                if (m_methodeRapide)
+                {
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                    if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) // calcul des points d'intersection entre rayons et faces
+                            i=m_nbRebond; // arrete la boucle
+                }
+                else
+                {
+                    if(!monRay.rebondSansMemoire(m_meshObj, -1)) // calcul des points d'intersection entre rayons et faces
+                            i=m_nbRebond; // arrete la boucle
+                }
+                monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, -1); // ecriture des vertex
 
-                monObjWriter.rec_Vert(m_source,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
-                i++;
-                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
             }
+            monObjWriter.rec_Line(m_nbRayon,m_nbRebond); // ecriture des edges entre les vertex
+            progress.setValue(m_nbRebond);
         }
         else
         {
-            // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-            while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
+            progress.setRange(0,m_nbRayon);
+            progress.setValue(1);
+
+            int i(0);
+            if (m_methodeRapide)
             {
-                // progress bar
-                progress.setValue(monRay.getRayMorts());
-                if (progress.wasCanceled()) break; // arrete la boucle
+                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
+                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+                {
+                    // progress bar
+                    progress.setValue(monRay.getRayMorts());
+                    if (progress.wasCanceled()) break; // arrete la boucle
 
-                monObjWriter.rec_Vert(m_source,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
-                i++;
+                    monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
+                    i++;
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                }
             }
+            else
+            {
+                // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
+                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
+                {
+                    // progress bar
+                    progress.setValue(monRay.getRayMorts());
+                    if (progress.wasCanceled()) break; // arrete la boucle
+
+                    monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
+                    i++;
+                }
+            }
+
+            monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture du dernier vertex
+            monObjWriter.rec_Line(m_nbRayon,0); // ecriture des edges entre les vertex
+
+            progress.setValue(m_nbRayon);
         }
-
-        monObjWriter.rec_Vert(m_source,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture du dernier vertex
-        monObjWriter.rec_Line(m_nbRayon,0); // ecriture des edges entre les vertex
-
-        progress.setValue(m_nbRayon);
     }
 
     double temps = timer2.elapsed();
@@ -181,8 +216,7 @@ void MainWindow::on_bouton_rayons_clicked()
 
 void MainWindow::on_bouton_sourcesImages_clicked()
 {
-    // RAYONS
-    Ray monRay(m_nbRayon, m_source, m_fibonacci);
+    suppFichier(); // Suppression des fichiers d'export existant
 
     // OCTREE
     if (m_methodeRapide) {
@@ -191,9 +225,6 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 
     //SOURCES IMAGES
     SourceImage maSourceImage;
-
-    // EXPORT
-    ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
 
 
     // Ouvrir fenetre de progress bar
@@ -209,76 +240,86 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     timer2.start();
     m_timer.start();
 
-
-    if (m_nbRebondFixe)
+    for (int nSrc = 0; nSrc < m_source.getNbSource() ; nSrc++)
     {
-        progress.setRange(0,m_nbRebond);
+        // EXPORT
+        ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
+        // RAYONS
+        Ray monRay(m_nbRayon, m_source, nSrc, m_fibonacci);
 
-        //Méthode d'affichage incrémentale
-        for (int i =0; i<m_nbRebond ; i++)
+        if (m_nbRebondFixe)
         {
-            // progress bar
-            progress.setValue(i);
-            if (progress.wasCanceled()) i=m_nbRebond;                        
+            progress.setRange(0,m_nbRebond);
 
-            if (m_methodeRapide)
-            {
-                m_timer.restart();
-                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
-                qDebug() << "temps octree : " << m_timer.restart() << "ms";
-                if (!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) i=m_nbRebond;
-                qDebug() << "temps rayons : " << m_timer.restart() << "ms";
-            }
-            else
-            {
-                m_timer.restart();
-                if (!monRay.rebondSansMemoire(m_meshObj, -1)) i=m_nbRebond;
-                qDebug() << "temps rayons : " << m_timer.restart() << "ms";
-            }
-            maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
-        }
-        monObjWriter.display_sourceImages(maSourceImage, -1);
-        progress.setValue(m_nbRebond);
-
-    }
-    else
-    {
-        progress.setRange(0,m_nbRayon);
-        progress.setValue(1);
-
-        if (m_methodeRapide)
-        {
-            // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-            m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
-            while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+            //Méthode d'affichage incrémentale
+            for (int i =0; i<m_nbRebond ; i++)
             {
                 // progress bar
-                progress.setValue(monRay.getRayMorts());
-                if (progress.wasCanceled())
-                            break; // arrete la boucle
+                progress.setValue(i);
+                if (progress.wasCanceled()) i=m_nbRebond;
 
+                if (m_methodeRapide)
+                {
+                    m_timer.restart();
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                    qDebug() << "temps octree : " << m_timer.restart() << "ms";
+                    if (!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) i=m_nbRebond;
+                    qDebug() << "temps rayons : " << m_timer.restart() << "ms";
+                }
+                else
+                {
+                    m_timer.restart();
+                    if (!monRay.rebondSansMemoire(m_meshObj, -1)) i=m_nbRebond;
+                    qDebug() << "temps rayons : " << m_timer.restart() << "ms";
+                }
                 maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
-                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
             }
+            monObjWriter.display_sourceImages(maSourceImage, -1);
+            progress.setValue(m_nbRebond);
+
         }
         else
         {
-            // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-            while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
+            progress.setRange(0,m_nbRayon);
+            progress.setValue(1);
+
+            if (m_methodeRapide)
             {
-                // progress bar
-                progress.setValue(monRay.getRayMorts());
-                if (progress.wasCanceled())
-                            break; // arrete la boucle
+                // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
+                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+                {
+                    // progress bar
+                    progress.setValue(monRay.getRayMorts());
+                    if (progress.wasCanceled())
+                                break; // arrete la boucle
 
-                maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
+                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                }
             }
-        }
-        maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto); // On le refait une fois à la sortie de boucle pour les dernier rayon
-        monObjWriter.display_sourceImages(maSourceImage, m_seuilAttenuation);
+            else
+            {
+                // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
+                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
+                {
+                    // progress bar
+                    progress.setValue(monRay.getRayMorts());
+                    if (progress.wasCanceled())
+                                break; // arrete la boucle
 
-        progress.setValue(m_nbRayon);
+                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
+                }
+            }
+            maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto); // On le refait une fois à la sortie de boucle pour les dernier rayon
+            monObjWriter.display_sourceImages(maSourceImage, m_seuilAttenuation);
+
+            progress.setValue(m_nbRayon);
+        }
+
     }
+
+
 
     double temps = timer2.elapsed();
     temps = temps /1000;
@@ -416,4 +457,67 @@ void MainWindow::on_checkBox_methodeRapide_toggled(bool checked)
 {
     if(checked) m_octree = Octree(m_meshObj,m_nbFaceFeuille);
     m_methodeRapide = checked;
+}
+
+void MainWindow::on_bouton_audioFile_clicked()
+{
+    player->stop();// On arrete la lecture
+
+    m_fichierAudio = QFileDialog::getOpenFileName(this, tr("Open WAV File"),
+                                                    m_fichierAudio,
+                                                    tr("Audio (*.wav)"));
+    if (m_fichierAudio !="")
+    {
+        ui->textEdit_AudioFile->setText(m_fichierAudio);
+        QFile fichierConf(QCoreApplication::applicationDirPath() + "/config.txt");
+        fichierConf.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
+        fichierConf.write(m_fichierAudio.toLatin1());
+    }
+    else (m_fichierAudio = "/home");
+
+}
+
+void MainWindow::on_bouton_ecouter_clicked()
+{
+    if (player->state() == QMediaPlayer::PlayingState) // si lecture en cours
+    {
+        player->pause();
+        ui->bouton_ecouter->setText("Lecture");
+
+    }else
+    if (player->state() == QMediaPlayer::PausedState) // si en pause
+    {
+        player->play();
+        ui->bouton_ecouter->setText("Pause");
+    }else
+    if (player->state() == QMediaPlayer::StoppedState) // si lecture en cours
+    {
+        player->setMedia(QUrl::fromLocalFile(m_fichierAudio));
+        player->setVolume(50);
+        player->play();
+        ui->bouton_ecouter->setText("Pause");
+    }
+
+    //Audio
+    Audio monAudio;
+    monAudio.readWavFile(m_fichierAudio);
+}
+
+void MainWindow::on_AudioSlider_valueChanged(int value)
+{
+    player->setPosition(value);
+}
+
+void MainWindow::on_positionChanged(qint64 position)
+{
+    ui->AudioSlider->setValue(position);
+    if (position >= ui->AudioSlider->maximum()){
+        ui->AudioSlider->setValue(0);
+        ui->bouton_ecouter->setText("Lecture");
+    }
+}
+
+void MainWindow::on_durationChanged(qint64 position)
+{
+    ui->AudioSlider->setMaximum(position);
 }

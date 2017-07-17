@@ -6,6 +6,7 @@
 #include "raytracing.h"
 #include "octree.h"
 #include <QElapsedTimer>
+#include <QMediaPlayer>
 
 namespace Ui {
 class MainWindow;
@@ -18,6 +19,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void suppFichier();
 
 private slots:
     void on_bouton_normales_clicked();
@@ -58,6 +60,16 @@ private slots:
 
     void on_checkBox_methodeRapide_toggled(bool checked);
 
+    void on_bouton_audioFile_clicked();
+
+    void on_bouton_ecouter_clicked();
+
+    void on_AudioSlider_valueChanged(int value);
+
+    void on_positionChanged(qint64 position);
+
+    void on_durationChanged(qint64 position);
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
@@ -65,11 +77,12 @@ private:
     Listener m_listener;
     SourceImage m_sourceImage;
     Octree m_octree;
-    QElapsedTimer m_timer;
-    QString m_fichierExport;
+    QElapsedTimer m_timer; 
+    QString m_fichierExport, m_fichierAudio;
     float m_seuilAttenuation, m_longueurRayMax;
     int m_temperature, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille;
     bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe;
+    QMediaPlayer *player;
 };
 
 #endif // MAINWINDOW_H
