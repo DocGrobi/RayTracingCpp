@@ -35,7 +35,7 @@ public:
     Octree operator=(const Octree &oct);
     const std::vector<Boite>& getVectBoite() const;
     int getSeuil() const;
-    void chargerRayon(std::vector<CoordVector> const& orig, std::vector<CoordVector> const& dir);
+    void chargerRayon(std::vector<CoordVector> const& orig, std::vector<CoordVector> const& dir, const std::vector<bool> &RayVivant);
     void chargerRayonRacine(int nbRay);
     void etagesuivant(std::vector<CoordVector> const& vert, int indicePere);
 

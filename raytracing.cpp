@@ -315,6 +315,10 @@ std::vector<float> &Ray::getLong(){
     return m_long;
 }
 
+std::vector<bool> &Ray::getRayVivant(){
+    return m_rayVivant;
+}
+
 int Ray::getRayMorts() const{
     return m_nbRayMort;
 }
@@ -580,31 +584,27 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                 {
                     j = vectBoite[i].m_numRayon[indR];
 
-                    //SI LE RAYON N'EST PAS MORT
-                    if (m_rayVivant[j])
-                    {
-                        // fonction de Möller–Trumbore
-                        //pvec = produitVectoriel(m_dir[j],vectFace[2*k/3+1]);
-                        pvec = produitVectoriel(m_dir[j], e2);
-                        det = produitScalaire(e1,pvec);
-                        //det = produitScalaire(vectFace[2*k/3],pvec);
-                        if (det > 1e-8) {
-                            invDet = 1/det;
-                            //tvec = vecteur(A, point);
-                            tvec = vecteur(vert[k], m_pos[j]);
-                            u = produitScalaire(tvec, pvec)*invDet;
-                            if (u >= 0 && u <= 1) {
-                                qvec = produitVectoriel(tvec,e1);
-                                //qvec = produitVectoriel(tvec,vectFace[2*k/3]);
-                                //v = produitScalaire(vect_dir,qvec)*invDet;
-                                v = produitScalaire(m_dir[j], qvec)*invDet;
-                                if (v >= 0 && u + v <= 1.00001) { // probleme d'arrondis
-                                    longueur_inst = produitScalaire(e2, qvec)*invDet;
-                                    //longueur_inst = produitScalaire(vectFace[2*k/3+1], qvec)*invDet;
-                                    if (longueur_inst >0 && longueur_inst<m_long[j]){
-                                        m_long[j] = longueur_inst; // On sauvegarde la longueur
-                                        face[j] = k;               //on sauvegarde la dernière face testée
-                                    }
+                    // fonction de Möller–Trumbore
+                    //pvec = produitVectoriel(m_dir[j],vectFace[2*k/3+1]);
+                    pvec = produitVectoriel(m_dir[j], e2);
+                    det = produitScalaire(e1,pvec);
+                    //det = produitScalaire(vectFace[2*k/3],pvec);
+                    if (det > 1e-8) {
+                        invDet = 1/det;
+                        //tvec = vecteur(A, point);
+                        tvec = vecteur(vert[k], m_pos[j]);
+                        u = produitScalaire(tvec, pvec)*invDet;
+                        if (u >= 0 && u <= 1) {
+                            qvec = produitVectoriel(tvec,e1);
+                            //qvec = produitVectoriel(tvec,vectFace[2*k/3]);
+                            //v = produitScalaire(vect_dir,qvec)*invDet;
+                            v = produitScalaire(m_dir[j], qvec)*invDet;
+                            if (v >= 0 && u + v <= 1.00001) { // probleme d'arrondis
+                                longueur_inst = produitScalaire(e2, qvec)*invDet;
+                                //longueur_inst = produitScalaire(vectFace[2*k/3+1], qvec)*invDet;
+                                if (longueur_inst >0 && longueur_inst<m_long[j]){
+                                    m_long[j] = longueur_inst; // On sauvegarde la longueur
+                                    face[j] = k;               //on sauvegarde la dernière face testée
                                 }
                             }
                         }

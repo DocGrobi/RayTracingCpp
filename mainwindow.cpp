@@ -112,10 +112,7 @@ void MainWindow::on_bouton_rayons_clicked()
     suppFichier(); // Suppression des fichiers d'export existant
 
     // OCTREE
-    if (m_methodeRapide)
-    {
-        m_octree.chargerRayonRacine(m_nbRayon);
-    }
+    if (m_methodeRapide) m_octree.chargerRayonRacine(m_nbRayon);
 
     // Ouvrir fenetre de progress bar
     QProgressDialog progress(this);
@@ -149,7 +146,7 @@ void MainWindow::on_bouton_rayons_clicked()
                 if (progress.wasCanceled()) i=m_nbRebond;
                 if (m_methodeRapide)
                 {
-                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                     if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) // calcul des points d'intersection entre rayons et faces
                             i=m_nbRebond; // arrete la boucle
                 }
@@ -172,7 +169,7 @@ void MainWindow::on_bouton_rayons_clicked()
             int i(0);
             if (m_methodeRapide)
             {
-                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                 // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
                 while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
                 {
@@ -182,7 +179,7 @@ void MainWindow::on_bouton_rayons_clicked()
 
                     monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
                     i++;
-                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                 }
             }
             else
@@ -219,9 +216,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     suppFichier(); // Suppression des fichiers d'export existant
 
     // OCTREE
-    if (m_methodeRapide) {
-        m_octree.chargerRayonRacine(m_nbRayon);
-    }
+    if (m_methodeRapide) m_octree.chargerRayonRacine(m_nbRayon);
 
     //SOURCES IMAGES
     SourceImage maSourceImage;
@@ -261,7 +256,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                 if (m_methodeRapide)
                 {
                     m_timer.restart();
-                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                     qDebug() << "temps octree : " << m_timer.restart() << "ms";
                     if (!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) i=m_nbRebond;
                     qDebug() << "temps rayons : " << m_timer.restart() << "ms";
@@ -286,7 +281,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
             if (m_methodeRapide)
             {
                 // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                 while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
                 {
                     // progress bar
@@ -295,7 +290,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                                 break; // arrete la boucle
 
                     maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
-                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir());
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                 }
             }
             else
@@ -316,10 +311,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 
             progress.setValue(m_nbRayon);
         }
-
     }
-
-
 
     double temps = timer2.elapsed();
     temps = temps /1000;
@@ -332,6 +324,8 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 
 void MainWindow::on_bouton_octree_clicked()
 {
+    suppFichier(); // Suppression des fichiers d'export existant
+
     // EXPORT
     ObjWriter monObjWriter(m_fichierExport, 0);
 
@@ -441,9 +435,7 @@ void MainWindow::on_checkBox_rayAuto_toggled(bool checked) {
 
 void MainWindow::on_spinBox_seuilArret_valueChanged(int arg1) {
     m_seuilArret = arg1;
-    if(m_rayAuto) {
-        on_checkBox_rayAuto_toggled(true);
-    }
+    if(m_rayAuto) on_checkBox_rayAuto_toggled(true);
 }
 
 void MainWindow::on_spinBox_nbFaceFeuille_valueChanged(int arg1)

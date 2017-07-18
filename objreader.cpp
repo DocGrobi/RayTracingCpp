@@ -74,15 +74,17 @@ void Listener::chargerVert(float coord){
 
 void Listener::chargerListener()
 {
-    float min, max;
+   // float min, max;
    for (int i = 0 ; i < m_vert.size() ; i++)
    {
        m_centreListener[i] += m_vert[i]; // l'operateur [] a un modulo 3
-       if (min > m_vert[i]) min = m_vert[i];
-       if (max < m_vert[i]) max = m_vert[i];
+       /*if (min > m_vert[i]) min = m_vert[i];
+       if (max < m_vert[i]) max = m_vert[i];*/
    }
    m_centreListener = m_centreListener/(m_vert.size()/3);
-   m_rayon = (max-min)/2;
+   CoordVector point(m_vert[0], m_vert[1], m_vert[2]);
+   //m_rayon = (max-min)/2;
+   m_rayon = norme(vecteur(m_centreListener, point));
 }
 
 QString Listener::afficher()
@@ -148,9 +150,9 @@ void MeshObj::charger_obj(QString file_obj)
     std::vector<float> imat;
     //float indiceMat = 0, indiceMat_Curr = 0; // Indice du materiaux
     bool lecture_source = false, lecture_listener = false;
-    CoordVector coordFloat (0,0,0);
-    int nb_ver = 0, nb_verSource = 0, nb_verListener = 0, nb_norSource = 0, nb_norListener = 0, i, j;
-    float x_max = -10000000, rayon = 0;
+    int nb_verSource = 0, nb_verListener = 0, nb_norSource = 0, nb_norListener = 0, i, j;
+    unsigned int v,n;
+    float x,y,z;
 
     Material matOdeon; // chargement des materiaux Odéons
     std::vector<QString> matOdeon_vect = matOdeon.getNomMat();
@@ -174,55 +176,42 @@ void MeshObj::charger_obj(QString file_obj)
                 {
                     coord = ligne.split(" ");
 
-                    if(lecture_source)
-                    {
-                        for(i=0; i<3;i++)
-                        {
+                    if(lecture_source) {
+                        for(i=0; i<3;i++) {
                             m_source.chargerVert(coord[i+1].toFloat());
                         }
+                        nb_verSource++;
                     }
-                    if(lecture_listener)
-                    {
-                        for(i=0; i<3;i++)
-                        {
+                    if(lecture_listener) {
+                        for(i=0; i<3;i++) {
                             m_listener.chargerVert(coord[i+1].toFloat());
                         }
+                        nb_verListener++;
                     }
                 }
-                else if (ligne[0]=='o') // fin de l'objet
+                else if(ligne[0]=='v' && ligne[1]=='n') //normales
                 {
-                    if (ligne.contains("source")) m_source.chargerSource(); // on reste en mode source
-                    else lecture_source = false; // on sort du mode lecture source
-
-                    lecture_listener = false; // on sort du mode lecture listener
+                    if(lecture_source)   nb_norSource++;
+                    if(lecture_listener) nb_norListener++;
                 }
             }
 
             else // mode chargement du mesh normal
             {
-                //Coordonnees de points (vertex, texture et normale)
+                //Coordonnees de points (vertex, (texture), normale)
                 if(ligne[0]=='v')
                 {
+                    coord = ligne.split(" ");
+                    x = coord[1].toFloat();
+                    y = coord[2].toFloat();
+                    z = coord[3].toFloat();
+
                     if(ligne[1]==' ') //Vertex
-                    {
-                        coord = ligne.split(" ");
-                        float x,y,z;
-                        x = coord[1].toFloat();
-                        y = coord[2].toFloat();
-                        z = coord[3].toFloat();
-
+                    {                       
                         ver.push_back(CoordVector(x,y,z)); // C'est un std::vector rempli avec les CoordVector de coordonnees des vertex
-
                     }
-
                     else if(ligne[1]=='n') //Normales
                     {
-                        coord = ligne.split(" ");
-                        float x,y,z;
-                        x = coord[1].toFloat();
-                        y = coord[2].toFloat();
-                        z = coord[3].toFloat();
-
                         nor.push_back(CoordVector(x,y,z)); // C'est un std::vector rempli avec les CoordVector de coordonnees de normales
                     }
                 }
@@ -259,7 +248,6 @@ void MeshObj::charger_obj(QString file_obj)
 
                     for(i= 1; i<=nbDonnees;i++)
                     {
-                        unsigned int v,n;
                         v=indice[i*3-2].toInt() - (nb_verSource + nb_verListener) -1; // on enleve le nombre de vertex de source et listener s'il y en a car ils ne s'enregistrent pas dans les vecteurs de coordonnées et 1 pour que indice 1 corresponde à 0
                         n=indice[i*3].toInt() - (nb_norSource + nb_norListener) -1;
 
@@ -274,11 +262,24 @@ void MeshObj::charger_obj(QString file_obj)
                     }
                 }
             }
+            if (ligne[0]=='o') // Debut d'un objet
+            {
+                /*
+                nb_verSource = m_source.getVert().size();
+                nb_verListener = m_listener.getVert().size();
+                */
+                // condition qui se place apres les actions de ligne pour que l'activation du mode agisse à partir de la ligne suivante
+                if(ligne.contains("source")) {
+                    lecture_source = true; // on est en mode lecture de source
+                    if (!m_source.getVert().empty()) m_source.chargerSource(); // Si ce n'est pas la premiere source on charge la source précedente
+                }
+                else lecture_source = false;
 
-            // condition qui se place apres les actions de ligne pour que l'activation du mode agisse à partir de la ligne suivante
-            if(ligne.contains("source")) lecture_source = true; // on est en mode lecture de source
-            if(ligne.contains("listener")) lecture_listener = true; // on est en mode lecture de listener
+                if(ligne.contains("listener")) lecture_listener = true; // on est en mode lecture de listener
+                else lecture_listener = false;
+            }
         }
+
         fichier.close();
     }
 
@@ -287,7 +288,7 @@ void MeshObj::charger_obj(QString file_obj)
     m_source.chargerSource(); // On charge la source 0 ou la dernière source trouvée et pas encore chargée
     if (!m_listener.getVert().empty()) m_listener.chargerListener(); // Dans le cas où on a trouvé un listener
 
-    // Recuperation des min et max
+    // Initialisation des min et max
     if (!ver.empty())
          {m_min = ver[0]; m_max = ver[0];}
     else {m_min = 0;      m_max = 0;}
@@ -298,12 +299,12 @@ void MeshObj::charger_obj(QString file_obj)
         if(iv[i]<ver.size())
         {
             m_vertex.push_back(ver[iv[i]]);
+            // Recuperation des min et max
             for (j = 0 ; j<3 ; j++)
             {
                 if(ver[iv[i]][j]<m_min[j])   m_min[j] = ver[iv[i]][j];
                 if(ver[iv[i]][j]>m_max[j])   m_max[j] = ver[iv[i]][j];
             }
-
         }
     }
     for(i=0; i<in.size(); i++) //normales - pour ne prendre qu'une normale par face on prendrai comme increment i =i+3

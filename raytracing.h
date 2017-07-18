@@ -35,6 +35,7 @@ public:
     std::vector<CoordVector>& getvDir();
     std::vector<float>& getDist() ;
     std::vector<float>& getLong() ;
+    std::vector<bool>& getRayVivant() ;
 
     int getNbRay() const;
     int getRayMorts() const;

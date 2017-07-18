@@ -16,22 +16,8 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     int k(0), i(0), j(0), nbBoiteNew(0), nbBoiteOld(0);
 
     // création du cube racine
-    //std::vector<float> vert = monMesh.getVertex();
     std::vector<CoordVector> vertex = monMesh.getVert();
     CoordVector Min(monMesh.getMin()), Max(monMesh.getMax());
-
-    /*
-    CoordVector Min(vertex[0]), Max(vertex[0]);
-
-    for (i = 1 ; i <vertex.size() ; i++)
-    {
-        for (j = 0 ; j<3 ; j++)
-        {
-            if(vertex[i][j]<Min[j])   Min[j] = vertex[i][j];
-            if(vertex[i][j]>Max[j])   Max[j] = vertex[i][j];
-        }
-    }
-    */
 
 
     //I- Création de la boite root
@@ -271,9 +257,9 @@ void Octree::chargerRayonRacine(int nbRay)
     }
 }
 
-void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<CoordVector> const& dir)
+void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<CoordVector> const& dir, std::vector<bool> const& RayVivant)
 {
-    int i, j, ind;
+    int i, j, ind, numPere;
 
     // Calcul d'inverse pour eviter problème de signe lors de divisions par 0
     std::vector<CoordVector> invDir;
@@ -282,9 +268,6 @@ void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<Coor
         invDir.push_back(inverse(dir[i]));
     }
 
-    int numPere;
-
-    int val = 0;
     // Pour chaque boite : chargement de l'indice des rayons qui intersectent avec elle
     for (i = 1 ; i < m_vectBoite.size() ; i++)
     {
@@ -296,16 +279,17 @@ void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<Coor
 
             numPere = m_vectBoite[i].m_indicePere;
 
-            val++;
-
             for (j = 0 ; j < m_vectBoite[numPere].m_numRayon.size() ; j++) // Pour tous les rayons contenus dans la boite père
             {
                 ind = m_vectBoite[numPere].m_numRayon[j];
-
-                // test intersection entre rayon ind et boite i
-                if (intersecBoiteRay(m_vectBoite[i], orig[ind], invDir[ind]))
+                // Si le rayon est toujours vivant
+                if (RayVivant[ind])
                 {
-                    m_vectBoite[i].chargerRay(ind); // Ajout des rayons à la boite courante
+                    // test intersection entre rayon ind et boite i
+                    if (intersecBoiteRay(m_vectBoite[i], orig[ind], invDir[ind]))
+                    {
+                        m_vectBoite[i].chargerRay(ind); // Ajout des rayons à la boite courante
+                    }
                 }
             }
         }

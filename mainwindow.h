@@ -19,7 +19,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void suppFichier();
+    void suppFichier();// Suppression des fichiers d'export existant
 
 private slots:
     void on_bouton_normales_clicked();
