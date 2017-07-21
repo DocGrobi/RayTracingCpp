@@ -172,34 +172,38 @@ void MeshObj::charger_obj(QString file_obj)
 
             if(lecture_source || lecture_listener) // Si l'objet lu est la source ou le listener
             {
-                if(ligne[0]=='v' && ligne[1]==' ') //Vertex
+                if(ligne[0]=='v')
                 {
-                    coord = ligne.split(" ");
+                    if(ligne[1]==' ') //Vertex
+                    {
+                        coord = ligne.split(" ");
 
-                    if(lecture_source) {
-                        for(i=0; i<3;i++) {
-                            m_source.chargerVert(coord[i+1].toFloat());
+                        if(lecture_source) {
+                            for(i=0; i<3;i++) {
+                                m_source.chargerVert(coord[i+1].toFloat());
+                            }
+                            nb_verSource++;
                         }
-                        nb_verSource++;
+                        if(lecture_listener) {
+                            for(i=0; i<3;i++) {
+                                m_listener.chargerVert(coord[i+1].toFloat());
+                            }
+                            nb_verListener++;
+                        }
                     }
-                    if(lecture_listener) {
-                        for(i=0; i<3;i++) {
-                            m_listener.chargerVert(coord[i+1].toFloat());
-                        }
-                        nb_verListener++;
+                    else //normales + textures
+                    {
+                        if(lecture_source)   nb_norSource++;
+                        if(lecture_listener) nb_norListener++;
                     }
                 }
-                else if(ligne[0]=='v' && ligne[1]=='n') //normales
-                {
-                    if(lecture_source)   nb_norSource++;
-                    if(lecture_listener) nb_norListener++;
-                }
+
             }
 
             else // mode chargement du mesh normal
             {
-                //Coordonnees de points (vertex, (texture), normale)
-                if(ligne[0]=='v')
+                //Coordonnees de points (vertex, normale) (on ne s'occupe pas des textures)
+                if(ligne[0]=='v' && ligne[1]!='t')
                 {
                     coord = ligne.split(" ");
                     x = coord[1].toFloat();

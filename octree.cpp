@@ -8,6 +8,11 @@ Octree::Octree()
 {
 }
 
+// Il faudra mettre estunefeuille = true de base et estunefeuille = false pour les boites qui passent au decoupage
+
+
+
+
 Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
 {
 
@@ -36,20 +41,37 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     // II- Stockage de la boite racine
     m_vectBoite.push_back(boiteRacine);
 
-    // Tant que le nombre de boite augmente
-    while (m_vectBoite.size() > nbBoiteOld)
+
+
+    // ANCIENNE VERSION : Tant que le nombre de boite augmente
+    //while (m_vectBoite.size() > nbBoiteOld)
+
+    // NOUVELLE VERSION : tant qu'il existe au moins une boite >seuil on continue de descendre
+    bool DessusSeuil = true;
+    while (DessusSeuil)
     {
         nbBoiteNew = m_vectBoite.size() - nbBoiteOld;
         nbBoiteOld = m_vectBoite.size();
-
+        ///*
+        DessusSeuil = false;
         // pour chaque boite du nouvel étage
         for(i = nbBoiteOld - nbBoiteNew ; i <nbBoiteOld ; i++ )
         {
-            // III- Si la boite n'est pas une feuille : Découpage de la boite courante en huit
-             etagesuivant(vertex, i);
+            // Si au moins une boite posséde plus de m_seuil elt
+            if(m_vectBoite[i].m_numElt.size() > m_seuil) DessusSeuil = true;
         }
-    }
+        if(DessusSeuil)
+        //*/
+        {
+            for(i = nbBoiteOld - nbBoiteNew ; i <nbBoiteOld ; i++ )
+            {
+                // III- Si la boite n'est pas une feuille : Découpage de la boite courante en huit
+                etagesuivant(vertex, i);
+            }
+        }
 
+    }
+/*
     // Mise à jour taille des boites
     for (i = 0 ; i< m_vectBoite.size() ; i++) // pour chaque boite qui n'est pas une feuille vide
     {
@@ -59,6 +81,8 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
             m_vectBoite[i].m_coinMin = m_vectBoite[i].m_min - 0.00001; // Pour eliminer les problèmes d'arrondi
         }
     }
+*/
+    // Vérifier s'il y abesoin de faire baver
 
     // Vérification
     int nbEltFeuille(0);
@@ -94,7 +118,10 @@ int Octree::getSeuil() const{
 
 Boite::Boite()
 {
-    estUneFeuille = false; // Sinon ne fonctionne pas en mode release
+    //estUneFeuille = false; // Sinon ne fonctionne pas en mode release
+
+    // NOUVELLE VERSION
+    estUneFeuille = true;
 }
 
 Boite::~Boite()
@@ -155,14 +182,22 @@ void Boite::supprRay(int position) {
 //Methodes
 
 void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
-{
+{ 
 
+    // ANCIENNE VERSION
+    /*
     if (m_vectBoite[indiceBoite].m_numElt.size() < m_seuil)
     {
         m_vectBoite[indiceBoite].estUneFeuille = true;
     }
     else // Si la boite n'est pas une feuille
+     */
+
+    // NOUVELLE VERSION : si la boite possede au moins 1 elt
+    if(!m_vectBoite[indiceBoite].m_numElt.empty())
     {
+        m_vectBoite[indiceBoite].estUneFeuille = false; // Alors on la decoupe et ce n'est plus une feuille
+
         int i, k, ind;
         std::vector<int> elt;
         bool premierElt;
@@ -189,6 +224,7 @@ void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
                         boitesFilles[i].m_min = vert[ind];
                         boitesFilles[i].m_max = vert[ind];
                         premierElt = false;
+
                     }
                     boitesFilles[i].chargerElt(vert, ind); // Si le centre de la face est inclue dans la boite fille en test on stock son indice
                     m_vectBoite[indiceBoite].supprElt(k);  // et on le retire de la boite pere (ancienne methode)
@@ -228,7 +264,8 @@ void decoupage(Boite &boitePere, std::vector<Boite>& boitesFilles)
 
 bool appartientBoite(Boite &boite, std::vector<CoordVector> const& vert, int indice)
 {
-    // Recupération du centre
+    /*
+    // Version avec le centre
     CoordVector centreFace;
     for (int i = 0 ; i < 3 ; i++)
     {
@@ -241,6 +278,15 @@ bool appartientBoite(Boite &boite, std::vector<CoordVector> const& vert, int ind
     if (centreFace.y/3 > boite.m_coinMin.y + boite.m_arrete)  return false;
     if (centreFace.z/3 < boite.m_coinMin.z)                   return false;
     if (centreFace.z/3 > boite.m_coinMin.z + boite.m_arrete)  return false;
+    */
+
+    // Version avec le premier point de la face
+    if (vert[indice].x < boite.m_coinMin.x)                   return false;
+    if (vert[indice].x > boite.m_coinMin.x + boite.m_arrete)  return false;
+    if (vert[indice].y < boite.m_coinMin.y)                   return false;
+    if (vert[indice].y > boite.m_coinMin.y + boite.m_arrete)  return false;
+    if (vert[indice].z < boite.m_coinMin.z)                   return false;
+    if (vert[indice].z > boite.m_coinMin.z + boite.m_arrete)  return false;
 
     return true;
 }
@@ -312,6 +358,8 @@ bool intersecBoiteRay(const Boite &boite, const CoordVector &orig, const CoordVe
 
     float tmin, tmax, tymin, tymax;
 
+    // utiliser plutot les min et max de la boite plutot que la boite redimentionnée
+    /*
     if (invDir.x >=0) {
         tmin = (boite.m_coinMin.x                  - orig.x) * invDir.x;
         tmax = (boite.m_coinMin.x + boite.m_arrete - orig.x) * invDir.x;
@@ -349,5 +397,45 @@ bool intersecBoiteRay(const Boite &boite, const CoordVector &orig, const CoordVe
    if ((tmin > tzmax) || (tzmin > tmax)) return false;
 
    return true;
+   */
+
+    if (invDir.x >=0) {
+        tmin = (boite.m_min.x - orig.x) * invDir.x;
+        tmax = (boite.m_max.x - orig.x) * invDir.x;
+    }
+    else {
+        tmax = (boite.m_min.x - orig.x) * invDir.x;
+        tmin = (boite.m_max.x - orig.x) * invDir.x;
+    }
+
+    if (invDir.y >=0) {
+        tymin = (boite.m_min.y - orig.y) * invDir.y;
+        tymax = (boite.m_max.y - orig.y) * invDir.y;
+    }
+    else {
+        tymax = (boite.m_min.y - orig.y) * invDir.y;
+        tymin = (boite.m_max.y - orig.y) * invDir.y;
+    }
+
+   if ((tmin > tymax) || (tymin > tmax)) return false;
+
+   if (tymin > tmin) tmin = tymin;
+   if (tymax < tmax) tmax = tymax;
+
+   float tzmin, tzmax;
+
+   if(invDir.z >= 0) {
+       tzmin = (boite.m_min.z - orig.z) * invDir.z;
+       tzmax = (boite.m_max.z - orig.z) * invDir.z;
+   }
+   else {
+       tzmax = (boite.m_min.z - orig.z) * invDir.z;
+       tzmin = (boite.m_max.z - orig.z) * invDir.z;
+   }
+
+   if ((tmin > tzmax) || (tzmin > tmax)) return false;
+
+   return true;
+
 }
 

@@ -173,6 +173,7 @@ std::vector<float> intersection(std::vector<float>& point_ray, std::vector<float
 }
 
 // vecteur reflechi par rapport au rayon incident et au vecteur normale de la face
+//https://www.ilemaths.net/sujet-calcul-d-un-vecteur-reflechi-dans-espace-3d-32188.html
 CoordVector vecteur_reflechi(const CoordVector &i, const CoordVector &n)
 {
     float p= -2*(produitScalaire(i,n));
