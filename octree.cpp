@@ -22,7 +22,7 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
 
     // création du cube racine
     std::vector<CoordVector> vertex = monMesh.getVert();
-    CoordVector Min(monMesh.getMin()), Max(monMesh.getMax());
+    CoordVector Min(monMesh.getMin()-0.1), Max(monMesh.getMax()+0.1);
 
 
     //I- Création de la boite root
@@ -71,8 +71,9 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
         }
 
     }
-/*
+
     // Mise à jour taille des boites
+    /*
     for (i = 0 ; i< m_vectBoite.size() ; i++) // pour chaque boite qui n'est pas une feuille vide
     {
         if (!m_vectBoite[i].estUneFeuille || !m_vectBoite[i].m_numElt.empty())
@@ -82,7 +83,7 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
         }
     }
 */
-    // Vérifier s'il y abesoin de faire baver
+    // Vérifier s'il y a besoin de faire baver
 
     // Vérification
     int nbEltFeuille(0);
@@ -90,7 +91,11 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     {
         if (m_vectBoite[i].estUneFeuille)
         nbEltFeuille+= m_vectBoite[i].m_numElt.size();
+        else if (!m_vectBoite[i].m_numElt.empty())
+            qDebug() << "non feuille non vide : " << i;
     }
+    //qDebug() << "nb elt feuille : " << nbEltFeuille;
+    //qDebug() << "vert size /3 : " << vertex.size()/3;
     if(vertex.size()/3 != nbEltFeuille)
         QMessageBox::critical(NULL,"Erreur","Mauvaise mise en boite des faces");
 }
@@ -217,6 +222,16 @@ void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
             {
                 ind = elt[k];
 
+                if (ind == 63 && m_vectBoite.size() == 1821)
+                {
+                   float a, b, c;
+                    a = vert[ind].x;
+                    b = boitesFilles[i].m_coinMin.x;
+                    c = boitesFilles[i].m_coinMin.x + boitesFilles[i].m_arrete;
+                    qDebug() << "stop";
+
+                }
+
                 if (appartientBoite(boitesFilles[i], vert, ind))
                 {
                     if(premierElt)
@@ -231,8 +246,18 @@ void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
                 }
             }
             boitesFilles[i].m_indiceBoite = m_vectBoite.size();
-            m_vectBoite.push_back(boitesFilles[i]); // Ajout de la boite fille
+            m_vectBoite.push_back(boitesFilles[i]); // Ajout de la boite fille            
         }
+
+        /*
+        // Test si une boite pere n'a pas été entierement vidée
+        if(!m_vectBoite[indiceBoite].m_numElt.empty())
+        {
+            qDebug() << "indice boite : " << indiceBoite;
+            qDebug() << "indice vertex : " << m_vectBoite[indiceBoite].m_numElt[0];
+            qDebug() << "num premier boite fille : " << boitesFilles[0].m_indiceBoite;
+        }
+        */
     }
 }
 
@@ -307,13 +332,6 @@ void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<Coor
 {
     int i, j, ind, numPere;
 
-    // Calcul d'inverse pour eviter problème de signe lors de divisions par 0
-    std::vector<CoordVector> invDir;
-    for (i = 0 ;  i < dir.size() ; i++)
-    {
-        invDir.push_back(inverse(dir[i]));
-    }
-
     // Pour chaque boite : chargement de l'indice des rayons qui intersectent avec elle
     for (i = 1 ; i < m_vectBoite.size() ; i++)
     {
@@ -332,9 +350,10 @@ void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<Coor
                 if (RayVivant[ind])
                 {
                     // test intersection entre rayon ind et boite i
-                    if (intersecBoiteRay(m_vectBoite[i], orig[ind], invDir[ind]))
+                    if (intersecBoiteRay(m_vectBoite[i], orig[ind], inverse(dir[ind])))
                     {
-                        m_vectBoite[i].chargerRay(ind); // Ajout des rayons à la boite courante
+                        //m_vectBoite[i].chargerRay(ind); // Ajout des rayons à la boite courante
+                        m_vectBoite[i].m_numRayon.push_back(ind); // Ajout des rayons à la boite courante
                     }
                 }
             }

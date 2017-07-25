@@ -5,7 +5,8 @@
 #include "QCoreApplication"
 #include "math.h"
 #include <QMessageBox>
-
+#include <QDebug>
+#include "plotwindow.h"
 
 
 // Les Méthodes
@@ -139,3 +140,79 @@ std::vector<QString> &Material::getNomMat()
 {
     return m_nomMat;
 }
+
+
+//Ref : http://www.sengpielaudio.com/calculator-air.htm
+std::vector<float> absair(float temp, float relh) {
+
+    std::vector<float> freq, resultat;
+    int i, j;
+
+    freq.resize(8,0);
+    resultat.resize(8,0);
+    freq[0] = 62.5;
+    for (i = 0 ; i<7 ; i++)
+    {
+        freq[i+1] = freq[i]*2;
+    }
+
+    float pres=101325;
+    pres/=101325; // convert to relative pressure
+
+    temp+=273.15; // convert to kelvin
+
+    float C_humid = 4.6151 - 6.8346*pow((273.15/temp),1.261);
+    float tempr   = temp/293.15;// convert to relative air temp (re 20 deg C)
+
+
+    float hum     = relh*pow(10,C_humid)*pres;
+    float frO     = pres*(24+4.04e4*hum*(0.02+hum)/(0.391+hum));
+    float frN     = pres*pow(tempr,-0.5)*(9+280*hum*exp(-4.17*(pow(tempr,-1/3)-1)));
+
+    // boucle sur la frequence
+    for (i = 0 ; i<8 ; i++)
+    {
+        resultat[i] = 8.686*freq[i]*freq[i]*(1.84e-11*(1/pres)*sqrt(tempr)+pow(tempr,-2.5)*(0.01275*(exp(-2239.1/temp)/(frO+freq[i]*freq[i]/frO))+0.1068*(exp(-3352/temp)/(frN+freq[i]*freq[i]/frN))));
+        //resultat[i] = pow(10, -resultat[i]/10); //on passe de dB/m au facteur de puissance perdu/m
+    }
+
+    debugStdVect(resultat);
+
+    /*
+    // AFFICHAGE DES COURBES
+    std::vector<float> x, y;
+    float hum, frO, frN, db_humi;
+
+    // boucle sur la frequence
+    for (i = 0 ; i<8 ; i++)
+    {
+        // boucle sur l'humidité
+        for (j = 0 ; j < 100 ; j++)
+        {
+            hum     = j*pow(10,C_humid)*pres;
+            frO     = pres*(24+4.04e4*hum*(0.02+hum)/(0.391+hum));
+            frN     = pres*pow(tempr,-0.5)*(9+280*hum*exp(-4.17*(pow(tempr,-1/3)-1)));
+            db_humi = 8.686*freq[i]*freq[i]*(1.84e-11*(1/pres)*sqrt(tempr)+pow(tempr,-2.5)*(0.01275*(exp(-2239.1/temp)/(frO+freq[i]*freq[i]/frO))+0.1068*(exp(-3352/temp)/(frN+freq[i]*freq[i]/frN))));
+            db_humi = round(1000*db_humi)/1000;
+            y.push_back(pow(10,db_humi/10));
+        }
+    }
+
+    // humidité en abscisse
+    for (j = 0 ; j < 100 ; j++)
+    {
+        x.push_back(j);
+    }
+
+    // ouvre une nouvelle fenetre
+    plotWindow plot;
+    plot.XY(x, y, 0.95);
+    plot.makePlot();
+    plot.setModal(true);
+    plot.exec();
+    */
+
+    return resultat;
+}
+
+// end Calculation: absorption of sound by the atmosphere air -->

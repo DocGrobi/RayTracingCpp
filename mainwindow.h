@@ -36,8 +36,6 @@ private slots:
 
     void on_spinBox_attenuation_valueChanged(int arg1);
 
-    void on_spinBox_temperature_valueChanged(int arg1);
-
     void on_bouton_sourcesImages_clicked();
 
     void on_radioButton_vertexSource_toggled(bool checked);
@@ -48,15 +46,9 @@ private slots:
 
     void on_bouton_RIR_clicked();
 
-    void on_spinBox_freqEchan_valueChanged(int arg1);
-
     void on_checkBox_rayAuto_toggled(bool checked);
 
-    void on_spinBox_seuilArret_valueChanged(int arg1);
-
     void on_bouton_octree_clicked();
-
-    void on_spinBox_nbFaceFeuille_valueChanged(int arg1);
 
     void on_checkBox_methodeRapide_toggled(bool checked);
 
@@ -70,6 +62,16 @@ private slots:
 
     void on_durationChanged(qint64 position);
 
+    void on_spinBox_humidite_editingFinished();
+
+    void on_spinBox_temperature_editingFinished();
+
+    void on_spinBox_nbFaceFeuille_editingFinished();
+
+    void on_spinBox_freqEchan_editingFinished();
+
+    void on_spinBox_seuilArret_editingFinished();
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
@@ -80,7 +82,7 @@ private:
     QElapsedTimer m_timer; 
     QString m_fichierExport, m_fichierAudio;
     float m_seuilAttenuation, m_longueurRayMax;
-    int m_temperature, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille;
+    int m_temperature, m_humidite, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille;
     bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe;
     QMediaPlayer *player;
 };

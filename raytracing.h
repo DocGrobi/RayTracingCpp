@@ -41,7 +41,7 @@ public:
     int getRayMorts() const;
 
     bool rebondSansMemoire(MeshObj mesh, float seuil);
-    bool rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct); // fonction surchargée avec octree
+    bool rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct, const std::vector<float> &absair); // fonction surchargée avec octree
 
     void stockage();
 

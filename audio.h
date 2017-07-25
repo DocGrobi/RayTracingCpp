@@ -8,9 +8,15 @@ class Audio{
 public:
     Audio();
     ~Audio();
-    int readWavFile(QString fileName);
+    void readWavFile(QString fileName);
+
     std::vector<float> convolution(std::vector<float> const &f, std::vector<float> const &g);
 
+    int m_nbData;
+    std::vector<signed short> m_ramBuffer;
+
 };
+
+std::vector<std::vector<float> > &bandFilters();
 
 #endif // AUDIO_H

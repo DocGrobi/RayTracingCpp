@@ -28,7 +28,7 @@ class Material
 
 std::vector<float> absorptionAir(int temperature);
 float tempsEyring(std::vector<float> &vert , std::vector<float> &abs);
-
+std::vector<float> absair(float temp, float relh);
 
 
 #endif // PHYSIC_H

@@ -77,11 +77,11 @@ std::vector<float> &SourceImage::getY()
     return m_y;
 }
 
-void SourceImage::addSourcesImages(Ray rayon, Listener listener, float longueurMax, bool rayAuto)
+void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, bool rayAuto, const std::vector<float>& absAir)
 {
     std::vector<bool> touche = toucheListener(rayon,listener);
     CoordVector C; // la source image
-    std::vector<float> absAir = absorptionAir(20);
+    //std::vector<float> absAir = absorptionAir(20);
 
     std::vector<float> longueurRayonTot = rayon.getDist();
     std::vector<float> longueurRayonFin = rayon.getLong();
@@ -112,7 +112,8 @@ void SourceImage::addSourcesImages(Ray rayon, Listener listener, float longueurM
             for (k = 0 ; k<8 ; k ++)
             {
                 //m_nrgSI.push_back(nrg[8*i+k]);
-                m_nrgSI.push_back(nrg[8*i+k] * exp(-absAir[k]*longueurRay));
+                //m_nrgSI.push_back(nrg[8*i+k] * exp(-absAir[k]*longueurRay));
+                m_nrgSI.push_back(nrg[8*i+k] * pow(10,-absAir[k]*longueurRay/10));
             }
 
             temps = 1000 * norme(vecteur(C,listener.getCentre())) / VITESSE_SON; // en ms

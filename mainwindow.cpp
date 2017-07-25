@@ -6,7 +6,7 @@
 #include <QProgressDialog>
 #include "plotwindow.h"
 #include "audio.h"
-
+#include "physic.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -26,11 +26,17 @@ MainWindow::MainWindow(QWidget *parent) :
    m_nbRebond = ui->spinBox_nbRebond->value();
    m_seuilAttenuation = pow(10,(-(ui->spinBox_attenuation->value()/10)));
    m_temperature = ui->spinBox_temperature->value();
+   m_humidite = ui->spinBox_humidite->value();
    m_freq = ui->spinBox_freqEchan->value();
    m_seuilArret = ui->spinBox_seuilArret->value();
    m_nbRayon = ui->spinBox_nbRay->value();
    m_nbFaceFeuille = ui->spinBox_nbFaceFeuille->value();
    m_fichierExport = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
+
+   // On limite le nombre de faces par feuille au nombre de face total
+   ui->spinBox_nbFaceFeuille->setMaximum(m_meshObj.getVert().size()/3);
+
+   ui->checkBox_methodeRapide->setChecked(true);
 
    player = new QMediaPlayer(this);
    connect(player, &QMediaPlayer::positionChanged, this, &MainWindow::on_positionChanged);
@@ -46,11 +52,8 @@ MainWindow::MainWindow(QWidget *parent) :
    }
    else (m_fichierAudio = "/home");
 
-   // On limite le nombre de faces par feuille au nombre de face total
-   ui->spinBox_nbFaceFeuille->setMaximum(m_meshObj.getVert().size()/3);
 
-   ui->checkBox_methodeRapide->setChecked(true);
-
+   debugStdVect(bandFilters()[0]);
 }
 
 MainWindow::~MainWindow()
@@ -111,6 +114,8 @@ void MainWindow::on_bouton_rayons_clicked()
 {
     suppFichier(); // Suppression des fichiers d'export existant
 
+    std::vector<float> absAir = absair(m_temperature, m_humidite);
+
     // OCTREE
     if (m_methodeRapide) m_octree.chargerRayonRacine(m_nbRayon);
 
@@ -133,6 +138,7 @@ void MainWindow::on_bouton_rayons_clicked()
         ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
         // RAYONS
         Ray monRay(m_nbRayon, m_source, nSrc, m_fibonacci);
+        if(!m_fibonacci) m_nbRayon = monRay.getNbRay(); // Au cas où on prend la source blender
 
         if (m_nbRebondFixe)
         {
@@ -147,7 +153,7 @@ void MainWindow::on_bouton_rayons_clicked()
                 if (m_methodeRapide)
                 {
                     m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
-                    if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) // calcul des points d'intersection entre rayons et faces
+                    if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree, absAir)) // calcul des points d'intersection entre rayons et faces
                             i=m_nbRebond; // arrete la boucle
                 }
                 else
@@ -171,7 +177,7 @@ void MainWindow::on_bouton_rayons_clicked()
             {
                 m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                 // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree, absAir))
                 {
                     // progress bar
                     progress.setValue(monRay.getRayMorts());
@@ -215,6 +221,8 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 {
     suppFichier(); // Suppression des fichiers d'export existant
 
+    std::vector<float> absAir = absair(m_temperature, m_humidite);
+
     // OCTREE
     if (m_methodeRapide) m_octree.chargerRayonRacine(m_nbRayon);
 
@@ -241,6 +249,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
         ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
         // RAYONS
         Ray monRay(m_nbRayon, m_source, nSrc, m_fibonacci);
+        if(!m_fibonacci) m_nbRayon = monRay.getNbRay(); // Au cas où on prend la source blender
 
         if (m_nbRebondFixe)
         {
@@ -258,7 +267,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                     m_timer.restart();
                     m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                     qDebug() << "temps octree : " << m_timer.restart() << "ms";
-                    if (!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) i=m_nbRebond;
+                    if (!monRay.rebondSansMemoire(m_meshObj, -1, m_octree, absAir)) i=m_nbRebond;
                     qDebug() << "temps rayons : " << m_timer.restart() << "ms";
                 }
                 else
@@ -267,7 +276,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                     if (!monRay.rebondSansMemoire(m_meshObj, -1)) i=m_nbRebond;
                     qDebug() << "temps rayons : " << m_timer.restart() << "ms";
                 }
-                maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
+                maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto, absAir);
             }
             monObjWriter.display_sourceImages(maSourceImage, -1);
             progress.setValue(m_nbRebond);
@@ -282,14 +291,14 @@ void MainWindow::on_bouton_sourcesImages_clicked()
             {
                 // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
                 m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
-                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree, absAir))
                 {
                     // progress bar
                     progress.setValue(monRay.getRayMorts());
                     if (progress.wasCanceled())
                                 break; // arrete la boucle
 
-                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
+                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto, absAir);
                     m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                 }
             }
@@ -303,10 +312,10 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                     if (progress.wasCanceled())
                                 break; // arrete la boucle
 
-                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto);
+                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto, absAir);
                 }
             }
-            maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto); // On le refait une fois à la sortie de boucle pour les dernier rayon
+            maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto, absAir); // On le refait une fois à la sortie de boucle pour les dernier rayon
             monObjWriter.display_sourceImages(maSourceImage, m_seuilAttenuation);
 
             progress.setValue(m_nbRayon);
@@ -324,15 +333,18 @@ void MainWindow::on_bouton_sourcesImages_clicked()
 
 void MainWindow::on_bouton_octree_clicked()
 {
-    suppFichier(); // Suppression des fichiers d'export existant
+    if (m_methodeRapide)
+    {
+        suppFichier(); // Suppression des fichiers d'export existant
 
-    // EXPORT
-    ObjWriter monObjWriter(m_fichierExport, 0);
+        // EXPORT
+        ObjWriter monObjWriter(m_fichierExport, 0);
 
-    on_checkBox_methodeRapide_toggled(true); // recalcule l'octree
-    ui->checkBox_methodeRapide->setChecked(true);
+        monObjWriter.display_octree(m_octree.getVectBoite());
+    }
+    else QMessageBox::warning(NULL,"Attention","Veuillez activer la méthode rapide");
 
-    monObjWriter.display_octree(m_octree.getVectBoite());
+
 }
 
 void MainWindow::on_spinBox_nbRebond_valueChanged(int arg1) {
@@ -356,9 +368,6 @@ void MainWindow::on_spinBox_attenuation_valueChanged(int arg1) {
     m_seuilAttenuation = pow(10,(-arg1/10));
 }
 
-void MainWindow::on_spinBox_temperature_valueChanged(int arg1) {
-    m_temperature = arg1;
-}
 
 void MainWindow::on_radioButton_vertexSource_toggled(bool checked)
 {
@@ -417,10 +426,6 @@ void MainWindow::on_bouton_RIR_clicked()
     }
 }
 
-void MainWindow::on_spinBox_freqEchan_valueChanged(int arg1) {
-    m_freq = arg1;
-}
-
 void MainWindow::on_checkBox_rayAuto_toggled(bool checked) {
    m_rayAuto = checked;
    if(m_rayAuto)
@@ -433,17 +438,6 @@ void MainWindow::on_checkBox_rayAuto_toggled(bool checked) {
    }
 }
 
-void MainWindow::on_spinBox_seuilArret_valueChanged(int arg1) {
-    m_seuilArret = arg1;
-    if(m_rayAuto) on_checkBox_rayAuto_toggled(true);
-}
-
-void MainWindow::on_spinBox_nbFaceFeuille_valueChanged(int arg1)
-{
-    m_nbFaceFeuille = arg1;
-    if (arg1 > 0) on_checkBox_methodeRapide_toggled(true);
-    ui->checkBox_methodeRapide->setChecked(true);
-}
 
 void MainWindow::on_checkBox_methodeRapide_toggled(bool checked)
 {
@@ -492,11 +486,29 @@ void MainWindow::on_bouton_ecouter_clicked()
 
     //Audio
     Audio monAudio;
+
     monAudio.readWavFile(m_fichierAudio);
+    qDebug() << monAudio.m_nbData;
+    std::transform(monAudio.m_ramBuffer.begin(), monAudio.m_ramBuffer.end(), monAudio.m_ramBuffer.begin(),
+                   std::bind1st(std::multiplies<signed short>(),1/pow(2,15)));
+    //qDebug() << monAudio.m_ramBuffer[1];
+    //debugStdVect(monAudio.m_ramBuffer);
+    /*
+    QFile fichier(m_fichierExport);
+
+    fichier.open(QIODevice::WriteOnly); // ouvre le fichier
+
+    for (int i = 0 ; i < monAudio.m_nbData ; i++)
+    {
+        //qDebug() << monAudio.m_ramBuffer[i];
+        fichier.write(QString::number(monAudio.m_ramBuffer[i]).toLatin1());
+    }
+    fichier.close();
+    */
+
 }
 
-void MainWindow::on_AudioSlider_valueChanged(int value)
-{
+void MainWindow::on_AudioSlider_valueChanged(int value) {
     player->setPosition(value);
 }
 
@@ -509,7 +521,37 @@ void MainWindow::on_positionChanged(qint64 position)
     }
 }
 
-void MainWindow::on_durationChanged(qint64 position)
-{
+void MainWindow::on_durationChanged(qint64 position) {
     ui->AudioSlider->setMaximum(position);
 }
+
+void MainWindow::on_spinBox_humidite_editingFinished() {
+    m_humidite = ui->spinBox_humidite->value();
+}
+
+void MainWindow::on_spinBox_temperature_editingFinished() {
+    m_temperature = ui->spinBox_temperature->value();
+}
+
+void MainWindow::on_spinBox_nbFaceFeuille_editingFinished()
+{
+    if (ui->spinBox_nbFaceFeuille->value() != m_nbFaceFeuille)
+    {
+        m_nbFaceFeuille = ui->spinBox_nbFaceFeuille->value();
+        on_checkBox_methodeRapide_toggled(true);
+        if (ui->checkBox_methodeRapide->checkState() == Qt::Unchecked)
+            ui->checkBox_methodeRapide->setChecked(true);
+    }
+
+}
+
+void MainWindow::on_spinBox_freqEchan_editingFinished() {
+     m_freq = ui->spinBox_freqEchan->value();
+}
+
+void MainWindow::on_spinBox_seuilArret_editingFinished()
+{
+    m_seuilArret = ui->spinBox_seuilArret->value();
+    if(m_rayAuto) on_checkBox_rayAuto_toggled(true);
+}
+

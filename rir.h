@@ -19,7 +19,7 @@ class SourceImage
         std::vector<float> &getNrgSI();
         std::vector<float> &getX();
         std::vector<float> &getY();
-        void addSourcesImages(Ray rayon, Listener listener, float longueurMax, bool rayAuto);
+        void addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, bool rayAuto, const std::vector<float> &absAir);
         void filtrerSourceImages();
         void calculerRIR(int f_ech);
 

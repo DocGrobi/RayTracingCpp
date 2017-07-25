@@ -245,7 +245,6 @@ Ray::Ray(int Nray, Source S, int nSrc, bool fibonacci)
         }
         else
         {
-
             // étage 0 : centre source
             for (int i=m_Nray*nSrc; i<m_Nray*(nSrc+1); i++)
             {
@@ -537,11 +536,9 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 
 
 // faces puis rayons + octree
-bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
+bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct, const std::vector<float>& absair)
 {
     // chargement du mesh
-    //std::vector<float> normales(mesh.getNormals());
-    //std::vector<float> vertex(mesh.getVertex());
     std::vector<float> indiceMat(mesh.getIndMat());
     std::vector<Boite> vectBoite(oct.getVectBoite());
 
@@ -550,8 +547,7 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
     std::vector<CoordVector> vectFace(mesh.getVectFace());
 
     // Declarations
-    std::vector<float> absAir = absorptionAir(20);
-    CoordVector vect_ref;
+    //std::vector<float> absAir = absorptionAir(20);
     int compteur(0);
     bool rayonsExistent = false;
     int j(0), k(0), indE(0), l(0), i(0), indR(0);
@@ -559,7 +555,7 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
     std::vector<int> face;
     face.resize(m_Nray, 0);
     m_long.assign(m_Nray, 1000000);
-    CoordVector A,B,C, e1, e2, pvec, tvec, qvec;
+    CoordVector e1, e2, pvec, tvec, qvec;
     float longueur_inst(0), det, u, v, invDet;
 
     stockage();
@@ -570,39 +566,27 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
         {
             for (indE=0; indE < vectBoite[i].m_numElt.size(); indE ++) // pour chaque face comprise dans la boite
             {
-                //k = vectBoite[i].m_numElt[indE]/3;
                 k = vectBoite[i].m_numElt[indE];
 
-                /*
-                e1 = vecteur(vert[k],vert[k+1]);
-                e2 = vecteur(vert[k],vert[k+2]);
-                */
                 e1 = vectFace[2*k/3];
                 e2 = vectFace[2*k/3+1];
 
                 for(indR=0; indR<vectBoite[i].m_numRayon.size() ; indR++) // pour chaque rayon compris dans la boite
-                //for (j = 0 ; j < m_Nray ; j++)
                 {
                     j = vectBoite[i].m_numRayon[indR];
 
                     // fonction de Möller–Trumbore
-                    //pvec = produitVectoriel(m_dir[j],vectFace[2*k/3+1]);
                     pvec = produitVectoriel(m_dir[j], e2);
                     det = produitScalaire(e1,pvec);
-                    //det = produitScalaire(vectFace[2*k/3],pvec);
                     if (det > 1e-8) {
                         invDet = 1/det;
-                        //tvec = vecteur(A, point);
                         tvec = vecteur(vert[k], m_pos[j]);
                         u = produitScalaire(tvec, pvec)*invDet;
                         if (u >= 0 && u <= 1) {
                             qvec = produitVectoriel(tvec,e1);
-                            //qvec = produitVectoriel(tvec,vectFace[2*k/3]);
-                            //v = produitScalaire(vect_dir,qvec)*invDet;
                             v = produitScalaire(m_dir[j], qvec)*invDet;
                             if (v >= 0 && u + v <= 1.00001) { // probleme d'arrondis
                                 longueur_inst = produitScalaire(e2, qvec)*invDet;
-                                //longueur_inst = produitScalaire(vectFace[2*k/3+1], qvec)*invDet;
                                 if (longueur_inst >0 && longueur_inst<m_long[j]){
                                     m_long[j] = longueur_inst; // On sauvegarde la longueur
                                     face[j] = k;               //on sauvegarde la dernière face testée
@@ -629,8 +613,7 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
             }
 
             // Mise à jour vecteur directeur
-            vect_ref  = vecteur_reflechi(m_dir[j], norm[face[j]]);
-            m_vDir[j] = vect_ref/norme(vect_ref);
+            m_vDir[j]  = vecteur_reflechi(m_dir[j], norm[face[j]]);
 
             // Mise à jour point d'origine
             m_ray[j]+= m_dir[j]*m_long[j];
@@ -642,7 +625,8 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
             compteur = 0;
             for (l=0; l<8; l++)
             {
-                m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face[j]+l+1]) * exp(-absAir[l]*m_long[j]);
+                //m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face[j]+l+1]) * exp(-absAir[l]*m_long[j]);
+                m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face[j]+l+1]) * pow(10,(-absair[l]*m_long[j]/10));
                 //m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]);
                 // test si le rayon est mort
                 if (m_nrg[j*8 + l] > seuil) // s'il existe au moins un rayon vivant

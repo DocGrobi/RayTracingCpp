@@ -423,10 +423,13 @@ void ObjWriter::display_octree(const std::vector<Boite> &oct)
 
 std::vector<CoordVector> coordVertBoite(const Boite &boite)
 {
-    CoordVector coinMin = boite.m_coinMin;
-    float arrete = boite.m_arrete;
     std::vector<CoordVector> coordVert;
     coordVert.resize(8,CoordVector(0,0,0));
+
+    // Version boite cubique
+    /*
+    CoordVector coinMin = boite.m_coinMin;
+    float arrete = boite.m_arrete;
 
     coordVert[0] = CoordVector(coinMin.x           , coinMin.y          , coinMin.z         );
     coordVert[1] = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z         );
@@ -436,6 +439,18 @@ std::vector<CoordVector> coordVertBoite(const Boite &boite)
     coordVert[5] = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z + arrete);
     coordVert[6] = CoordVector(coinMin.x           , coinMin.y + arrete , coinMin.z + arrete);
     coordVert[7] = CoordVector(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z + arrete);
+    */
+
+    // Version boites englobantes
+    coordVert[0] = CoordVector(boite.m_min.x, boite.m_min.y, boite.m_min.z);
+    coordVert[1] = CoordVector(boite.m_max.x, boite.m_min.y, boite.m_min.z);
+    coordVert[2] = CoordVector(boite.m_min.x, boite.m_max.y, boite.m_min.z);
+    coordVert[3] = CoordVector(boite.m_max.x, boite.m_max.y, boite.m_min.z);
+    coordVert[4] = CoordVector(boite.m_min.x, boite.m_min.y, boite.m_max.z);
+    coordVert[5] = CoordVector(boite.m_max.x, boite.m_min.y, boite.m_max.z);
+    coordVert[6] = CoordVector(boite.m_min.x, boite.m_max.y, boite.m_max.z);
+    coordVert[7] = CoordVector(boite.m_max.x, boite.m_max.y, boite.m_max.z);
+
 
     return coordVert;
 

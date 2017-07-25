@@ -10,6 +10,12 @@ void debugStdVect(std::vector<float>& vect)//pour le debug
     qDebug() << vector;
 }
 
+void debugStdVect(std::vector<signed short>& vect)//pour le debug
+{
+    QVector<signed short> vector = QVector<signed short>::fromStdVector(vect);
+    qDebug() << vector;
+}
+
 CoordVector sph2cart(float ro, float theta, float phi)
 {
     float x,y,z;

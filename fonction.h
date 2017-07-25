@@ -42,6 +42,7 @@ CoordVector produitVectoriel(const std::vector<float> &a,int i, const CoordVecto
 float norme(const CoordVector &a);
 float angle(const CoordVector &a,const CoordVector &b);
 void debugStdVect(std::vector<float>& vect); // permet d'afficher un std::vector dans la console
+void debugStdVect(std::vector<signed short>& vect);
 //CoordVector coord_New_Base(const CoordVector &point, std::vector<float> &mat );
 bool proche(float a, float b);
 bool proche(CoordVector a, CoordVector b);

@@ -2,6 +2,9 @@
 #include "QFile"
 #include "QDebug"
 #include "QDataStream"
+#include <QCoreApplication>
+#include "fonction.h"
+#include <QMessageBox>
 
 Audio::Audio(){
 }
@@ -38,7 +41,7 @@ Audio::~Audio(){
  *
  */
 
-int Audio::readWavFile(QString fileName){
+ void Audio::readWavFile(QString fileName){
 
 
     // Open wave file
@@ -47,7 +50,7 @@ int Audio::readWavFile(QString fileName){
     if (!wavFile.open(QFile::ReadOnly))
     {
         qDebug() << "Failed to open WAV file...";
-        return -1; // Done
+        //return NULL; // Done
     }
 
     // Read in the whole thing
@@ -105,10 +108,17 @@ int Audio::readWavFile(QString fileName){
     qDebug() << "Data Header: " << QString::fromUtf8(dataHeader);
     qDebug() << "Data Size: " << dataSize;
 
+    //ramBuffer = new signed short [dataSize];
+
+    m_nbData = dataSize;
+    m_ramBuffer.resize(dataSize, 0);
+
     // Now pull out the data
-    return 1;//analyzeHeaderDS.readRawData((char*)ramBuffer,(int)dataSize);
+    analyzeHeaderDS.readRawData((char*)m_ramBuffer.data(),(int)dataSize);
+    //return ramBuffer;
 
 }
+
 
 // https://stackoverflow.com/questions/24518989/how-to-perform-1-dimensional-valid-convolution
 std::vector<float> Audio::convolution(std::vector<float> const &f, std::vector<float> const &g) {
@@ -127,3 +137,28 @@ std::vector<float> Audio::convolution(std::vector<float> const &f, std::vector<f
   return out;
 }
 
+std::vector< std::vector<float> >& bandFilters()
+{
+     QFile fichier(QCoreApplication::applicationDirPath() + "/bandFilters.txt");
+     std::vector< std::vector<float> > filtres;
+     std::vector<float> filtre;
+
+     if(fichier.open(QIODevice::ReadOnly | QIODevice::Text)) // Si on peut ouvrir le fichier
+     {
+
+        QTextStream flux(&fichier);
+
+        while (!flux.atEnd()) {
+
+            if (filtre.size() < 257) filtre.push_back(flux.readLine().toFloat());
+            else
+            {
+                filtres.push_back(filtre);
+                filtre.clear();
+            }
+        }
+         fichier.close();
+     }
+     else QMessageBox::critical(NULL,"Erreur","Veuillez placer le fichier bandFilter.txt dans le repetoire de l'executable' !");
+     return filtres;
+}
