@@ -7,12 +7,13 @@
 #include "plotwindow.h"
 #include "audio.h"
 #include "physic.h"
+#include "fftext.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_meshObj(QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj"),
-  m_listener(m_meshObj.getListener()), m_source(m_meshObj.getSource())
+    m_source(m_meshObj.getSource()), m_listener(m_meshObj.getListener())
 {
    // AFFICHAGE FENETRE
    ui->setupUi(this);
@@ -52,8 +53,16 @@ MainWindow::MainWindow(QWidget *parent) :
    }
    else (m_fichierAudio = "/home");
 
+/*
+   audioProbe = new QAudioProbe(this);
+   qDebug() << audioProbe->setSource(player);
 
-   debugStdVect(bandFilters()[0]);
+   // Probing succeeded, audioProbe->isValid() should be true.
+   connect(audioProbe, SIGNAL(audioBufferProbed(QAudioBuffer)),
+           this, SLOT(slotGetMusicData(QAudioBuffer)));
+*/
+
+
 }
 
 MainWindow::~MainWindow()
@@ -412,18 +421,16 @@ void MainWindow::on_spinBox_nbRay_valueChanged(int arg1) {
 
 void MainWindow::on_bouton_RIR_clicked()
 {
-     m_sourceImage.calculerRIR(m_freq);
-
     // ouvre une nouvelle fenetre
     plotWindow plot;
-    if (m_sourceImage.getX().size() == 1) QMessageBox::warning(NULL,"Attention","Trajet direct uniquement");
-    else
+    if (m_sourceImage.calculerRIR(m_freq))
     {
-        plot.XY(m_sourceImage.getX(), m_sourceImage.getY(), m_seuilAttenuation);
+        plot.XY(m_sourceImage.getX(), m_sourceImage.getFIR(), m_seuilAttenuation);
         plot.makePlot();
         plot.setModal(true);
         plot.exec();
     }
+    else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
 }
 
 void MainWindow::on_checkBox_rayAuto_toggled(bool checked) {
@@ -484,6 +491,10 @@ void MainWindow::on_bouton_ecouter_clicked()
         ui->bouton_ecouter->setText("Pause");
     }
 
+
+    //QAudioBuffer buffer;
+    //audioProbe.audioBufferProbed(buffer);
+    /*
     //Audio
     Audio monAudio;
 
@@ -491,6 +502,8 @@ void MainWindow::on_bouton_ecouter_clicked()
     qDebug() << monAudio.m_nbData;
     std::transform(monAudio.m_ramBuffer.begin(), monAudio.m_ramBuffer.end(), monAudio.m_ramBuffer.begin(),
                    std::bind1st(std::multiplies<signed short>(),1/pow(2,15)));
+
+    */
     //qDebug() << monAudio.m_ramBuffer[1];
     //debugStdVect(monAudio.m_ramBuffer);
     /*
@@ -507,6 +520,17 @@ void MainWindow::on_bouton_ecouter_clicked()
     */
 
 }
+/*
+void MainWindow::slotGetMusicData(QAudioBuffer musicBuffer)
+{
+    //QAudioBuffer to QByteArray
+    *musicDataBuffer = musicDataBuffer->fromRawData((char *)musicBuffer.data(),
+                                                     musicBuffer.byteCount());
+    //Send Music Data
+    //musicSocket->sendMudicData(*musicDataBuffer);
+    qDebug() << "dans le slot";
+}
+*/
 
 void MainWindow::on_AudioSlider_valueChanged(int value) {
     player->setPosition(value);
@@ -555,3 +579,51 @@ void MainWindow::on_spinBox_seuilArret_editingFinished()
     if(m_rayAuto) on_checkBox_rayAuto_toggled(true);
 }
 
+
+void MainWindow::on_bouton_convolution_clicked()
+{
+
+    WavFile wav;
+    int nfft;
+    long nlog;
+
+    if (m_sourceImage.calculerRIR(m_freq))
+    {
+        if(wav.open(m_fichierAudio))
+        {
+            int wavLength = wav.size() - wav.headerLength();
+            qDebug() << wavLength;
+            // Redimensionnement de la FIR
+            int length = m_sourceImage.redimentionnement(wavLength);
+            if (length < wavLength) length = wavLength;
+            //else // Il faut zeropadder le fichier audio
+
+            qDebug() << "length : " << length;
+            nfft = qNextPowerOfTwo(length);
+            nlog = round(log(nfft) / log(2));
+
+            qDebug() << "nlog : " << nlog;
+            fftInit(nlog);
+
+            std::vector< std::vector<float> > fir = m_sourceImage.getFIR();
+            //debugStdVect(fir[0]);
+            // fft de la FIR
+            for (int k = 0; k< fir.size() ; k++)
+            {
+                rffts(&fir[k][0], nlog, 1); // on passe fir en frequentielle (directement enregistrer dans lui-même)
+            }
+            //debugStdVect(fir[0]);
+
+            // création du vecteur de sortie de convolution
+            std::vector<float> output;
+            output.resize(nlog,0);
+
+
+            //rspectprod(filter[inChannel], input[inChannel], outputData[outChannel], nfft);
+            fftFree();
+        }
+        else QMessageBox::warning(NULL,"Attention","Pas de fichier audio lisible");
+    }
+    else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
+
+}

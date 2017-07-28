@@ -1,6 +1,7 @@
 #include "rir.h"
 #include "math.h"
 #include <QMessageBox>
+#include "QDebug"
 
 // les méthodes
 std::vector<bool> toucheListener(Ray &rayon, Listener &listener)
@@ -75,6 +76,10 @@ std::vector<float> &SourceImage::getX()
 std::vector<float> &SourceImage::getY()
 {
     return m_y;
+}
+
+std::vector< std::vector<float> >&SourceImage::getFIR(){
+    return m_FIR;
 }
 
 void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, bool rayAuto, const std::vector<float>& absAir)
@@ -193,21 +198,16 @@ void SourceImage::filtrerSourceImages()
 }
 
 
-void SourceImage::calculerRIR(int f_ech)
+bool SourceImage::calculerRIR(int f_ech)
 {
 
     float freq = (float)f_ech/1000; // car on a des temps en ms (convertion en float)
 
     int nb_ech = ceil(m_xMax*freq);
 
-    if(nb_ech == 0) // Securité dans le cas de la source et listener confondu et sans rebond
+    float max(0), maxbuf(0);
+    if (nb_ech > 0)
     {
-        nb_ech = 1;
-    }
-
-    if (nb_ech <= 0) QMessageBox::critical(NULL,"Erreur","Aucune source image");
-    else {
-
         m_x.clear();
         m_y.clear();
         m_x.resize(nb_ech, 0);
@@ -232,22 +232,46 @@ void SourceImage::calculerRIR(int f_ech)
         }
     */
         // Ordonnées
+        m_FIR.resize(8);
+
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
         {
             for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
             {
                m_y[floor(m_sourcesImages_Tps[i]*freq) + k*nb_ech] += m_nrgSI[i*8 + k];
             }
-
+            maxbuf = *std::max_element(m_y.begin()+k*nb_ech, m_y.begin()+(k+1)*nb_ech);
+            if(max<maxbuf) max = maxbuf;
+            m_FIR[k].assign(m_y.begin()+k*nb_ech, m_y.begin()+(k+1)*nb_ech);
+            for(float& a : m_FIR[k]) {a=sqrt(a/max);}
         }
 
-        /*
-        // Minoration par le seuil
-        for (int j = 0; j < m_y.size(); j++)
-        {
-            if (m_y[j] < seuil) m_y[j] = seuil;
-        }
-        */
+        // passage en puissance
+        //std::transform(m_y.begin(), m_y.end(), m_y.begin(), sqrt);
+
+        return true;
+
     }
+    else return false;
 
+
+}
+
+int SourceImage::redimentionnement(int taille)
+{
+
+    int j, k;
+    int i = m_FIR[0].size();
+
+    if(i<taille) // wav plus long que RIR
+    {
+        for (k = 0 ; k <8 ; k++)
+        {
+            for (j = i ; j <taille ; j++)
+            {
+                m_FIR[k].push_back(0); // zeropadding
+            }
+        }
+    }
+    return i;
 }

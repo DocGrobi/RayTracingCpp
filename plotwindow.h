@@ -17,7 +17,7 @@ public:
     ~plotWindow();
 
     void makePlot();
-    void XY(std::vector<float> &x, std::vector<float> &y, float seuil);
+    void XY(std::vector<float> &x, std::vector<std::vector<float> > &y, float seuil);
 
 private slots:
   void mousePress();
@@ -36,6 +36,7 @@ private:
     bool m_echelleLog;
     QVector<double> vectX, vectY;
     double xMax, yMax, yMin;
+    QVector<QVector<double> > courbe;
 };
 
 #endif // PLOTWINDOW_H

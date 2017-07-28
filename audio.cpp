@@ -5,6 +5,11 @@
 #include <QCoreApplication>
 #include "fonction.h"
 #include <QMessageBox>
+/*
+#include <QtEndian>
+#include <QAudioBuffer>
+#include <QFileInfo>
+*/
 
 Audio::Audio(){
 }
@@ -141,24 +146,271 @@ std::vector< std::vector<float> >& bandFilters()
 {
      QFile fichier(QCoreApplication::applicationDirPath() + "/bandFilters.txt");
      std::vector< std::vector<float> > filtres;
-     std::vector<float> filtre;
 
      if(fichier.open(QIODevice::ReadOnly | QIODevice::Text)) // Si on peut ouvrir le fichier
      {
+         std::vector<float> filtre;
+         QTextStream flux(&fichier);
 
-        QTextStream flux(&fichier);
-
-        while (!flux.atEnd()) {
-
-            if (filtre.size() < 257) filtre.push_back(flux.readLine().toFloat());
-            else
-            {
-                filtres.push_back(filtre);
-                filtre.clear();
-            }
-        }
-         fichier.close();
+         while (!flux.atEnd()) {
+              if (filtre.size() < 257) filtre.push_back(flux.readLine().toFloat());
+              else
+              {
+                  filtres.push_back(filtre);
+                  filtre.clear();
+              }
+          }
+          fichier.close();
      }
-     else QMessageBox::critical(NULL,"Erreur","Veuillez placer le fichier bandFilter.txt dans le repetoire de l'executable' !");
+     else QMessageBox::critical(NULL,"Erreur","Veuillez placer le fichier bandFilter.txt dans le repertoire de l'executable' !");
      return filtres;
 }
+
+
+
+
+/*
+void readWAV(QString wavFile, int waveNum)
+{
+    QFile m_WAVFile;
+    m_WAVFile.setFileName(wavFile);
+    if(m_WAVFile.exists()==false)
+    {
+        qDebug()<<"File doesn't exist";
+        return;
+    }
+    m_WAVFile.open(QIODevice::ReadWrite);
+
+    char strm[4];
+    char s[1];
+    QByteArray wav;
+    quint32 conv;
+
+    qDebug()<<"\nstart";
+    qDebug()<<m_WAVFile.read(4);//RIFF
+    // m_WAVHeader.RIFF = m_WAVFile.read(4).data();
+
+    m_WAVFile.read(strm,4);//chunk size
+    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
+
+    m_WAVFile.read(strm,4);//format
+    qDebug()<<strm;
+
+    m_WAVFile.read(strm,4);//subchunk1 id
+    qDebug()<<strm;
+
+    m_WAVFile.read(strm,4);//subchunk1 size
+    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
+
+    m_WAVFile.read(strm,2);//audio format
+    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
+
+    m_WAVFile.read(strm,2);//NumChannels
+    conv = qFromLittleEndian<quint32>((uchar*)strm);
+    qDebug()<<conv;
+    if(conv!=1)
+    {
+        QMessageBox::warning(NULL, "Import wav file", "Wav file must be mono",QMessageBox::Ok,QMessageBox::NoButton);
+        return;
+    }
+
+    m_WAVFile.read(strm,4);//Sample rate
+    conv = qFromLittleEndian<quint32>((uchar*)strm);
+    qDebug()<<conv;
+    if(conv!=11025)
+    {
+        QMessageBox::warning(NULL, "Import wav file", "Use file with 11025Hz sample rate for native sample rate",QMessageBox::Ok,QMessageBox::NoButton);
+    }
+
+    m_WAVFile.read(strm,4);//Byte rate
+    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
+
+    m_WAVFile.read(strm,2);//Block Allign
+    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
+
+    m_WAVFile.read(strm,2);//BPS
+    conv = qFromLittleEndian<quint32>((uchar*)strm);
+    qDebug()<<conv;
+    if(conv!=8)
+    {
+        QMessageBox::warning(NULL, "Import wav file", "Wav file must be unsigned 8 bit",QMessageBox::Ok,QMessageBox::NoButton);
+        return;
+    }
+
+    m_WAVFile.read(strm,4);//subchunk2 id
+    qDebug()<<strm;
+
+    m_WAVFile.read(strm,4);//subchunk2 size
+    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
+
+    outBuffLen[waveNum] = 0;
+    while(!m_WAVFile.atEnd())
+    {
+        m_WAVFile.read(s,1);
+        wav.append(s[0]);
+    }
+    m_WAVFile.close();
+    dsBuffer[waveNum] = QAudioBuffer(wav,fmt);
+    outBuffLen[waveNum] = dsBuffer[waveNum].sampleCount();
+    qDebug()<<" Processed:";
+    qDebug()<<outBuffLen[waveNum];
+    wavePath[waveNum] = wavFile;
+    QFileInfo fileInfo(wavFile);
+    waveName[waveNum] = fileInfo.fileName();
+}
+
+*/
+
+
+/****************************************************************************
+**
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
+**
+** This file is part of the examples of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:BSD$
+** You may use this file under the terms of the BSD license as follows:
+**
+** "Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions are
+** met:
+**   * Redistributions of source code must retain the above copyright
+**     notice, this list of conditions and the following disclaimer.
+**   * Redistributions in binary form must reproduce the above copyright
+**     notice, this list of conditions and the following disclaimer in
+**     the documentation and/or other materials provided with the
+**     distribution.
+**   * Neither the name of The Qt Company Ltd nor the names of its
+**     contributors may be used to endorse or promote products derived
+**     from this software without specific prior written permission.
+**
+**
+** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#include <qendian.h>
+#include <QVector>
+// il y a peut-etre des choses utiles dans utilis.h
+
+
+struct chunk
+{
+    char        id[4];
+    quint32     size;
+};
+
+struct RIFFHeader
+{
+    chunk       descriptor;     // "RIFF"
+    char        type[4];        // "WAVE"
+};
+
+struct WAVEHeader
+{
+    chunk       descriptor;
+    quint16     audioFormat;
+    quint16     numChannels;
+    quint32     sampleRate;
+    quint32     byteRate;
+    quint16     blockAlign;
+    quint16     bitsPerSample;
+};
+
+struct DATAHeader
+{
+    chunk       descriptor;
+};
+
+struct CombinedHeader
+{
+    RIFFHeader  riff;
+    WAVEHeader  wave;
+};
+
+WavFile::WavFile(QObject *parent)
+    : QFile(parent)
+    , m_headerLength(0)
+{
+
+}
+
+bool WavFile::open(const QString &fileName)
+{
+    close();
+    setFileName(fileName);
+    return QFile::open(QIODevice::ReadOnly) && readHeader();
+}
+
+const QAudioFormat &WavFile::fileFormat() const
+{
+    return m_fileFormat;
+}
+
+qint64 WavFile::headerLength() const
+{
+return m_headerLength;
+}
+
+bool WavFile::readHeader()
+{
+    seek(0);
+    CombinedHeader header;
+    bool result = read(reinterpret_cast<char *>(&header), sizeof(CombinedHeader)) == sizeof(CombinedHeader);
+    if (result) {
+        if ((memcmp(&header.riff.descriptor.id, "RIFF", 4) == 0
+            || memcmp(&header.riff.descriptor.id, "RIFX", 4) == 0)
+            && memcmp(&header.riff.type, "WAVE", 4) == 0
+            && memcmp(&header.wave.descriptor.id, "fmt ", 4) == 0
+            && (header.wave.audioFormat == 1 || header.wave.audioFormat == 0)) {
+
+            // Read off remaining header information
+            DATAHeader dataHeader;
+
+            if (qFromLittleEndian<quint32>(header.wave.descriptor.size) > sizeof(WAVEHeader)) {
+                // Extended data available
+                quint16 extraFormatBytes;
+                if (peek((char*)&extraFormatBytes, sizeof(quint16)) != sizeof(quint16))
+                    return false;
+                const qint64 throwAwayBytes = sizeof(quint16) + qFromLittleEndian<quint16>(extraFormatBytes);
+                if (read(throwAwayBytes).size() != throwAwayBytes)
+                    return false;
+            }
+
+            if (read((char*)&dataHeader, sizeof(DATAHeader)) != sizeof(DATAHeader))
+                return false;
+
+            // Establish format
+            if (memcmp(&header.riff.descriptor.id, "RIFF", 4) == 0)
+                m_fileFormat.setByteOrder(QAudioFormat::LittleEndian);
+            else
+                m_fileFormat.setByteOrder(QAudioFormat::BigEndian);
+
+            int bps = qFromLittleEndian<quint16>(header.wave.bitsPerSample);
+            m_fileFormat.setChannelCount(qFromLittleEndian<quint16>(header.wave.numChannels));
+            m_fileFormat.setCodec("audio/pcm");
+            m_fileFormat.setSampleRate(qFromLittleEndian<quint32>(header.wave.sampleRate));
+            m_fileFormat.setSampleSize(qFromLittleEndian<quint16>(header.wave.bitsPerSample));
+            m_fileFormat.setSampleType(bps == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);
+        } else {
+            result = false;
+        }
+    }
+    m_headerLength = pos();
+    return result;
+}
+
+

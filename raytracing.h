@@ -15,10 +15,6 @@ CoordVector vecteur_reflechi(const CoordVector &i, const CoordVector &n);
 CoordVector vecteur_reflechi(const std::vector<float> &i, int ind, const CoordVector &n);
 float triangle_intersection(const CoordVector &orig, const CoordVector &dir,
                             const CoordVector &v0, const CoordVector &v1, const CoordVector &v2);
-float triangle_intersection(const Vect3f &orig, const Vect3f &dir,
-                            const Vect3f &v0, const Vect3f &v1, const Vect3f &v2);
-
-Vect3f vecteur_reflechi(const Vect3f &i, const Vect3f &n);
 
 
 // Les classes

@@ -13,7 +13,6 @@ TEMPLATE = app
 
 
 SOURCES  += main.cpp\
-            mainwindow.cpp \
             objreader.cpp \
             objwriter.cpp \
             raytracing.cpp \
@@ -23,7 +22,11 @@ SOURCES  += main.cpp\
             qcustomplot.cpp \
             plotwindow.cpp \
             octree.cpp \
-    audio.cpp
+            audio.cpp \
+    mainwindow.cpp \
+    fftext.cpp \
+    fftlib.cpp \
+    matlib.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -36,7 +39,10 @@ HEADERS  += mainwindow.h \
             qcustomplot.h \
             plotwindow.h \
             octree.h \
-    audio.h
+            audio.h \
+    fftext.h \
+    fftlib.h \
+    matlib.h
 
 
 FORMS    += mainwindow.ui \

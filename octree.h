@@ -18,8 +18,17 @@ public:
     std::vector<int>& getVectNumElt();
 
 //attribus
+
+    /*
+    // double
+    double m_arrete;
+    CoordDouble m_coinMin;
+    CoordVector m_min, m_max;
+    */
+    // float
     float m_arrete;
     CoordVector m_min, m_max, m_coinMin;
+
     int m_indicePere, m_indiceBoite;
     std::vector<int> m_numRayon, m_numElt;
     bool estUneFeuille;

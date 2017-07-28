@@ -42,39 +42,6 @@ float triangle_intersection(const CoordVector &orig, const CoordVector &dir,
 
 }
 
-float triangle_intersection(const Vect3f &orig, const Vect3f &dir,
-                            const Vect3f &v0,const Vect3f &v1,const Vect3f &v2)
-{
-
-    Vect3f e1 = v1-v0;
-    Vect3f e2 = v2-v0;
-    // calculer les vecteur normaux aux plans
-    Vect3f pvec = dir^e2;
-    float det = e1*pvec;
-
-    // Si le rayon est parralelle au plan
-    if (det <= 0.000001) // det proche de 0 dans la version originale
-    {
-        return 0;
-    }
-    Vect3f tvec = orig-v0;
-    float u = tvec*pvec/det;
-    if (u < 0 || u > 1)
-    {
-            return 0;
-    }
-    Vect3f qvec = tvec^e1;
-    float v = dir*qvec/det;
-
-    if (v < 0 || u + v > 1)
-    {
-            return 0;
-    }
-    return e2*qvec/det; // distance entre le point d'origine et le point d'intersection
-
-}
-
-
 // Méthodes
 
 bool appartient_face(const CoordVector &point, std::vector<float>& face)
@@ -184,24 +151,6 @@ CoordVector vecteur_reflechi(const std::vector<float> &i, int ind, const CoordVe
 {
     float p= 2*fabs(produitScalaire(i,ind,n));
     return CoordVector(p*n.x + i[ind], p*n.y + i[ind+1], p*n.z + i[ind+2]);
-}
-
-Vect3f vecteur_reflechi(const Vect3f &i, const Vect3f &n)
-{
-    float p = i*n;
-
-    return Vect3f(-2*p*n +i);
-}
-
-std::vector<float> &vecteur_reflechi(std::vector<float>& i, int ii,std::vector<float>& n, int in)
-{
-    std::vector<float> resultat;
-    for (int j = 0 ; j<3 ; j++)
-    {
-        resultat.push_back(-2*produitScalaire(i,ii,n,in)*n[in+j] + i[ii+j]);
-    }
-
-    return resultat;
 }
 
 

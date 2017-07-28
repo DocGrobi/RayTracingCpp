@@ -176,8 +176,6 @@ std::vector<float> absair(float temp, float relh) {
         //resultat[i] = pow(10, -resultat[i]/10); //on passe de dB/m au facteur de puissance perdu/m
     }
 
-    debugStdVect(resultat);
-
     /*
     // AFFICHAGE DES COURBES
     std::vector<float> x, y;

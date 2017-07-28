@@ -25,6 +25,7 @@ plotWindow::plotWindow(QWidget *parent) :
       connect(ui->customPlot, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
 
       m_echelleLog = true;
+
 }
 
 plotWindow::~plotWindow()
@@ -35,8 +36,9 @@ plotWindow::~plotWindow()
 void plotWindow::makePlot()
 {
     // Normalisation sur les y et repartition sur les 8 courbes
-    QVector<QVector<double> > courbe;
-    courbe.resize(8);
+    //QVector<QVector<double> > courbe;
+    //courbe.resize(8);
+/*
     int i(0), n(vectY.size()/8);
 
     for (int k = 0 ; k < 8 ; k++) // pour chaque bande
@@ -47,15 +49,15 @@ void plotWindow::makePlot()
             courbe[k].push_back(vectY[i+k*n]);
         }
     }
-
+*/
     // Création graphique des courbes
-    for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+    for (int k = 0 ; k < courbe.size() ; k++) // pour chaque bande
     {
         ui->customPlot->addGraph();
         ui->customPlot->graph(k)->setData(vectX, courbe[k]);
         QString nom = QString::number(62.5*pow(2,k)) + "Hz";
         ui->customPlot->graph(k)->setName(nom);
-        ui->customPlot->graph(k)->setPen(QPen(QColor::fromHsv(360/8*k,255,255)));
+        ui->customPlot->graph(k)->setPen(QPen(QColor::fromHsv(360/courbe.size()*k,255,255)));
     }
 
     // Noms des axes
@@ -72,38 +74,49 @@ void plotWindow::makePlot()
     ui->customPlot->replot();
 }
 
-void plotWindow::XY(std::vector<float> &x, std::vector<float> &y, float seuil)
+void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<float> > &y, float seuil)
 {
     // Conversion en double
     std::vector<double> vX(x.begin(),x.end());
-    std::vector<double> vY(y.begin(),y.end());
 
     // Conversion en QVector
     vectX = QVector<double>::fromStdVector(vX);
-    vectY = QVector<double>::fromStdVector(vY);
 
-    int i;
+    int k;
     // Recupération des maximums
     xMax = vectX[vectX.size() - 1];
 
-    yMax = vectY[0];
-    yMin = vectY[0];
+    //yMax = vectY[0];
 
+    courbe.resize(y.size());
+    yMin = 10*log10(seuil);
+    yMax = 0;
 
+    for (k=0 ; k < y.size() ; k++) // créaction de y.size courbes
+    {
+        std::vector<double> vY(y[k].begin(),y[k].end());
+        courbe[k]  = QVector<double>::fromStdVector(vY);
+        for(double &a : courbe[k]) {
+            if (a<seuil) a=yMin;
+            else a=10*log10(a);}
+    }
+    /*
     for (i = 1 ; i < vectY.size() ; i++)
     {
         if (vectY[i] > yMax) yMax = vectY[i];
-        if (vectY[i] < yMin) yMin = vectY[i];
     }
+    */
 
+
+    /*
     // Normalisation des y et mise à l'echelle log
     for (i = 0 ; i < vectY.size() ; i++) {
-        if (vectY[i]/yMax < seuil) vectY[i] = 10*log10(seuil);
+        if (vectY[i]/yMax < seuil) vectY[i] = yMin;
         else vectY[i] = 10*log10(vectY[i]/yMax);
     }
+    */
 
-    yMin = 10*log10(seuil);
-    yMax = 0;
+
 }
 
 // SLOTS :
@@ -246,9 +259,15 @@ void plotWindow::linScale()
 {
     if (m_echelleLog)
     {
+        /*
         for(int i=0; i< vectY.size(); i++)
         {
             vectY[i] = pow(10, vectY[i]/10);
+        }
+        */
+        for (int k=0; k < courbe.size() ; k++)
+        {
+            for(double &a : courbe[k]) {a=pow(10, a/10);}
         }
         m_echelleLog = false;
         yMax = pow(10, yMax/10);
@@ -263,9 +282,15 @@ void plotWindow::logScale()
 {
     if (!m_echelleLog)
     {
+        /*
         for(int i=0; i< vectY.size(); i++)
         {
             vectY[i] = 10*log10(vectY[i]);
+        }
+        */
+        for (int k=0; k < courbe.size() ; k++)
+        {
+            for(double &a : courbe[k]) {a=10*log10(a);}
         }
         m_echelleLog = true;
         yMax = 10*log10(yMax);

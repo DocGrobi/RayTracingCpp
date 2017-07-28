@@ -162,6 +162,7 @@ bool proche(CoordVector a, CoordVector b)
 CoordVector::CoordVector(float px,float py,float pz):x(px),y(py),z(pz)
 {
 }
+
 CoordVector::~CoordVector()
 {
 }
@@ -257,4 +258,9 @@ QString CoordVector2QString(const CoordVector &coord)
 {
     QString text = QString::number(coord.x) + " " + QString::number(coord.y) + " " + QString::number(coord.z);
      return text;
+}
+
+CoordDouble CoordVector::CoordVector2CoordDouble()
+{
+    return CoordDouble((double)x,(double)y,(double)z);
 }

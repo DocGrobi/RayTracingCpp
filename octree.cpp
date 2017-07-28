@@ -25,14 +25,26 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     CoordVector Min(monMesh.getMin()-0.1), Max(monMesh.getMax()+0.1);
 
 
-    //I- Création de la boite root
+    //I- Création de la boite root (float)
     Boite boiteRacine;
-    boiteRacine.m_arrete = coordMax(Max - Min);;
+    boiteRacine.m_arrete = coordMax(Max - Min);
     boiteRacine.m_indicePere = -1;
     boiteRacine.m_indiceBoite = 0;
     boiteRacine.m_min = Min;
     boiteRacine.m_max = Max;
     boiteRacine.m_coinMin = (Min+Max)/2 - coordMax(Max - Min)/2;
+
+    /*
+    //I- Création de la boite root (double)
+    Boite boiteRacine;
+    boiteRacine.m_arrete = (double)coordMax(Max - Min);
+    boiteRacine.m_indicePere = -1;
+    boiteRacine.m_indiceBoite = 0;
+    boiteRacine.m_min = Min;
+    boiteRacine.m_max = Max;
+    boiteRacine.m_coinMin = ((Min + Max)/2).CoordVector2CoordDouble() - boiteRacine.m_arrete/2;
+    */
+
     for (k = 0 ; k < vertex.size() ; k+=3)
     {
         boiteRacine.m_numElt.push_back(k);
@@ -51,25 +63,24 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     while (DessusSeuil)
     {
         nbBoiteNew = m_vectBoite.size() - nbBoiteOld;
-        nbBoiteOld = m_vectBoite.size();
-        ///*
         DessusSeuil = false;
-        // pour chaque boite du nouvel étage
-        for(i = nbBoiteOld - nbBoiteNew ; i <nbBoiteOld ; i++ )
+
+        if (nbBoiteNew < vertex.size()/3) // on arrete la boucle si on a autant de nouvelle boite que de face (soit une face par boite)
         {
-            // Si au moins une boite posséde plus de m_seuil elt
-            if(m_vectBoite[i].m_numElt.size() > m_seuil) DessusSeuil = true;
-        }
-        if(DessusSeuil)
-        //*/
-        {
-            for(i = nbBoiteOld - nbBoiteNew ; i <nbBoiteOld ; i++ )
-            {
-                // III- Si la boite n'est pas une feuille : Découpage de la boite courante en huit
-                etagesuivant(vertex, i);
+            nbBoiteOld = m_vectBoite.size();
+
+            // pour chaque boite du nouvel étage
+            for(i = nbBoiteOld - nbBoiteNew ; i <nbBoiteOld ; i++ ) {
+                // Si au moins une boite posséde plus de m_seuil elt
+                if(m_vectBoite[i].m_numElt.size() > m_seuil) DessusSeuil = true;
+            }
+            if(DessusSeuil) {
+                for(i = nbBoiteOld - nbBoiteNew ; i <nbBoiteOld ; i++ ) {
+                    // III- Si la boite n'est pas une feuille : Découpage de la boite courante en huit
+                    etagesuivant(vertex, i);
+                }
             }
         }
-
     }
 
     // Mise à jour taille des boites
@@ -222,6 +233,7 @@ void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
             {
                 ind = elt[k];
 
+                /*
                 if (ind == 63 && m_vectBoite.size() == 1821)
                 {
                    float a, b, c;
@@ -231,6 +243,7 @@ void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
                     qDebug() << "stop";
 
                 }
+                */
 
                 if (appartientBoite(boitesFilles[i], vert, ind))
                 {
@@ -263,12 +276,31 @@ void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
 
 void decoupage(Boite &boitePere, std::vector<Boite>& boitesFilles)
 {
-    // Recuperation des données du père
-    CoordVector coinMin = boitePere.m_coinMin;
-    float arrete = boitePere.m_arrete/2;
 
     // Initialisation du vecteur de boites filles
     boitesFilles.resize(8, Boite());
+
+
+/*
+    // double
+    // Recuperation des données du père
+    CoordDouble coinMin = boitePere.m_coinMin;
+    double arrete = boitePere.m_arrete/2;
+
+    boitesFilles[0].m_coinMin = CoordDouble(coinMin.x           , coinMin.y          , coinMin.z         );
+    boitesFilles[1].m_coinMin = CoordDouble(coinMin.x + arrete  , coinMin.y          , coinMin.z         );
+    boitesFilles[2].m_coinMin = CoordDouble(coinMin.x           , coinMin.y + arrete , coinMin.z         );
+    boitesFilles[3].m_coinMin = CoordDouble(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z         );
+    boitesFilles[4].m_coinMin = CoordDouble(coinMin.x           , coinMin.y          , coinMin.z + arrete);
+    boitesFilles[5].m_coinMin = CoordDouble(coinMin.x + arrete  , coinMin.y          , coinMin.z + arrete);
+    boitesFilles[6].m_coinMin = CoordDouble(coinMin.x           , coinMin.y + arrete , coinMin.z + arrete);
+    boitesFilles[7].m_coinMin = CoordDouble(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z + arrete);
+*/
+
+    // float
+    // Recuperation des données du père
+    CoordVector coinMin = boitePere.m_coinMin;
+    float arrete = boitePere.m_arrete/2;
 
     boitesFilles[0].m_coinMin = CoordVector(coinMin.x           , coinMin.y          , coinMin.z         );
     boitesFilles[1].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z         );
@@ -278,6 +310,7 @@ void decoupage(Boite &boitePere, std::vector<Boite>& boitesFilles)
     boitesFilles[5].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z + arrete);
     boitesFilles[6].m_coinMin = CoordVector(coinMin.x           , coinMin.y + arrete , coinMin.z + arrete);
     boitesFilles[7].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z + arrete);
+
 
     for (int i = 0 ; i< 8 ; i++)
     {

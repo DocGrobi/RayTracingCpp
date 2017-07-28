@@ -7,6 +7,7 @@
 #include "octree.h"
 #include <QElapsedTimer>
 #include <QMediaPlayer>
+#include <QAudioProbe>
 
 namespace Ui {
 class MainWindow;
@@ -72,6 +73,10 @@ private slots:
 
     void on_spinBox_seuilArret_editingFinished();
 
+   // void slotGetMusicData(QAudioBuffer musicBuffer);
+
+    void on_bouton_convolution_clicked();
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
@@ -85,6 +90,9 @@ private:
     int m_temperature, m_humidite, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille;
     bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe;
     QMediaPlayer *player;
+
+    //QAudioProbe *audioProbe;
+    //QByteArray *musicDataBuffer;
 };
 
 #endif // MAINWINDOW_H

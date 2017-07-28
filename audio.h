@@ -3,6 +3,9 @@
 
 #include "QString"
 #include "vector"
+#include <QObject>
+#include <QFile>
+#include <QAudioFormat>
 
 class Audio{
 public:
@@ -18,5 +21,26 @@ public:
 };
 
 std::vector<std::vector<float> > &bandFilters();
+//void readWAV(QString wavFile, int waveNum);
+
+
+class WavFile : public QFile
+{
+public:
+    WavFile(QObject *parent = 0);
+
+    using QFile::open;
+    bool open(const QString &fileName);
+    const QAudioFormat &fileFormat() const;
+    qint64 headerLength() const;
+
+private:
+    bool readHeader();
+
+private:
+    QAudioFormat m_fileFormat;
+    qint64 m_headerLength;
+};
+
 
 #endif // AUDIO_H
