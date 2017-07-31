@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 #include "fonction.h"
 #include <QMessageBox>
+#include "fftext.h"
 /*
 #include <QtEndian>
 #include <QAudioBuffer>
@@ -38,10 +39,10 @@ Audio::~Audio(){
  * 41-44	File size (data)	Size of the data section.
  * Sample values are given above for a 16-bit stereo source.
  *
- * @param fileName
+ * param fileName
  * A QString representing the file location to open with QFile
  *
- * @param ramBuffer
+ * param ramBuffer
  * A pointer to a Pre-Allocated signed short buffer
  *
  */
@@ -160,10 +161,21 @@ std::vector< std::vector<float> >& bandFilters()
                   filtre.clear();
               }
           }
-          fichier.close();
+         filtres.push_back(filtre);
+         fichier.close();
+
      }
      else QMessageBox::critical(NULL,"Erreur","Veuillez placer le fichier bandFilter.txt dans le repertoire de l'executable' !");
+     qDebug() << "nb filtres : " << filtres.size();
      return filtres;
+}
+
+void zeroPadding(std::vector<float>& vecteur, int taille)
+{
+    if (vecteur.size() > taille) QMessageBox::warning(NULL,"Attention","problème ZeroPadding");
+    else {
+        while(vecteur.size() < taille) vecteur.push_back(0);
+    }
 }
 
 
@@ -414,3 +426,211 @@ bool WavFile::readHeader()
 }
 
 
+std::vector< std::vector<float> > partitionnerWav(float* data, int taille)
+{
+
+
+}
+/*
+
+////// TEST
+/// //https://forum.qt.io/topic/6744/solved-how-to-form-wav-header/7
+
+void AudioOutput::createAudioOutput(AudioBuffer * audioBuffer)
+{
+    m_audioBuffer = audioBuffer;//new AudioBuffer(m_settings,this);
+    m_audioOutput = new QAudioOutput(m_settings,this);
+
+    QString fileName = QString("C:/AudiofromStation(%1,%2,%3).wav")
+    .arg(m_audioOutput->format().frequency())
+    .arg(m_audioOutput->format().channelCount())
+    .arg(m_audioOutput->format().sampleSize());
+
+    m_File = new QFile(fileName);
+    m_File->open(QIODevice::WriteOnly);
+}
+
+//Start playing...
+void AudioOutput::start() {
+    m_audioBuffer->start();
+    m_File->open(QIODevice::Append);
+    m_output = m_audioOutput->start();
+}
+
+//Writing data to file and playing it on audio device...
+void AudioOutput::write( const char *data, qint64 len )
+{
+    if (m_audioBuffer)
+    {
+        m_audioBuffer->writeData(data, len);
+        m_File->write(data, len);
+    }
+}
+
+//or
+
+void AudioOutput::write(const QByteArray & array) {
+    if (m_audioBuffer)
+    {
+        m_audioBuffer->writeData(array,sizeof(array));
+        m_File->write(array,sizeof(array));
+    }
+}
+
+//Stop playing and recording, and calling write header function...
+void AudioOutput::stop()
+{
+    m_audioOutput->stop();
+    writeWavHeader(m_File);
+    m_File->close();
+    // m_audioBuffer->clear();
+    // m_audioBuffer->stop();
+    m_output = NULL;
+}
+//And write header function copied from here :http://qt.gitorious.org/qt-mobility/qt-mobility/blobs/master/tests/auto/qaudiooutput/
+void AudioOutput::writeWavHeader( QFile * file )
+{
+    QAudioFormat format = m_audioOutput->format();
+    qint64 dataLength = file->size() - HeaderLength;
+    CombinedHeader header;
+
+    memset(&header, 0, HeaderLength);
+
+    // RIFF header
+    if (format.byteOrder() == QAudioFormat::LittleEndian)
+    memcpy(header.riff.descriptor.id,"RIFF",4);
+    else
+    memcpy(header.riff.descriptor.id,"RIFX",4);
+    qToLittleEndian<quint32>(quint32(dataLength + HeaderLength - 8),
+    reinterpret_cast<unsigned char*>(&header.riff.descriptor.size));
+    memcpy(header.riff.type, "WAVE",4);
+
+    // WAVE header
+    memcpy(header.wave.descriptor.id,"fmt ",4);
+    qToLittleEndian<quint32>(quint32(16),
+    reinterpret_cast<unsigned char*>(&header.wave.descriptor.size));
+    qToLittleEndian<quint16>(quint16(1),
+    reinterpret_cast<unsigned char*>(&header.wave.audioFormat));
+    qToLittleEndian<quint16>(quint16(format.channels()),
+    reinterpret_cast<unsigned char*>(&header.wave.numChannels));
+    qToLittleEndian<quint32>(quint32(format.frequency()),
+    reinterpret_cast<unsigned char*>(&header.wave.sampleRate));
+    qToLittleEndian<quint32>(quint32(format.frequency() * format.channels() * format.sampleSize() / 8),
+    reinterpret_cast<unsigned char*>(&header.wave.byteRate));
+    qToLittleEndian<quint16>(quint16(format.channels() * format.sampleSize() / 8),
+    reinterpret_cast<unsigned char*>(&header.wave.blockAlign));
+    qToLittleEndian<quint16>(quint16(format.sampleSize()),
+    reinterpret_cast<unsigned char*>(&header.wave.bitsPerSample));
+
+    // DATA header
+    memcpy(header.data.descriptor.id,"data",4);
+    qToLittleEndian<quint32>(quint32(dataLength),
+    reinterpret_cast<unsigned char*>(&header.data.descriptor.size));
+
+    file->write(reinterpret_cast<const char *>(&header), HeaderLength);
+}
+
+
+//// TEST2
+class WavPcmFile : public QFile {
+public:
+    WavPcmFile(const QString & name, const QAudioFormat & format, QObject *parent = 0);
+    bool open();
+    void close();
+
+private:
+    void writeHeader();
+    bool hasSupportedFormat();
+    QAudioFormat format;
+};
+
+
+WavPcmFile::WavPcmFile(const QString & name, const QAudioFormat & format_, QObject *parent_)
+: QFile(name, parent_), format(format_)
+{
+}
+
+bool WavPcmFile::hasSupportedFormat()
+{
+    return (format.sampleSize() == 8
+    && format.sampleType() == QAudioFormat::UnSignedInt)
+    || (format.sampleSize() > 8
+    && format.sampleType() == QAudioFormat::SignedInt
+    && format.byteOrder() == QAudioFormat::LittleEndian);
+}
+
+bool WavPcmFile::open()
+{
+    if (!hasSupportedFormat()) {
+        setErrorString("Wav PCM supports only 8-bit unsigned samples "
+        "or 16-bit (or more) signed samples (in little endian)");
+        return false;
+    } else {
+        if (!QFile::open(ReadWrite | Truncate))
+        return false;
+        writeHeader();
+        return true;
+    }
+}
+
+void WavPcmFile::writeHeader()
+{
+    QDataStream out(this);
+    out.setByteOrder(QDataStream::LittleEndian);
+
+    // RIFF chunk
+    out.writeRawData("RIFF", 4);
+    out << quint32(0); // Placeholder for the RIFF chunk size (filled by close())
+    out.writeRawData("WAVE", 4);
+
+    // Format description chunk
+    out.writeRawData("fmt ", 4);
+    out << quint32(16); // "fmt " chunk size (always 16 for PCM)
+    out << quint16(1); // data format (1 => PCM)
+    out << quint16(format.channelCount());
+    out << quint32(format.sampleRate());
+    out << quint32(format.sampleRate() * format.channelCount()
+    * format.sampleSize() / 8 ); // bytes per second
+    out << quint16(format.channelCount() * format.sampleSize() / 8); // Block align
+    out << quint16(format.sampleSize()); // Significant Bits Per Sample
+
+    // Data chunk
+    out.writeRawData("data", 4);
+    out << quint32(0); // Placeholder for the data chunk size (filled by close())
+
+    Q_ASSERT(pos() == 44); // Must be 44 for WAV PCM
+}
+
+void WavPcmFile::close()
+{
+    // Fill the header size placeholders
+    quint32 fileSize = size();
+
+    QDataStream out(this);
+    // Set the same ByteOrder like in writeHeader()
+    out.setByteOrder(QDataStream::LittleEndian);
+    // RIFF chunk size
+    seek(4);
+    out << quint32(fileSize - 8);
+
+    // data chunk size
+    seek(40);
+    out << quint32(fileSize - 44);
+
+    QFile::close();
+}
+
+//And you use the class like this:
+// Starts the recording
+WavPcmFile *m_file = new WavPcmFile("Filename.wav", m_audioInput->format(), this);
+if(m_file.open()) {
+m_audioInput->start(m_file);
+} else {
+// Error
+}
+
+// Stops the recording
+m_audioInput->stop();
+m_file->close();
+
+*/

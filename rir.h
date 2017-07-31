@@ -23,7 +23,9 @@ class SourceImage
         void filtrerSourceImages();
         bool calculerRIR(int f_ech);
         int redimentionnement(int taille);
+        void partitionnage(int taille);
         std::vector< std::vector<float> >&getFIR();
+        std::vector< std::vector<float> >&getFirPart();
 
     private:
         std::vector<CoordVector> m_sourcesImages;
@@ -36,6 +38,7 @@ class SourceImage
         std::vector<float> m_sourcesImages_Tps;
         float m_xMax;
         std::vector< std::vector<float> > m_FIR;
+        std::vector< std::vector<float> > m_firPart;
 };
 
 #endif // RIR_H

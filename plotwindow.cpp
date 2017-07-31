@@ -24,7 +24,7 @@ plotWindow::plotWindow(QWidget *parent) :
       ui->customPlot->setContextMenuPolicy(Qt::CustomContextMenu);
       connect(ui->customPlot, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
 
-      m_echelleLog = true;
+
 
 }
 
@@ -86,8 +86,6 @@ void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<float> > &y, 
     // Recupération des maximums
     xMax = vectX[vectX.size() - 1];
 
-    //yMax = vectY[0];
-
     courbe.resize(y.size());
     yMin = 10*log10(seuil);
     yMax = 0;
@@ -100,25 +98,56 @@ void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<float> > &y, 
             if (a<seuil) a=yMin;
             else a=10*log10(a);}
     }
-    /*
-    for (i = 1 ; i < vectY.size() ; i++)
-    {
-        if (vectY[i] > yMax) yMax = vectY[i];
-    }
-    */
-
-
-    /*
-    // Normalisation des y et mise à l'echelle log
-    for (i = 0 ; i < vectY.size() ; i++) {
-        if (vectY[i]/yMax < seuil) vectY[i] = yMin;
-        else vectY[i] = 10*log10(vectY[i]/yMax);
-    }
-    */
+    m_echelleLog = true;
 
 
 }
 
+void plotWindow::XY(std::vector<float> &x, std::vector<float> &y)
+{
+    // Conversion en double
+    std::vector<double> vX(x.begin(),x.end());
+    std::vector<double> vY(y.begin(),y.end());
+
+    // Conversion en QVector
+    vectX = QVector<double>::fromStdVector(vX);
+    courbe.resize(1);
+    courbe[0]  = QVector<double>::fromStdVector(vY);
+
+    // Recupération des maximums
+    xMax = vectX[vectX.size() - 1];
+
+
+    yMin = *std::min_element(y.begin(), y.end());
+    yMax = *std::max_element(y.begin(), y.end());
+
+    m_echelleLog = false;
+
+
+}
+
+void plotWindow::XY(std::vector<float> &x, std::vector<qint16> &y)
+{
+    // Conversion en double
+    std::vector<double> vX(x.begin(),x.end());
+    std::vector<double> vY(y.begin(),y.end());
+
+    // Conversion en QVector
+    vectX = QVector<double>::fromStdVector(vX);
+    courbe.resize(1);
+    courbe[0]  = QVector<double>::fromStdVector(vY);
+
+    // Recupération des maximums
+    xMax = vectX[vectX.size() - 1];
+
+
+    yMin = *std::min_element(y.begin(), y.end());
+    yMax = *std::max_element(y.begin(), y.end());
+
+    m_echelleLog = false;
+
+
+}
 // SLOTS :
 
 void plotWindow::mousePress()

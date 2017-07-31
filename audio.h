@@ -21,6 +21,7 @@ public:
 };
 
 std::vector<std::vector<float> > &bandFilters();
+void zeroPadding(std::vector<float>& vecteur, int taille);
 //void readWAV(QString wavFile, int waveNum);
 
 

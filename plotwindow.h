@@ -18,6 +18,8 @@ public:
 
     void makePlot();
     void XY(std::vector<float> &x, std::vector<std::vector<float> > &y, float seuil);
+    void XY(std::vector<float> &x, std::vector<float> &y); // courbe quelconque
+    void XY(std::vector<float> &x, std::vector<qint16> &y);
 
 private slots:
   void mousePress();

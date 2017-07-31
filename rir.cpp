@@ -82,6 +82,10 @@ std::vector< std::vector<float> >&SourceImage::getFIR(){
     return m_FIR;
 }
 
+std::vector< std::vector<float> >&SourceImage::getFirPart(){
+    return m_firPart;
+}
+
 void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, bool rayAuto, const std::vector<float>& absAir)
 {
     std::vector<bool> touche = toucheListener(rayon,listener);
@@ -232,9 +236,9 @@ bool SourceImage::calculerRIR(int f_ech)
         }
     */
         // Ordonnées
-        m_FIR.resize(8);
+        m_FIR.resize(7);
 
-        for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+        for (int k = 1 ; k < 8 ; k++) // pour chaque bande à partir de 128Hz
         {
             for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
             {
@@ -242,19 +246,12 @@ bool SourceImage::calculerRIR(int f_ech)
             }
             maxbuf = *std::max_element(m_y.begin()+k*nb_ech, m_y.begin()+(k+1)*nb_ech);
             if(max<maxbuf) max = maxbuf;
-            m_FIR[k].assign(m_y.begin()+k*nb_ech, m_y.begin()+(k+1)*nb_ech);
-            for(float& a : m_FIR[k]) {a=sqrt(a/max);}
+            m_FIR[k-1].assign(m_y.begin()+k*nb_ech, m_y.begin()+(k+1)*nb_ech);
+            for(float& a : m_FIR[k-1]) {a=sqrt(a/max);}
         }
-
-        // passage en puissance
-        //std::transform(m_y.begin(), m_y.end(), m_y.begin(), sqrt);
-
         return true;
-
     }
     else return false;
-
-
 }
 
 int SourceImage::redimentionnement(int taille)
@@ -265,7 +262,7 @@ int SourceImage::redimentionnement(int taille)
 
     if(i<taille) // wav plus long que RIR
     {
-        for (k = 0 ; k <8 ; k++)
+        for (k = 0 ; k < m_FIR.size() ; k++)
         {
             for (j = i ; j <taille ; j++)
             {
@@ -275,3 +272,36 @@ int SourceImage::redimentionnement(int taille)
     }
     return i;
 }
+
+void SourceImage::partitionnage(int taille)
+{
+
+    int j, k;
+    int i(0), l(0);
+    int n = taille/2;
+
+    int nPart = ceil(m_FIR[0].size()/n)*m_FIR.size();
+    m_firPart.resize(nPart);
+
+    for (k = 0 ; k < nPart ; k++) // pour chaque fir de taille n
+    {
+        m_firPart[k].resize(2*n, 0); // On met des zero partout
+
+        for (j = n ; j <2*n ; j++) // on remplit la deuxième partie de chaque m_firPart
+        {
+            if (i == m_FIR[0].size()) // si on arrive à la fin de la fir
+            {
+                i=0; // on remet à 0 le comtpeur
+                l++; // on passe à la fir suivante
+                j = 2*n; // on change de m_firPart
+            }
+            else
+            {
+                m_firPart[k][j] = m_FIR[l][i]; // on range les valeurs
+                i++; // puis on décale
+            }
+        }
+    }
+}
+
+
