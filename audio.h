@@ -7,23 +7,10 @@
 #include <QFile>
 #include <QAudioFormat>
 
-class Audio{
-public:
-    Audio();
-    ~Audio();
-    void readWavFile(QString fileName);
-
-    std::vector<float> convolution(std::vector<float> const &f, std::vector<float> const &g);
-
-    int m_nbData;
-    std::vector<signed short> m_ramBuffer;
-
-};
-
-std::vector<std::vector<float> > &bandFilters();
+void bandFilters(std::vector<std::vector<float> > &output);
 void zeroPadding(std::vector<float>& vecteur, int taille);
-//void readWAV(QString wavFile, int waveNum);
-
+void partitionner(std::vector<float> &donnee, int taille, std::vector<std::vector<float> > &output);
+void recombiner(std::vector< std::vector<float> > &input, std::vector<float> &output);
 
 class WavFile : public QFile
 {

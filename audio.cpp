@@ -6,147 +6,11 @@
 #include "fonction.h"
 #include <QMessageBox>
 #include "fftext.h"
-/*
-#include <QtEndian>
-#include <QAudioBuffer>
-#include <QFileInfo>
-*/
-
-Audio::Audio(){
-}
-
-Audio::~Audio(){
-}
-
-// http://www.ptrackapp.com/apclassys-notes/qt-c-wav-file-reader/qt-c-wav-file-reader.html
-/** Read a wav file to play audio into a buffer and return the size of the data read
- * after stripping the header.
- *
- * The header for a WAV file looks like this:
- * Positions	Sample Value	Description
- * 1 - 4	"RIFF"	Marks the file as a riff file. Characters are each 1 byte long.
- * 5 - 8	File size (integer)	Size of the overall file - 8 bytes, in bytes (32-bit integer).
- * 9 -12	"WAVE"	File Type Header. For our purposes, it always equals "WAVE".
- * 13-16	"fmt "	Format chunk marker. Includes trailing null
- * 17-20	16	Length of format data as listed above
- * 21-22	1	Type of format (1 is PCM) - 2 byte integer
- * 23-24	2	Number of Channels - 2 byte integer
- * 25-28	44100	Sample Rate - 32 byte integer. CSample Rate = Number of Samples per second, or Hertz.
- * 29-32	176400	(Sample Rate * BitsPerSample * Channels) / 8.
- * 33-34	4	(BitsPerSample * Channels) / 8.1 - 8 bit mono2 - 8 bit stereo/16 bit mono4 - 16 bit stereo
- * 35-36	16	Bits per sample
- * 37-40	"data"	"data" chunk header. Marks the beginning of the data section.
- * 41-44	File size (data)	Size of the data section.
- * Sample values are given above for a 16-bit stereo source.
- *
- * param fileName
- * A QString representing the file location to open with QFile
- *
- * param ramBuffer
- * A pointer to a Pre-Allocated signed short buffer
- *
- */
-
- void Audio::readWavFile(QString fileName){
 
 
-    // Open wave file
-    qDebug() << "Opening WAV file at: " << fileName;
-    QFile wavFile(fileName);
-    if (!wavFile.open(QFile::ReadOnly))
-    {
-        qDebug() << "Failed to open WAV file...";
-        //return NULL; // Done
-    }
-
-    // Read in the whole thing
-    QByteArray wavFileContent = wavFile.readAll();
-    qDebug() << "The size of the WAV file is: " << wavFileContent.size();
-
-    // Define the header components
-    char fileType[4];
-    qint32 fileSize;
-    char waveName[4];
-    char fmtName[3];
-    qint32 fmtLength;
-    short fmtType;
-    short numberOfChannels;
-    qint32 sampleRate;
-    qint32 sampleRateXBitsPerSampleXChanngelsDivEight;
-    short bitsPerSampleXChannelsDivEightPointOne;
-    short bitsPerSample;
-    char dataHeader[4];
-    qint32 dataSize;
-
-    // Create a data stream to analyze the data
-    QDataStream analyzeHeaderDS(&wavFileContent,QIODevice::ReadOnly);
-    analyzeHeaderDS.setByteOrder(QDataStream::LittleEndian);
-
-    // Now pop off the appropriate data into each header field defined above
-    analyzeHeaderDS.readRawData(fileType,4); // "RIFF"
-    analyzeHeaderDS >> fileSize; // File Size
-    analyzeHeaderDS.readRawData(waveName,4); // "WAVE"
-    analyzeHeaderDS.readRawData(fmtName,3); // "fmt"
-    analyzeHeaderDS >> fmtLength; // Format length
-    analyzeHeaderDS >> fmtType; // Format type
-    analyzeHeaderDS >> numberOfChannels; // Number of channels
-    analyzeHeaderDS >> sampleRate; // Sample rate
-    analyzeHeaderDS >> sampleRateXBitsPerSampleXChanngelsDivEight; // (Sample Rate * BitsPerSample * Channels) / 8
-    analyzeHeaderDS >> bitsPerSampleXChannelsDivEightPointOne; // (BitsPerSample * Channels) / 8.1
-    analyzeHeaderDS >> bitsPerSample; // Bits per sample
-    analyzeHeaderDS.readRawData(dataHeader,4); // "data" header
-    analyzeHeaderDS >> dataSize; // Data Size
-
-
-    // Print the header
-    qDebug() << "WAV File Header read:";
-    qDebug() << "File Type: " << QString::fromUtf8(fileType);
-    qDebug() << "File Size: " << fileSize;
-    qDebug() << "WAV Marker: " << QString::fromUtf8(waveName);
-    qDebug() << "Format Name: " << QString::fromUtf8(fmtName);
-    qDebug() << "Format Length: " << fmtLength;
-    qDebug() << "Format Type: " << fmtType;
-    qDebug() << "Number of Channels: " << numberOfChannels;
-    qDebug() << "Sample Rate: " << sampleRate;
-    qDebug() << "Sample Rate * Bits/Sample * Channels / 8: " << sampleRateXBitsPerSampleXChanngelsDivEight;
-    qDebug() << "Bits per Sample * Channels / 8.1: " << bitsPerSampleXChannelsDivEightPointOne;
-    qDebug() << "Bits per Sample: " << bitsPerSample;
-    qDebug() << "Data Header: " << QString::fromUtf8(dataHeader);
-    qDebug() << "Data Size: " << dataSize;
-
-    //ramBuffer = new signed short [dataSize];
-
-    m_nbData = dataSize;
-    m_ramBuffer.resize(dataSize, 0);
-
-    // Now pull out the data
-    analyzeHeaderDS.readRawData((char*)m_ramBuffer.data(),(int)dataSize);
-    //return ramBuffer;
-
-}
-
-
-// https://stackoverflow.com/questions/24518989/how-to-perform-1-dimensional-valid-convolution
-std::vector<float> Audio::convolution(std::vector<float> const &f, std::vector<float> const &g) {
-  int const nf = f.size();
-  int const ng = g.size();
-  std::vector<float> const &min_v = (nf < ng)? f : g;
-  std::vector<float> const &max_v = (nf < ng)? g : f;
-  int const n  = std::max(nf, ng) - std::min(nf, ng) + 1;
-  std::vector<float> out(n, float());
-  for(auto i(0); i < n; ++i) {
-    for(int j(min_v.size() - 1), k(i); j >= 0; --j) {
-      out[i] += min_v[j] * max_v[k];
-      ++k;
-    }
-  }
-  return out;
-}
-
-std::vector< std::vector<float> >& bandFilters()
+void bandFilters(std::vector< std::vector<float> >& output)
 {
      QFile fichier(QCoreApplication::applicationDirPath() + "/bandFilters.txt");
-     std::vector< std::vector<float> > filtres;
 
      if(fichier.open(QIODevice::ReadOnly | QIODevice::Text)) // Si on peut ouvrir le fichier
      {
@@ -157,17 +21,17 @@ std::vector< std::vector<float> >& bandFilters()
               if (filtre.size() < 257) filtre.push_back(flux.readLine().toFloat());
               else
               {
-                  filtres.push_back(filtre);
+                  output.push_back(filtre);
                   filtre.clear();
               }
           }
-         filtres.push_back(filtre);
+         output.push_back(filtre);
          fichier.close();
 
      }
      else QMessageBox::critical(NULL,"Erreur","Veuillez placer le fichier bandFilter.txt dans le repertoire de l'executable' !");
-     qDebug() << "nb filtres : " << filtres.size();
-     return filtres;
+     qDebug() << "nb filtres : " << output.size();
+
 }
 
 void zeroPadding(std::vector<float>& vecteur, int taille)
@@ -178,100 +42,42 @@ void zeroPadding(std::vector<float>& vecteur, int taille)
     }
 }
 
-
-
-
-/*
-void readWAV(QString wavFile, int waveNum)
+void partitionner(std::vector<float> &donnee, int taille, std::vector< std::vector<float> > &output)
 {
-    QFile m_WAVFile;
-    m_WAVFile.setFileName(wavFile);
-    if(m_WAVFile.exists()==false)
+    std::vector<float> buffer;
+    buffer.resize(taille, 0);
+    int rang(0), i;
+    while(rang+taille < donnee.size())
     {
-        qDebug()<<"File doesn't exist";
-        return;
+        for(i = 0; i< taille; i++)
+        {
+            buffer[i] = donnee[i+rang];
+        }
+        output.push_back(buffer);
+        rang+=taille/2;
     }
-    m_WAVFile.open(QIODevice::ReadWrite);
-
-    char strm[4];
-    char s[1];
-    QByteArray wav;
-    quint32 conv;
-
-    qDebug()<<"\nstart";
-    qDebug()<<m_WAVFile.read(4);//RIFF
-    // m_WAVHeader.RIFF = m_WAVFile.read(4).data();
-
-    m_WAVFile.read(strm,4);//chunk size
-    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
-
-    m_WAVFile.read(strm,4);//format
-    qDebug()<<strm;
-
-    m_WAVFile.read(strm,4);//subchunk1 id
-    qDebug()<<strm;
-
-    m_WAVFile.read(strm,4);//subchunk1 size
-    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
-
-    m_WAVFile.read(strm,2);//audio format
-    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
-
-    m_WAVFile.read(strm,2);//NumChannels
-    conv = qFromLittleEndian<quint32>((uchar*)strm);
-    qDebug()<<conv;
-    if(conv!=1)
-    {
-        QMessageBox::warning(NULL, "Import wav file", "Wav file must be mono",QMessageBox::Ok,QMessageBox::NoButton);
-        return;
-    }
-
-    m_WAVFile.read(strm,4);//Sample rate
-    conv = qFromLittleEndian<quint32>((uchar*)strm);
-    qDebug()<<conv;
-    if(conv!=11025)
-    {
-        QMessageBox::warning(NULL, "Import wav file", "Use file with 11025Hz sample rate for native sample rate",QMessageBox::Ok,QMessageBox::NoButton);
-    }
-
-    m_WAVFile.read(strm,4);//Byte rate
-    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
-
-    m_WAVFile.read(strm,2);//Block Allign
-    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
-
-    m_WAVFile.read(strm,2);//BPS
-    conv = qFromLittleEndian<quint32>((uchar*)strm);
-    qDebug()<<conv;
-    if(conv!=8)
-    {
-        QMessageBox::warning(NULL, "Import wav file", "Wav file must be unsigned 8 bit",QMessageBox::Ok,QMessageBox::NoButton);
-        return;
-    }
-
-    m_WAVFile.read(strm,4);//subchunk2 id
-    qDebug()<<strm;
-
-    m_WAVFile.read(strm,4);//subchunk2 size
-    qDebug()<<qFromLittleEndian<quint32>((uchar*)strm);
-
-    outBuffLen[waveNum] = 0;
-    while(!m_WAVFile.atEnd())
-    {
-        m_WAVFile.read(s,1);
-        wav.append(s[0]);
-    }
-    m_WAVFile.close();
-    dsBuffer[waveNum] = QAudioBuffer(wav,fmt);
-    outBuffLen[waveNum] = dsBuffer[waveNum].sampleCount();
-    qDebug()<<" Processed:";
-    qDebug()<<outBuffLen[waveNum];
-    wavePath[waveNum] = wavFile;
-    QFileInfo fileInfo(wavFile);
-    waveName[waveNum] = fileInfo.fileName();
+    buffer.resize(taille, 0); // zero padding sur le dernier vecteur
+    for(i = 0; i< donnee.size()-rang; i++)
+        {
+            buffer[i] = donnee[i+rang];
+        }
+    output.push_back(buffer);
 }
 
-*/
+void recombiner(std::vector< std::vector<float> > &input, std::vector<float> &output)
+{
+    output.clear();
+    int i;
+    for(std::vector<float> &a : input)
+    {
+        for(i = 0 ; i<a.size()/2; i++)
+        {
+            output.push_back(a[i]);
+        }
+    }
+}
+
+
 
 
 /****************************************************************************
@@ -426,211 +232,4 @@ bool WavFile::readHeader()
 }
 
 
-std::vector< std::vector<float> > partitionnerWav(float* data, int taille)
-{
 
-
-}
-/*
-
-////// TEST
-/// //https://forum.qt.io/topic/6744/solved-how-to-form-wav-header/7
-
-void AudioOutput::createAudioOutput(AudioBuffer * audioBuffer)
-{
-    m_audioBuffer = audioBuffer;//new AudioBuffer(m_settings,this);
-    m_audioOutput = new QAudioOutput(m_settings,this);
-
-    QString fileName = QString("C:/AudiofromStation(%1,%2,%3).wav")
-    .arg(m_audioOutput->format().frequency())
-    .arg(m_audioOutput->format().channelCount())
-    .arg(m_audioOutput->format().sampleSize());
-
-    m_File = new QFile(fileName);
-    m_File->open(QIODevice::WriteOnly);
-}
-
-//Start playing...
-void AudioOutput::start() {
-    m_audioBuffer->start();
-    m_File->open(QIODevice::Append);
-    m_output = m_audioOutput->start();
-}
-
-//Writing data to file and playing it on audio device...
-void AudioOutput::write( const char *data, qint64 len )
-{
-    if (m_audioBuffer)
-    {
-        m_audioBuffer->writeData(data, len);
-        m_File->write(data, len);
-    }
-}
-
-//or
-
-void AudioOutput::write(const QByteArray & array) {
-    if (m_audioBuffer)
-    {
-        m_audioBuffer->writeData(array,sizeof(array));
-        m_File->write(array,sizeof(array));
-    }
-}
-
-//Stop playing and recording, and calling write header function...
-void AudioOutput::stop()
-{
-    m_audioOutput->stop();
-    writeWavHeader(m_File);
-    m_File->close();
-    // m_audioBuffer->clear();
-    // m_audioBuffer->stop();
-    m_output = NULL;
-}
-//And write header function copied from here :http://qt.gitorious.org/qt-mobility/qt-mobility/blobs/master/tests/auto/qaudiooutput/
-void AudioOutput::writeWavHeader( QFile * file )
-{
-    QAudioFormat format = m_audioOutput->format();
-    qint64 dataLength = file->size() - HeaderLength;
-    CombinedHeader header;
-
-    memset(&header, 0, HeaderLength);
-
-    // RIFF header
-    if (format.byteOrder() == QAudioFormat::LittleEndian)
-    memcpy(header.riff.descriptor.id,"RIFF",4);
-    else
-    memcpy(header.riff.descriptor.id,"RIFX",4);
-    qToLittleEndian<quint32>(quint32(dataLength + HeaderLength - 8),
-    reinterpret_cast<unsigned char*>(&header.riff.descriptor.size));
-    memcpy(header.riff.type, "WAVE",4);
-
-    // WAVE header
-    memcpy(header.wave.descriptor.id,"fmt ",4);
-    qToLittleEndian<quint32>(quint32(16),
-    reinterpret_cast<unsigned char*>(&header.wave.descriptor.size));
-    qToLittleEndian<quint16>(quint16(1),
-    reinterpret_cast<unsigned char*>(&header.wave.audioFormat));
-    qToLittleEndian<quint16>(quint16(format.channels()),
-    reinterpret_cast<unsigned char*>(&header.wave.numChannels));
-    qToLittleEndian<quint32>(quint32(format.frequency()),
-    reinterpret_cast<unsigned char*>(&header.wave.sampleRate));
-    qToLittleEndian<quint32>(quint32(format.frequency() * format.channels() * format.sampleSize() / 8),
-    reinterpret_cast<unsigned char*>(&header.wave.byteRate));
-    qToLittleEndian<quint16>(quint16(format.channels() * format.sampleSize() / 8),
-    reinterpret_cast<unsigned char*>(&header.wave.blockAlign));
-    qToLittleEndian<quint16>(quint16(format.sampleSize()),
-    reinterpret_cast<unsigned char*>(&header.wave.bitsPerSample));
-
-    // DATA header
-    memcpy(header.data.descriptor.id,"data",4);
-    qToLittleEndian<quint32>(quint32(dataLength),
-    reinterpret_cast<unsigned char*>(&header.data.descriptor.size));
-
-    file->write(reinterpret_cast<const char *>(&header), HeaderLength);
-}
-
-
-//// TEST2
-class WavPcmFile : public QFile {
-public:
-    WavPcmFile(const QString & name, const QAudioFormat & format, QObject *parent = 0);
-    bool open();
-    void close();
-
-private:
-    void writeHeader();
-    bool hasSupportedFormat();
-    QAudioFormat format;
-};
-
-
-WavPcmFile::WavPcmFile(const QString & name, const QAudioFormat & format_, QObject *parent_)
-: QFile(name, parent_), format(format_)
-{
-}
-
-bool WavPcmFile::hasSupportedFormat()
-{
-    return (format.sampleSize() == 8
-    && format.sampleType() == QAudioFormat::UnSignedInt)
-    || (format.sampleSize() > 8
-    && format.sampleType() == QAudioFormat::SignedInt
-    && format.byteOrder() == QAudioFormat::LittleEndian);
-}
-
-bool WavPcmFile::open()
-{
-    if (!hasSupportedFormat()) {
-        setErrorString("Wav PCM supports only 8-bit unsigned samples "
-        "or 16-bit (or more) signed samples (in little endian)");
-        return false;
-    } else {
-        if (!QFile::open(ReadWrite | Truncate))
-        return false;
-        writeHeader();
-        return true;
-    }
-}
-
-void WavPcmFile::writeHeader()
-{
-    QDataStream out(this);
-    out.setByteOrder(QDataStream::LittleEndian);
-
-    // RIFF chunk
-    out.writeRawData("RIFF", 4);
-    out << quint32(0); // Placeholder for the RIFF chunk size (filled by close())
-    out.writeRawData("WAVE", 4);
-
-    // Format description chunk
-    out.writeRawData("fmt ", 4);
-    out << quint32(16); // "fmt " chunk size (always 16 for PCM)
-    out << quint16(1); // data format (1 => PCM)
-    out << quint16(format.channelCount());
-    out << quint32(format.sampleRate());
-    out << quint32(format.sampleRate() * format.channelCount()
-    * format.sampleSize() / 8 ); // bytes per second
-    out << quint16(format.channelCount() * format.sampleSize() / 8); // Block align
-    out << quint16(format.sampleSize()); // Significant Bits Per Sample
-
-    // Data chunk
-    out.writeRawData("data", 4);
-    out << quint32(0); // Placeholder for the data chunk size (filled by close())
-
-    Q_ASSERT(pos() == 44); // Must be 44 for WAV PCM
-}
-
-void WavPcmFile::close()
-{
-    // Fill the header size placeholders
-    quint32 fileSize = size();
-
-    QDataStream out(this);
-    // Set the same ByteOrder like in writeHeader()
-    out.setByteOrder(QDataStream::LittleEndian);
-    // RIFF chunk size
-    seek(4);
-    out << quint32(fileSize - 8);
-
-    // data chunk size
-    seek(40);
-    out << quint32(fileSize - 44);
-
-    QFile::close();
-}
-
-//And you use the class like this:
-// Starts the recording
-WavPcmFile *m_file = new WavPcmFile("Filename.wav", m_audioInput->format(), this);
-if(m_file.open()) {
-m_audioInput->start(m_file);
-} else {
-// Error
-}
-
-// Stops the recording
-m_audioInput->stop();
-m_file->close();
-
-*/

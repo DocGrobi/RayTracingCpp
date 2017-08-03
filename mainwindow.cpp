@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
    ui->label_listener->setText(m_listener.afficher());
 
    // CHARGEMENT PARAMETRES
-   ui->checkBox__rebFixe->setChecked(true);
+   ui->checkBox__rebFixe->setChecked(false);
    on_radioButton_Fibonacci_toggled(true);
    on_checkBox_rayAuto_toggled(false);
    m_nbRebond = ui->spinBox_nbRebond->value();
@@ -558,48 +558,69 @@ void MainWindow::on_bouton_convolution_clicked()
             int wavLength = wav.bytesAvailable();
             qDebug() << wavLength;
             // Ecriture des données du wav
+
             QByteArray donnees;
             donnees = wav.readAll();
 
-            const char * data=donnees.constData();
-            //const float * dataf=reinterpret_cast<const float *>(data);
-            const qint16 * dataf=reinterpret_cast<const qint16 *>(data);
-            //int len=donnees.size()/(sizeof(float));
+            const char * data=donnees.constData(); // retourne le pointeur d'accés aux données
+            const qint16 * datai=reinterpret_cast<const qint16 *>(data);
             int len=donnees.size()/(sizeof(qint16));
-            //std::vector<float> vectWav;
-            std::vector<qint16> vectWav;
+            std::vector<float> vectWav;
+            //std::vector<qint16> vectWav;
             std::vector<float> x;
             int samplerate = wav.fileFormat().sampleRate()/1000;
             //Iterate over all the words:
             for (i=0;i<len;++i) {
-                vectWav.push_back(dataf[i]);
+                vectWav.push_back((float)datai[i]);
+                //vectWav.push_back(static_cast<float>(data[i]));
                 x.push_back((float)i/samplerate);
             }
 
+/*
+            QVector<float> vectWav1;
+            std::vector<float> vectWav;
+            std::vector<float> x;
+            int samplerate = wav.fileFormat().sampleRate()/1000;
+
+            //QByteArray donnees = wav.readAll();
+            //QDataStream in (&donnees,QIODevice::ReadOnly);
+            QDataStream in(wav.readAll());
+            while (!in.atEnd())
+            {
+                float f;
+                in >> f;
+                vectWav1 << f;
+                x.push_back((float)i/samplerate);
+            }
+            //for(float &a : vectWav1) {vectWav.push_back(a);}
+            */
+/*
             plotWindow audioPlot;
             audioPlot.XY(x,vectWav);
             audioPlot.makePlot();
             audioPlot.setModal(true);
             audioPlot.exec();
-
+*/
 
 
 
             // Partitionnement de la FIR
             m_sourceImage.partitionnage(nfft);
             std::vector< std::vector<float> > firPart = m_sourceImage.getFirPart();
-            std::vector< std::vector<float> > filtres = bandFilters();
+            std::vector< std::vector<float> > filtres;
+            bandFilters(filtres);
 
             int nFiltre = m_sourceImage.getFIR().size(); // nombre de bande fréquentielle
             int nPart = firPart.size()/nFiltre; // nombre de partition par bande
 
-            qDebug() << nfft;
+            nfft = qNextPowerOfTwo(nfft-1);
+            qDebug() << "nfft : " << nfft;
             nlog = round(log(nfft) / log(2));
 
             qDebug() << "nlog : " << nlog;
             qDebug() << "n fir : " << firPart.size();
 
-            fftInit(nlog);
+            qDebug() << "code erreur fft init : " << fftInit(nlog);
 
             // fft des FIR partitionnées
             for (k= 0; k< firPart.size() ; k++)
@@ -607,18 +628,21 @@ void MainWindow::on_bouton_convolution_clicked()
                 rffts(firPart[k].data(), nlog, 1); // on passe fir en frequentielle (directement enregistrer dans lui-même)
             }
 
+            qDebug() << "Firs spectrales !";
+
             if (filtres.size() != nFiltre) QMessageBox::warning(NULL,"Attention", QString::number(nFiltre) + " bandes et " + QString::number(filtres.size()) + " filtres");
             else {
-                for (k = 0; k< nFiltre ; k++)
+                for (k = 0; k< nFiltre ; k++) // pour chaque bande
                 {
                     zeroPadding(filtres[k], nfft);
-                    rffts(filtres[k].data(), nlog, 1); // on passe les filtres en frequentielle sur 2*nfft points
-                    for (j=0 ; j <nPart ; j++)
+                    rffts(filtres[k].data(), nlog, 1); // on passe les filtres en frequentielle sur nfft points
+                    for (j=0 ; j <nPart ; j++) // Pour chaque partie de nfft point
                     {
                         rspectprod(firPart[j+k*nPart].data(), filtres[k].data(), firPart[j+k*nPart].data(), nfft);
                     }
                 }
             }
+            qDebug() << "Fir et filtres convolues !";
 
             // somme par bande
             for (j=0 ; j <nPart ; j++) // pour chaque partie d'une bande
@@ -631,16 +655,113 @@ void MainWindow::on_bouton_convolution_clicked()
                     }
                 }
             }
+            qDebug() << "Somme effectuee !";
 
-            // création du vecteur de sortie de convolution
-            std::vector<float> output;
-            output.resize(nlog,0);
+            // découpage du wav
+            std::vector< std::vector<float> > wavPart;
+            partitionner(vectWav, nfft, wavPart);
+
+            qDebug() << "Wav partitionne !";
+
+            //passage du wav en fft
+            std::vector<float> buf1;
+            buf1.resize(nfft, 0);
+            std::vector< std::vector<float> >  buf2;
+            buf2.resize(wavPart.size()+nPart);
+            for (k=0 ; k <buf2.size() ; k++)
+            {
+                buf2[k].resize(nfft, 0);
+            }
+
+            for (k = 0; k < wavPart.size(); k++)
+            {
+                rffts(wavPart[k].data(), nlog, 1); // fft
+                for(j=0 ; j <nPart ; j++) // pour chaque partie du filtre
+                {
+                    // multiplication spectrale du wav et des filtres
+                    rspectprod(wavPart[k].data(), firPart[j].data(), buf1.data(), nfft);
+                    //buf2[j+k] = buf2[j+k] + buf1; // fonction somme de vecteur à faire
+                    std::transform(buf2[j+k].begin(), buf2[j+k].end(), buf1.begin(), buf2[j+k].begin(), std::plus<float>()); // somme terme à terme
+                }
+            }
+            qDebug() << "Wavs spectrales convolues !";
+            qDebug() << "nb wavPart :" << wavPart.size();
+
+            // iFFT
+            for (k = 0; k < buf2.size(); k++)
+            {
+                riffts(buf2[k].data(), nlog, 1);
+            }
+
+            qDebug() << "iFFT OK !";
 
 
+            std::vector<float> newWav;
+            recombiner(buf2, newWav);
 
-            //rspectprod(filter[inChannel], input[inChannel], outputData[outChannel], nfft);
+            qDebug() << "taille newWav : " << newWav.size();
+
+
+            for (i=vectWav.size() ; i < newWav.size() ; i++)
+            {
+                x.push_back((float)i/samplerate);
+            }
+/*
+
+*/
+            // fin
             fftFree();
             wav.close();
+
+
+            // Création du nouveau fichier audio
+            std::vector<qint16> newData;
+            for (i=0;i<newWav.size();++i) {
+                newData.push_back((qint16)newWav[i]);
+            }
+            plotWindow audioPlot2;
+            audioPlot2.XY(x,newData);
+            audioPlot2.makePlot();
+            audioPlot2.exec();
+            qDebug() << "1";
+
+            //QByteArray* newDonnees= new QByteArray(reinterpret_cast<const char*>(newData.data()), newData.size());
+            //QByteArray* newDonnees= new QByteArray(reinterpret_cast<const char*>(newWav.data()), newWav.size());
+            QByteArray newDonnees;
+            QDataStream out (&newDonnees,QIODevice::WriteOnly);
+            for(auto &a : newData){out << a;}
+
+            QBuffer *buffer = new QBuffer(player);
+            qDebug() << "2";
+            //buffer->setBuffer(newDonnees);
+            buffer->setData(newDonnees);
+            qDebug() << "3";
+            buffer->open(QIODevice::ReadOnly);
+            qDebug() << "4";
+            player->setMedia(QMediaContent(),buffer);
+            qDebug() << "5";
+            player->play();
+            qDebug() << "Player error = " << player->errorString();
+
+            const char * data2=newDonnees.constData(); // retourne le pointeur d'accés aux données
+            const qint16 * datai2=reinterpret_cast<const qint16 *>(data2);
+            //const qint16 * datai2=reinterpret_cast<const qint16 *>(newDonnees);
+            //int len2=newDonnees.size()/(sizeof(qint16));
+            int len2= x.size();
+            std::vector<float> vectWav2;
+
+            for (i=0;i<len2;++i) {
+                vectWav2.push_back((float)datai2[i]);
+            }
+
+            plotWindow audioPlot3;
+            audioPlot3.XY(x,vectWav2);
+            audioPlot3.makePlot();
+            audioPlot3.exec();
+
+
+
+            /// POUR ENREGISTRER LES WAV VOIR L'EXEMPLE QT AUDIO-RECORDER
 
         }
         else QMessageBox::warning(NULL,"Attention","Pas de fichier audio lisible");
