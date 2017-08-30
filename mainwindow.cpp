@@ -4,10 +4,10 @@
 #include "math.h"
 #include "rir.h"
 #include <QProgressDialog>
-#include "plotwindow.h"
 #include "audio.h"
 #include "physic.h"
 #include "fftext.h"
+
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -423,13 +423,13 @@ void MainWindow::on_spinBox_nbRay_valueChanged(int arg1) {
 void MainWindow::on_bouton_RIR_clicked()
 {
     // ouvre une nouvelle fenetre
-    plotWindow plot;
+    plotWindow *plot = new plotWindow;
     if (m_sourceImage.calculerRIR(m_freq))
     {
-        plot.XY(m_sourceImage.getX(), m_sourceImage.getFIR(), m_seuilAttenuation);
-        plot.makePlot();
-        plot.setModal(true);
-        plot.exec();
+        plot->XY(m_sourceImage.getX(), m_sourceImage.getFIR(), m_seuilAttenuation);
+        plot->makePlot();
+        plot->show();
+        //plot.exec();
     }
     else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
 }
@@ -550,10 +550,9 @@ void MainWindow::on_bouton_convolution_clicked()
     long nlog;
     int k, j, i;
 
-    //nfft = qNextPowerOfTwo(n);
-    if (m_sourceImage.calculerRIR(m_freq))
+    if(wav.open(m_fichierAudio))
     {
-        if(wav.open(m_fichierAudio))
+        if (m_sourceImage.calculerRIR(wav.getSamplerate()))
         {
             int wavLength = wav.bytesAvailable();
             qDebug() << wavLength;
@@ -569,7 +568,6 @@ void MainWindow::on_bouton_convolution_clicked()
             //std::vector<qint16> vectWav;
             std::vector<float> x;
             int samplerate = wav.fileFormat().sampleRate()/1000;
-            //Iterate over all the words:
             for (i=0;i<len;++i) {
                 vectWav.push_back((float)datai[i]);
                 //vectWav.push_back(static_cast<float>(data[i]));
@@ -594,15 +592,20 @@ void MainWindow::on_bouton_convolution_clicked()
             }
             //for(float &a : vectWav1) {vectWav.push_back(a);}
             */
-/*
-            plotWindow audioPlot;
-            audioPlot.XY(x,vectWav);
-            audioPlot.makePlot();
-            audioPlot.setModal(true);
-            audioPlot.exec();
-*/
 
+            plotWindow *audioPlot = new plotWindow;
+            audioPlot->setWindowTitle("Audio Input");
+            audioPlot->XY(x,vectWav);
+            audioPlot->makePlot();
+            audioPlot->setYLabel("Amplitude");
+            audioPlot->hideLegend();
+            //audioPlot->show();
 
+            if (nfft < 257) nfft = 256; // Pour avoir une valeur plus grande que la taille des filtres
+            else nfft = qNextPowerOfTwo(nfft-1);
+            qDebug() << "nfft : " << nfft;
+            nlog = round(log(nfft) / log(2));
+            qDebug() << "nlog : " << nlog;
 
             // Partitionnement de la FIR
             m_sourceImage.partitionnage(nfft);
@@ -610,24 +613,36 @@ void MainWindow::on_bouton_convolution_clicked()
             std::vector< std::vector<float> > filtres;
             bandFilters(filtres);
 
+            std::vector<float> x2;
+            for (k= 0 ; k < nfft ; k++) { x2.push_back(k);};
+
+            /*
+            plotWindow *firPlot = new plotWindow;
+            firPlot->setWindowTitle("FIRs");
+            firPlot->XY(x2, firPart, 1e-6);
+            //firPlot->XY(x2, firPart[0]);
+            firPlot->makePlot();
+            //firPlot->hideLegend();
+            firPlot->show();
+
+
+            plotWindow *filtrePlot = new plotWindow;
+            filtrePlot->setWindowTitle("Filtres");
+            zeroPadding(filtres[2], nfft);
+            filtrePlot->XY(x2, filtres[2]);
+            filtrePlot->makePlot();
+            filtrePlot->show();
+            */
+
             int nFiltre = m_sourceImage.getFIR().size(); // nombre de bande fréquentielle
             int nPart = firPart.size()/nFiltre; // nombre de partition par bande
 
-            nfft = qNextPowerOfTwo(nfft-1);
-            qDebug() << "nfft : " << nfft;
-            nlog = round(log(nfft) / log(2));
-
-            qDebug() << "nlog : " << nlog;
             qDebug() << "n fir : " << firPart.size();
-
             qDebug() << "code erreur fft init : " << fftInit(nlog);
 
             // fft des FIR partitionnées
-            for (k= 0; k< firPart.size() ; k++)
-            {
-                rffts(firPart[k].data(), nlog, 1); // on passe fir en frequentielle (directement enregistrer dans lui-même)
+            for (auto &a : firPart) { rffts(a.data(), nlog, 1); // on passe fir en frequentielle (directement enregistré dans lui-même)
             }
-
             qDebug() << "Firs spectrales !";
 
             if (filtres.size() != nFiltre) QMessageBox::warning(NULL,"Attention", QString::number(nFiltre) + " bandes et " + QString::number(filtres.size()) + " filtres");
@@ -636,12 +651,13 @@ void MainWindow::on_bouton_convolution_clicked()
                 {
                     zeroPadding(filtres[k], nfft);
                     rffts(filtres[k].data(), nlog, 1); // on passe les filtres en frequentielle sur nfft points
-                    for (j=0 ; j <nPart ; j++) // Pour chaque partie de nfft point
+                    for (j=0 ; j <nPart ; j++) // Pour chaque partie de FIR de nfft points
                     {
                         rspectprod(firPart[j+k*nPart].data(), filtres[k].data(), firPart[j+k*nPart].data(), nfft);
                     }
                 }
             }
+
             qDebug() << "Fir et filtres convolues !";
 
             // somme par bande
@@ -668,10 +684,7 @@ void MainWindow::on_bouton_convolution_clicked()
             buf1.resize(nfft, 0);
             std::vector< std::vector<float> >  buf2;
             buf2.resize(wavPart.size()+nPart);
-            for (k=0 ; k <buf2.size() ; k++)
-            {
-                buf2[k].resize(nfft, 0);
-            }
+            for (auto &a : buf2) { a.resize(nfft, 0); }
 
             for (k = 0; k < wavPart.size(); k++)
             {
@@ -688,17 +701,12 @@ void MainWindow::on_bouton_convolution_clicked()
             qDebug() << "nb wavPart :" << wavPart.size();
 
             // iFFT
-            for (k = 0; k < buf2.size(); k++)
-            {
-                riffts(buf2[k].data(), nlog, 1);
-            }
-
+            for (auto &a : buf2) { riffts(a.data(), nlog, 1);}
             qDebug() << "iFFT OK !";
 
 
             std::vector<float> newWav;
             recombiner(buf2, newWav);
-
             qDebug() << "taille newWav : " << newWav.size();
 
 
@@ -706,24 +714,26 @@ void MainWindow::on_bouton_convolution_clicked()
             {
                 x.push_back((float)i/samplerate);
             }
-/*
 
-*/
             // fin
             fftFree();
             wav.close();
 
 
+
             // Création du nouveau fichier audio
             std::vector<qint16> newData;
-            for (i=0;i<newWav.size();++i) {
-                newData.push_back((qint16)newWav[i]);
-            }
-            plotWindow audioPlot2;
-            audioPlot2.XY(x,newData);
-            audioPlot2.makePlot();
-            audioPlot2.exec();
-            qDebug() << "1";
+            for (auto &a : newWav) { newData.push_back((qint16)a); }
+
+            plotWindow *audioPlot2 = new plotWindow;
+            audioPlot2->setWindowTitle("Audio Output");
+            //audioPlot2->XY(x,newData);
+            audioPlot2->XY(x,newWav);
+            audioPlot2->makePlot();
+            audioPlot2->setYLabel("Amplitude");
+            audioPlot2->hideLegend();
+            audioPlot2->show();
+
 
             //QByteArray* newDonnees= new QByteArray(reinterpret_cast<const char*>(newData.data()), newData.size());
             //QByteArray* newDonnees= new QByteArray(reinterpret_cast<const char*>(newWav.data()), newWav.size());
@@ -731,20 +741,49 @@ void MainWindow::on_bouton_convolution_clicked()
             QDataStream out (&newDonnees,QIODevice::WriteOnly);
             for(auto &a : newData){out << a;}
 
+
+
+            QFile wavOut;
+            //QAudioFormat audioformat = wav.m_fileFormat;
+
+            wavOut.setFileName(QCoreApplication::applicationDirPath() + "/output.raw");
+            qDebug() << "wav open : " << wavOut.open(QIODevice::WriteOnly);
+            wavOut.write(newDonnees);
+
+
+/*
             QBuffer *buffer = new QBuffer(player);
-            qDebug() << "2";
             //buffer->setBuffer(newDonnees);
             buffer->setData(newDonnees);
-            qDebug() << "3";
+            qDebug() << "buffer size : " << buffer->size();
             buffer->open(QIODevice::ReadOnly);
-            qDebug() << "4";
             player->setMedia(QMediaContent(),buffer);
-            qDebug() << "5";
+            qDebug() << "duration : " << player->duration();
             player->play();
-            qDebug() << "Player error = " << player->errorString();
+            qDebug() << "Player error = " << player->error();
 
+            qDebug() << "Player media = " << player->mediaStatus();
+*/
+
+            /*
+            audioRecorder = new QAudioRecorder(this);
+            audioRecorder->setOutputLocation(QCoreApplication::applicationDirPath() + "/output");
+
+            QAudioEncoderSettings settings;
+            settings.setCodec("audio/pcm");
+            settings.setSampleRate(44100);
+            settings.setChannelCount(1);
+
+            audioRecorder->setEncodingSettings(settings, QVideoEncoderSettings(), "audio/x-wav");
+
+            audioRecorder->record();
+*/
+/*
             const char * data2=newDonnees.constData(); // retourne le pointeur d'accés aux données
             const qint16 * datai2=reinterpret_cast<const qint16 *>(data2);
+
+           // newfile.writeData(data2, newDonnees.size());
+
             //const qint16 * datai2=reinterpret_cast<const qint16 *>(newDonnees);
             //int len2=newDonnees.size()/(sizeof(qint16));
             int len2= x.size();
@@ -760,12 +799,12 @@ void MainWindow::on_bouton_convolution_clicked()
             audioPlot3.exec();
 
 
-
+*/
             /// POUR ENREGISTRER LES WAV VOIR L'EXEMPLE QT AUDIO-RECORDER
 
         }
-        else QMessageBox::warning(NULL,"Attention","Pas de fichier audio lisible");
-    }
-    else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
+        else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
+    }    
+    else QMessageBox::warning(NULL,"Attention","Pas de fichier audio lisible");
 
 }

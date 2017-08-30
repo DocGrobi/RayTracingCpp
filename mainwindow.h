@@ -8,6 +8,8 @@
 #include <QElapsedTimer>
 #include <QMediaPlayer>
 #include <QAudioProbe>
+#include <QAudioRecorder>
+#include "plotwindow.h"
 
 namespace Ui {
 class MainWindow;
@@ -90,6 +92,10 @@ private:
     int m_temperature, m_humidite, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille;
     bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe;
     QMediaPlayer *player;
+
+    QAudioRecorder *audioRecorder;
+
+    plotWindow *plot, *audioPlot, *audioPlot2, *firPlot, *filtrePlot;
 
     //QAudioProbe *audioProbe;
     //QByteArray *musicDataBuffer;

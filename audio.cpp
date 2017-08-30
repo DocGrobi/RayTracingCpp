@@ -183,6 +183,15 @@ qint64 WavFile::headerLength() const
 return m_headerLength;
 }
 
+int WavFile::getSamplerate() {
+    return m_fileFormat.sampleRate();
+}
+
+void WavFile::writeNewWav()
+{
+
+}
+
 bool WavFile::readHeader()
 {
     seek(0);
@@ -230,6 +239,5 @@ bool WavFile::readHeader()
     m_headerLength = pos();
     return result;
 }
-
 
 

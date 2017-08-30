@@ -33,6 +33,21 @@ plotWindow::~plotWindow()
     delete ui;
 }
 
+void plotWindow::setYLabel(QString nom)
+{
+    ui->customPlot->yAxis->setLabel(nom);
+}
+
+void plotWindow::hideLegend()
+{
+    ui->customPlot->legend->setVisible(false);
+}
+
+void plotWindow::setX(int min, int max)
+{
+    ui->customPlot->xAxis->setRange(min, max);
+}
+
 void plotWindow::makePlot()
 {
     // Normalisation sur les y et repartition sur les 8 courbes
@@ -100,6 +115,7 @@ void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<float> > &y, 
     }
     m_echelleLog = true;
 
+    /// Attention les courbes sont strictement positives !
 
 }
 
