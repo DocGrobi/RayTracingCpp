@@ -183,10 +183,6 @@ qint64 WavFile::headerLength() const
 return m_headerLength;
 }
 
-int WavFile::getSamplerate() {
-    return m_fileFormat.sampleRate();
-}
-
 bool WavFile::readHeader()
 {
     seek(0);
@@ -284,6 +280,8 @@ void WavFile::writeNewWav(std::vector<int> &donnees)
       f << "data----";  // (chunk size to be filled in later)
 
       //for(auto &a : donnees) { write_word(f, (int)a, 2);}
+
+      // recupération du maximum
       for(auto &a : donnees) { write_word(f, a, 2);}
 
       // (We'll need the final file size to fix the chunk sizes above)

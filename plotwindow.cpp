@@ -84,7 +84,7 @@ void plotWindow::makePlot()
 
     // Regalges des plages des axes
     //xMax = 40; //pour les tests
-    ui->customPlot->xAxis->setRange(0, xMax);
+    ui->customPlot->xAxis->setRange(xMin, xMax);
     ui->customPlot->yAxis->setRange(yMin,yMax);
     ui->customPlot->replot();
 }
@@ -98,7 +98,8 @@ void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<float> > &y, 
     vectX = QVector<double>::fromStdVector(vX);
 
     int k;
-    // Recupération des maximums
+    // Recupération des extremums
+    xMin = vectX[0];
     xMax = vectX[vectX.size() - 1];
 
     courbe.resize(y.size());
@@ -114,9 +115,36 @@ void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<float> > &y, 
             else a=10*log10(a);}
     }
     m_echelleLog = true;
+}
 
-    /// Attention les courbes sont strictement positives !
+void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<float> > &y)
+{
+    // Conversion en double
+    std::vector<double> vX(x.begin(),x.end());
 
+    // Conversion en QVector
+    vectX = QVector<double>::fromStdVector(vX);
+
+    int k;
+    // Recupération des extremums
+    xMin = vectX[0];
+    xMax = vectX[vectX.size() - 1];
+
+    courbe.resize(y.size());
+
+
+    yMin = (double)y[0][0];
+    yMax = yMin;
+
+    for (k=0 ; k < y.size() ; k++) // créaction de y.size courbes
+    {
+        std::vector<double> vY(y[k].begin(),y[k].end());
+        courbe[k]  = QVector<double>::fromStdVector(vY);
+        for(double &a : courbe[k]) {
+            if (a<yMin) yMin=a;
+            if (a>yMax) yMax=a;}
+    }
+    m_echelleLog = false;
 }
 
 void plotWindow::XY(std::vector<float> &x, std::vector<float> &y)
@@ -130,16 +158,13 @@ void plotWindow::XY(std::vector<float> &x, std::vector<float> &y)
     courbe.resize(1);
     courbe[0]  = QVector<double>::fromStdVector(vY);
 
-    // Recupération des maximums
+    // Recupération des extremums
+    xMin = vectX[0];
     xMax = vectX[vectX.size() - 1];
-
-
     yMin = *std::min_element(y.begin(), y.end());
     yMax = *std::max_element(y.begin(), y.end());
 
     m_echelleLog = false;
-
-
 }
 
 void plotWindow::XY(std::vector<float> &x, std::vector<int> &y)
@@ -153,10 +178,9 @@ void plotWindow::XY(std::vector<float> &x, std::vector<int> &y)
     courbe.resize(1);
     courbe[0]  = QVector<double>::fromStdVector(vY);
 
-    // Recupération des maximums
+    // Recupération des extremums
+    xMin = vectX[0];
     xMax = vectX[vectX.size() - 1];
-
-
     yMin = *std::min_element(y.begin(), y.end());
     yMax = *std::max_element(y.begin(), y.end());
 
@@ -304,15 +328,11 @@ void plotWindow::linScale()
 {
     if (m_echelleLog)
     {
-        /*
-        for(int i=0; i< vectY.size(); i++)
-        {
-            vectY[i] = pow(10, vectY[i]/10);
-        }
-        */
         for (int k=0; k < courbe.size() ; k++)
         {
-            for(double &a : courbe[k]) {a=pow(10, a/10);}
+            for(double &a : courbe[k]) {
+                if(a <= -120) a=0;
+                else a=pow(10, a/10);}
         }
         m_echelleLog = false;
         yMax = pow(10, yMax/10);
@@ -327,15 +347,11 @@ void plotWindow::logScale()
 {
     if (!m_echelleLog)
     {
-        /*
-        for(int i=0; i< vectY.size(); i++)
-        {
-            vectY[i] = 10*log10(vectY[i]);
-        }
-        */
         for (int k=0; k < courbe.size() ; k++)
         {
-            for(double &a : courbe[k]) {a=10*log10(a);}
+            for(double &a : courbe[k]) {
+                if(a<=0) a = -120;
+                else a=10*log10(a);}
         }
         m_echelleLog = true;
         yMax = 10*log10(yMax);

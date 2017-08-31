@@ -18,6 +18,7 @@ public:
 
     void makePlot();
     void XY(std::vector<float> &x, std::vector<std::vector<float> > &y, float seuil);
+    void XY(std::vector<float> &x, std::vector<std::vector<float> > &y);
     void XY(std::vector<float> &x, std::vector<float> &y); // courbe quelconque
     void XY(std::vector<float> &x, std::vector<int> &y);
     void setYLabel(QString nom);
@@ -40,7 +41,7 @@ private:
     Ui::plotWindow *ui;
     bool m_echelleLog;
     QVector<double> vectX, vectY;
-    double xMax, yMax, yMin;
+    double xMin, xMax, yMax, yMin;
     QVector<QVector<double> > courbe;
 };
 

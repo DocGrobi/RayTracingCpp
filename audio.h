@@ -23,7 +23,6 @@ public:
     bool open(const QString &fileName);
     const QAudioFormat &fileFormat() const;
     qint64 headerLength() const;
-    int getSamplerate();
     void writeNewWav(std::vector<int> &donnees);
 
 private:

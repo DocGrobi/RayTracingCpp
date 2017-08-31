@@ -504,7 +504,7 @@ void MainWindow::on_positionChanged(qint64 position)
     ui->AudioSlider->setValue(position);
     if (position >= ui->AudioSlider->maximum()){
         ui->AudioSlider->setValue(0);
-        if(player->currentMedia().canonicalUrl() == QCoreApplication::applicationDirPath() + "/resultat.wav")
+        if(player->currentMedia().canonicalUrl() == QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/resultat.wav"))
             ui->bouton_ecouter->setText("Resultat");
         else
             ui->bouton_ecouter->setText("Lecture");
@@ -556,27 +556,26 @@ void MainWindow::on_bouton_convolution_clicked()
 
     if(wav.open(m_fichierAudio))
     {
-        if (m_sourceImage.calculerRIR(wav.getSamplerate()))
+        if (m_sourceImage.calculerRIR(wav.fileFormat().sampleRate()))
         {
             int wavLength = wav.bytesAvailable();
-            qDebug() << wavLength;
+            qDebug() << "taille du wav :" << wavLength;
             // Ecriture des données du wav
 
-            QByteArray donnees;
-            donnees = wav.readAll();
+
+            QByteArray donnees = wav.readAll();
 
             const char * data=donnees.constData(); // retourne le pointeur d'accés aux données
             const qint16 * datai=reinterpret_cast<const qint16 *>(data);
             int len=donnees.size()/(sizeof(qint16));
             std::vector<float> vectWav;
-            //std::vector<qint16> vectWav;
             std::vector<float> x;
-            int samplerate = wav.fileFormat().sampleRate()/1000;
+            float samplerate = wav.fileFormat().sampleRate()/1000;
             for (i=0;i<len;++i) {
                 vectWav.push_back((float)datai[i]);
-                //vectWav.push_back(static_cast<float>(data[i]));
                 x.push_back((float)i/samplerate);
             }
+
 
 /*
             QVector<float> vectWav1;
@@ -584,9 +583,9 @@ void MainWindow::on_bouton_convolution_clicked()
             std::vector<float> x;
             int samplerate = wav.fileFormat().sampleRate()/1000;
 
-            //QByteArray donnees = wav.readAll();
-            //QDataStream in (&donnees,QIODevice::ReadOnly);
-            QDataStream in(wav.readAll());
+            QByteArray donnees = wav.readAll();
+            QDataStream in (&donnees,QIODevice::ReadOnly);
+            //QDataStream in(wav.readAll());
             while (!in.atEnd())
             {
                 float f;
@@ -594,7 +593,7 @@ void MainWindow::on_bouton_convolution_clicked()
                 vectWav1 << f;
                 x.push_back((float)i/samplerate);
             }
-            //for(float &a : vectWav1) {vectWav.push_back(a);}
+            for(float &a : vectWav1) {vectWav.push_back(a);}
             */
 
             plotWindow *audioPlot = new plotWindow;
@@ -603,7 +602,7 @@ void MainWindow::on_bouton_convolution_clicked()
             audioPlot->makePlot();
             audioPlot->setYLabel("Amplitude");
             audioPlot->hideLegend();
-            //audioPlot->show();
+            audioPlot->show();
 
             if (nfft < 257) nfft = 256; // Pour avoir une valeur plus grande que la taille des filtres
             else nfft = qNextPowerOfTwo(nfft-1);
@@ -620,7 +619,7 @@ void MainWindow::on_bouton_convolution_clicked()
             std::vector<float> x2;
             for (k= 0 ; k < nfft ; k++) { x2.push_back(k);};
 
-            /*
+/*
             plotWindow *firPlot = new plotWindow;
             firPlot->setWindowTitle("FIRs");
             firPlot->XY(x2, firPart, 1e-6);
@@ -630,13 +629,14 @@ void MainWindow::on_bouton_convolution_clicked()
             firPlot->show();
 
 
+
             plotWindow *filtrePlot = new plotWindow;
             filtrePlot->setWindowTitle("Filtres");
-            zeroPadding(filtres[2], nfft);
-            filtrePlot->XY(x2, filtres[2]);
+            //zeroPadding(filtres, nfft);
+            filtrePlot->XY(x2, filtres);
             filtrePlot->makePlot();
             filtrePlot->show();
-            */
+ */
 
             int nFiltre = m_sourceImage.getFIR().size(); // nombre de bande fréquentielle
             int nPart = firPart.size()/nFiltre; // nombre de partition par bande
@@ -669,7 +669,7 @@ void MainWindow::on_bouton_convolution_clicked()
             {
                 for (i=0 ; i <nfft ; i++) // pour chaque element
                 {
-                     for (k = 1; k< nFiltre ; k++) // on somme les valeurs des 7 bande dans la premiere
+                     for (k = 1; k< nFiltre ; k++) // on somme les valeurs des 7 bandes dans la premiere
                     {
                         firPart[j][i] += firPart[j+k*nPart][i];
                     }
@@ -681,6 +681,13 @@ void MainWindow::on_bouton_convolution_clicked()
             std::vector< std::vector<float> > wavPart;
             partitionner(vectWav, nfft, wavPart);
 
+            /*
+            plotWindow *filtrePlot = new plotWindow;
+            filtrePlot->setWindowTitle("Wav");
+            filtrePlot->XY(x2, wavPart, 1e-6);
+            filtrePlot->makePlot();
+            filtrePlot->show();
+*/
             qDebug() << "Wav partitionne !";
 
             //passage du wav en fft
@@ -698,7 +705,7 @@ void MainWindow::on_bouton_convolution_clicked()
                     // multiplication spectrale du wav et des filtres
                     rspectprod(wavPart[k].data(), firPart[j].data(), buf1.data(), nfft);
                     //buf2[j+k] = buf2[j+k] + buf1; // fonction somme de vecteur à faire
-                    std::transform(buf2[j+k].begin(), buf2[j+k].end(), buf1.begin(), buf2[j+k].begin(), std::plus<float>()); // somme terme à terme
+                    std::transform(buf2[j+k].begin(), buf2[j+k].end(), buf1.begin(), buf2[j+k].begin(), std::plus<float>()); // somme terme à terme http://www.cplusplus.com/reference/algorithm/transform/
                 }
             }
             qDebug() << "Wavs spectrales convolues !";
@@ -721,9 +728,10 @@ void MainWindow::on_bouton_convolution_clicked()
 
             // fin
             fftFree();
-            wav.close();
 
             // Création du nouveau fichier audio
+            //float max = *std::max_element(newWav.begin(), newWav.end());
+
             std::vector<int> newData;
             for (auto &a : newWav) { newData.push_back((int)a); }
 
@@ -740,6 +748,8 @@ void MainWindow::on_bouton_convolution_clicked()
             wav.writeNewWav(newData);
             m_fichierAudio = QCoreApplication::applicationDirPath() + "/resultat.wav";
             ui->bouton_ecouter->setText("Resultat");
+
+            wav.close();
 
 
             /*
