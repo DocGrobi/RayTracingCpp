@@ -19,7 +19,7 @@ public:
     void makePlot();
     void XY(std::vector<float> &x, std::vector<std::vector<float> > &y, float seuil);
     void XY(std::vector<float> &x, std::vector<float> &y); // courbe quelconque
-    void XY(std::vector<float> &x, std::vector<qint16> &y);
+    void XY(std::vector<float> &x, std::vector<int> &y);
     void setYLabel(QString nom);
     void hideLegend();
     void setX(int min, int max);

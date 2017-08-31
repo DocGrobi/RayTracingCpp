@@ -12,6 +12,8 @@ void zeroPadding(std::vector<float>& vecteur, int taille);
 void partitionner(std::vector<float> &donnee, int taille, std::vector<std::vector<float> > &output);
 void recombiner(std::vector< std::vector<float> > &input, std::vector<float> &output);
 
+
+
 class WavFile : public QFile
 {
 public:
@@ -22,7 +24,7 @@ public:
     const QAudioFormat &fileFormat() const;
     qint64 headerLength() const;
     int getSamplerate();
-    void writeNewWav();
+    void writeNewWav(std::vector<int> &donnees);
 
 private:
     bool readHeader();

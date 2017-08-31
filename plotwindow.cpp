@@ -142,7 +142,7 @@ void plotWindow::XY(std::vector<float> &x, std::vector<float> &y)
 
 }
 
-void plotWindow::XY(std::vector<float> &x, std::vector<qint16> &y)
+void plotWindow::XY(std::vector<float> &x, std::vector<int> &y)
 {
     // Conversion en double
     std::vector<double> vX(x.begin(),x.end());

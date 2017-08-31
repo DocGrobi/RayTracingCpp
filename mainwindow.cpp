@@ -456,6 +456,7 @@ void MainWindow::on_checkBox_methodeRapide_toggled(bool checked)
 void MainWindow::on_bouton_audioFile_clicked()
 {
     player->stop();// On arrete la lecture
+    ui->bouton_ecouter->setText("Ecouter");
 
     m_fichierAudio = QFileDialog::getOpenFileName(this, tr("Open WAV File"),
                                                     m_fichierAudio,
@@ -484,7 +485,7 @@ void MainWindow::on_bouton_ecouter_clicked()
         player->play();
         ui->bouton_ecouter->setText("Pause");
     }else
-    if (player->state() == QMediaPlayer::StoppedState) // si lecture en cours
+    if (player->state() == QMediaPlayer::StoppedState) // si à l'arret
     {
         player->setMedia(QUrl::fromLocalFile(m_fichierAudio));
         player->setVolume(50);
@@ -503,7 +504,10 @@ void MainWindow::on_positionChanged(qint64 position)
     ui->AudioSlider->setValue(position);
     if (position >= ui->AudioSlider->maximum()){
         ui->AudioSlider->setValue(0);
-        ui->bouton_ecouter->setText("Lecture");
+        if(player->currentMedia().canonicalUrl() == QCoreApplication::applicationDirPath() + "/resultat.wav")
+            ui->bouton_ecouter->setText("Resultat");
+        else
+            ui->bouton_ecouter->setText("Lecture");
     }
 }
 
@@ -719,22 +723,29 @@ void MainWindow::on_bouton_convolution_clicked()
             fftFree();
             wav.close();
 
-
-
             // Création du nouveau fichier audio
-            std::vector<qint16> newData;
-            for (auto &a : newWav) { newData.push_back((qint16)a); }
+            std::vector<int> newData;
+            for (auto &a : newWav) { newData.push_back((int)a); }
 
+            // Affichage du fichier de sortie
             plotWindow *audioPlot2 = new plotWindow;
             audioPlot2->setWindowTitle("Audio Output");
             //audioPlot2->XY(x,newData);
-            audioPlot2->XY(x,newWav);
+            audioPlot2->XY(x,newData);
             audioPlot2->makePlot();
             audioPlot2->setYLabel("Amplitude");
             audioPlot2->hideLegend();
             audioPlot2->show();
 
+            wav.writeNewWav(newData);
+            m_fichierAudio = QCoreApplication::applicationDirPath() + "/resultat.wav";
+            ui->bouton_ecouter->setText("Resultat");
 
+
+            /*
+            // Création du nouveau fichier audio
+            std::vector<qint16> newData;
+            for (auto &a : newWav) { newData.push_back((qint16)a); }
             //QByteArray* newDonnees= new QByteArray(reinterpret_cast<const char*>(newData.data()), newData.size());
             //QByteArray* newDonnees= new QByteArray(reinterpret_cast<const char*>(newWav.data()), newWav.size());
             QByteArray newDonnees;
@@ -749,6 +760,9 @@ void MainWindow::on_bouton_convolution_clicked()
             wavOut.setFileName(QCoreApplication::applicationDirPath() + "/output.raw");
             qDebug() << "wav open : " << wavOut.open(QIODevice::WriteOnly);
             wavOut.write(newDonnees);
+            */
+
+
 
 
 /*
