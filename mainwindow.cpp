@@ -572,7 +572,7 @@ void MainWindow::on_bouton_convolution_clicked()
             std::vector<float> x;
             float samplerate = wav.fileFormat().sampleRate()/1000;
             for (i=0;i<len;++i) {
-                vectWav.push_back((float)datai[i]);
+                vectWav.push_back(((float)datai[i]));
                 x.push_back((float)i/samplerate);
             }
 
@@ -611,15 +611,37 @@ void MainWindow::on_bouton_convolution_clicked()
             qDebug() << "nlog : " << nlog;
 
             // Partitionnement de la FIR
-            m_sourceImage.partitionnage(nfft);
-            std::vector< std::vector<float> > firPart = m_sourceImage.getFirPart();
+            //m_sourceImage.partitionnage(nfft);
+            //std::vector< std::vector<float> > firPart = m_sourceImage.getFirPart();
+            std::vector< std::vector<float> > firPart;
+            //partitionnage(m_sourceImage.getFIR(), firPart, nfft);
+
+
             std::vector< std::vector<float> > filtres;
             bandFilters(filtres);
+
+            //*
+            // TEST avec un dirac
+            std::vector<float> dirac;
+            //dirac.resize(nfft, 0);
+            //dirac[nfft/2+1] = 1;
+            //dirac[nfft/2+1] = 1;
+            dirac.resize(441000, 0);
+            dirac[0] = 1;
+            dirac[132300] = 1;
+            dirac[264600] = 1;
+            std::vector< std::vector<float> > fir;
+            fir.resize(filtres.size(),dirac);
+            partitionnage(fir, firPart, nfft);
+            ///
+            //*/
 
             std::vector<float> x2;
             for (k= 0 ; k < nfft ; k++) { x2.push_back(k);};
 
-/*
+
+
+
             plotWindow *firPlot = new plotWindow;
             firPlot->setWindowTitle("FIRs");
             firPlot->XY(x2, firPart, 1e-6);
@@ -628,7 +650,7 @@ void MainWindow::on_bouton_convolution_clicked()
             //firPlot->hideLegend();
             firPlot->show();
 
-
+/*
 
             plotWindow *filtrePlot = new plotWindow;
             filtrePlot->setWindowTitle("Filtres");
@@ -642,6 +664,7 @@ void MainWindow::on_bouton_convolution_clicked()
             int nPart = firPart.size()/nFiltre; // nombre de partition par bande
 
             qDebug() << "n fir : " << firPart.size();
+            qDebug() << "n part : " << nPart;
             qDebug() << "code erreur fft init : " << fftInit(nlog);
 
             // fft des FIR partitionnées
@@ -662,7 +685,6 @@ void MainWindow::on_bouton_convolution_clicked()
                 }
             }
 
-            qDebug() << "Fir et filtres convolues !";
 
             // somme par bande
             for (j=0 ; j <nPart ; j++) // pour chaque partie d'une bande
@@ -677,24 +699,41 @@ void MainWindow::on_bouton_convolution_clicked()
             }
             qDebug() << "Somme effectuee !";
 
+           /* ///TEST
+            //for (k=1 ; k < firPart.size() ; k++) {std::transform(firPart[0].begin(), firPart[0].end(), firPart[k].begin(), firPart[0].begin(), std::plus<float>());}
+            riffts(firPart[0].data(), nlog,1);
+            //for (auto &a : firPart) { riffts(a.data(), nlog, 1);}
+            qDebug() << "Fir et filtres convolues !";
+            plotWindow *firPlot = new plotWindow;
+            firPlot->setWindowTitle("FIRs");
+            //firPlot->XY(x2, firPart);
+            firPlot->XY(x2, firPart[0]);
+            firPlot->makePlot();
+            //firPlot->hideLegend();
+            firPlot->show();
+            rffts(firPart[0].data(), nlog,1);
+            ///
+            */
+
             // découpage du wav
             std::vector< std::vector<float> > wavPart;
             partitionner(vectWav, nfft, wavPart);
 
+            qDebug() << "Wav partitionne !";
+
             /*
             plotWindow *filtrePlot = new plotWindow;
             filtrePlot->setWindowTitle("Wav");
-            filtrePlot->XY(x2, wavPart, 1e-6);
+            filtrePlot->XY(x2, wavPart);
             filtrePlot->makePlot();
             filtrePlot->show();
-*/
-            qDebug() << "Wav partitionne !";
+            */
 
             //passage du wav en fft
             std::vector<float> buf1;
             buf1.resize(nfft, 0);
             std::vector< std::vector<float> >  buf2;
-            buf2.resize(wavPart.size()+nPart);
+            buf2.resize(wavPart.size()+nPart-1);
             for (auto &a : buf2) { a.resize(nfft, 0); }
 
             for (k = 0; k < wavPart.size(); k++)
@@ -704,7 +743,8 @@ void MainWindow::on_bouton_convolution_clicked()
                 {
                     // multiplication spectrale du wav et des filtres
                     rspectprod(wavPart[k].data(), firPart[j].data(), buf1.data(), nfft);
-                    //buf2[j+k] = buf2[j+k] + buf1; // fonction somme de vecteur à faire
+                    //std::transform(wavPart[k].begin(), wavPart[k].end(), firPart[j].begin(), buf1.begin(), std::multiplies<float>());
+
                     std::transform(buf2[j+k].begin(), buf2[j+k].end(), buf1.begin(), buf2[j+k].begin(), std::plus<float>()); // somme terme à terme http://www.cplusplus.com/reference/algorithm/transform/
                 }
             }
@@ -714,6 +754,8 @@ void MainWindow::on_bouton_convolution_clicked()
             // iFFT
             for (auto &a : buf2) { riffts(a.data(), nlog, 1);}
             qDebug() << "iFFT OK !";
+
+
 
 
             std::vector<float> newWav;
@@ -735,11 +777,15 @@ void MainWindow::on_bouton_convolution_clicked()
             std::vector<int> newData;
             for (auto &a : newWav) { newData.push_back((int)a); }
 
+            // test
+            //std::transform(vectWav.begin(), vectWav.end(), newWav.begin()+129, vectWav.begin(), std::minus<float>()); // somme terme à terme http://www.cplusplus.com/reference/algorithm/transform/
+
+
             // Affichage du fichier de sortie
             plotWindow *audioPlot2 = new plotWindow;
             audioPlot2->setWindowTitle("Audio Output");
             //audioPlot2->XY(x,newData);
-            audioPlot2->XY(x,newData);
+            audioPlot2->XY(x,newWav);
             audioPlot2->makePlot();
             audioPlot2->setYLabel("Amplitude");
             audioPlot2->hideLegend();
@@ -750,7 +796,6 @@ void MainWindow::on_bouton_convolution_clicked()
             ui->bouton_ecouter->setText("Resultat");
 
             wav.close();
-
 
             /*
             // Création du nouveau fichier audio

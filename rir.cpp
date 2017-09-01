@@ -120,9 +120,9 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
             // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
             for (k = 0 ; k<8 ; k ++)
             {
-                //m_nrgSI.push_back(nrg[8*i+k]);
+                m_nrgSI.push_back(nrg[8*i+k]);
                 //m_nrgSI.push_back(nrg[8*i+k] * exp(-absAir[k]*longueurRay));
-                m_nrgSI.push_back(nrg[8*i+k] * pow(10,-absAir[k]*longueurRay/10));
+                //m_nrgSI.push_back(nrg[8*i+k] * pow(10,-absAir[k]*longueurRay/10));
             }
 
             temps = 1000 * norme(vecteur(C,listener.getCentre())) / VITESSE_SON; // en ms
@@ -307,4 +307,35 @@ void SourceImage::partitionnage(int taille)
     }
 }
 
+void partitionnage(std::vector< std::vector<float> > &fir, std::vector< std::vector<float> > &firPart, int taille)
+{
 
+    int j, k;
+    int i(0), l(0);
+    int n = taille/2;
+    int firsize = fir[0].size();
+
+    int nPart = ceil((float)firsize/(float)n)*fir.size();
+
+    firPart.resize(nPart);
+
+    for (k = 0 ; k < nPart ; k++) // pour chaque fir de taille n
+    {
+        firPart[k].resize(2*n, 0); // On met des zero partout
+
+        for (j = n ; j <2*n ; j++) // on remplit la deuxième partie de chaque firPart
+        {
+            if (i == firsize) // si on arrive à la fin de la fir
+            {
+                i=0; // on remet à 0 le comtpeur
+                l++; // on passe à la fir suivante
+                j = 2*n; // on change de firPart (met fin à la boucle)
+            }
+            else
+            {
+                firPart[k][j] = fir[l][i]; // on range les valeurs
+                i++; // puis on décale
+            }
+        }
+    }
+}

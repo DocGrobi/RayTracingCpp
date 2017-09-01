@@ -7,6 +7,7 @@
 
 // les méthodes
 std::vector<bool> toucheListener(Ray &rayon, Listener &listener);
+void partitionnage(std::vector<std::vector<float> > &fir, std::vector<std::vector<float> > &firPart, int taille);
 
 // Les classes
 

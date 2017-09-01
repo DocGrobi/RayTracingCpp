@@ -17,13 +17,19 @@ void bandFilters(std::vector< std::vector<float> >& output)
          std::vector<float> filtre;
          QTextStream flux(&fichier);
 
+         //float cptr(1);
+
          while (!flux.atEnd()) {
               if (filtre.size() < 257) filtre.push_back(flux.readLine().toFloat());
-              else
-              {
-                  output.push_back(filtre);
-                  filtre.clear();
-              }
+             //if (cptr > 127 && cptr < 257) filtre.push_back(flux.readLine().toFloat());
+              //else if (cptr >256)
+             else {
+                 output.push_back(filtre);
+                 filtre.clear();
+                 //cptr=0;
+                }
+             //else flux.readLine();
+             //cptr++;
           }
          output.push_back(filtre);
          fichier.close();
@@ -47,6 +53,16 @@ void partitionner(std::vector<float> &donnee, int taille, std::vector< std::vect
     std::vector<float> buffer;
     buffer.resize(taille, 0);
     int rang(0), i;
+
+    //init
+    buffer.resize(taille, 0); // zero padding sur le dernier vecteur
+    for(i = 0; i< taille/2; i++)
+        {
+            buffer[i] = donnee[i+taille/2];
+        }
+    output.push_back(buffer);
+
+    // corps
     while(rang+taille < donnee.size())
     {
         for(i = 0; i< taille; i++)
@@ -56,10 +72,20 @@ void partitionner(std::vector<float> &donnee, int taille, std::vector< std::vect
         output.push_back(buffer);
         rang+=taille/2;
     }
-    buffer.resize(taille, 0); // zero padding sur le dernier vecteur
+
+    // zero padding sur l'avant dernier vecteur
+    buffer.resize(taille, 0);
     for(i = 0; i< donnee.size()-rang; i++)
         {
             buffer[i] = donnee[i+rang];
+        }
+    output.push_back(buffer);
+
+    // création d'un dernier vecteur pour avoir la premiere moitier correspondant à la fin du vecteur
+    buffer.resize(taille, 0);
+    for(i = 0; i< taille/2; i++)
+        {
+            buffer[i] = output[output.size()-1][i+taille/2];
         }
     output.push_back(buffer);
 }
@@ -71,6 +97,7 @@ void recombiner(std::vector< std::vector<float> > &input, std::vector<float> &ou
     for(std::vector<float> &a : input)
     {
         for(i = 0 ; i<a.size()/2; i++)
+        //for(i = a.size()/2 ; i<a.size(); i++)
         {
             output.push_back(a[i]);
         }
