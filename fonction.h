@@ -70,6 +70,7 @@ void debugStdVect(std::vector<signed short>& vect);
 //CoordVector coord_New_Base(const CoordVector &point, std::vector<float> &mat );
 bool proche(float a, float b);
 bool proche(CoordVector a, CoordVector b);
+bool proche(CoordVector a, CoordVector b, float seuil);
 //inline float normalize(ffloat max){return sqrt(a)/max;}
 
 

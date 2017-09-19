@@ -22,6 +22,7 @@ class Ray
 {
 public:
     Ray(int Nray, Source S, int nSrc, bool fibonacci);   //Constructeur
+    Ray(const CoordVector &point, const std::vector<CoordVector>& dir); // Constructeur surchargé
     ~Ray();                               //Destructeur
     std::vector<CoordVector>& getRay() ;
     std::vector<float>& getNRG() ;
@@ -37,7 +38,7 @@ public:
     int getRayMorts() const;
 
     bool rebondSansMemoire(MeshObj mesh, float seuil);
-    bool rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct, const std::vector<float> &absair); // fonction surchargée avec octree
+    bool rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct); // fonction surchargée avec octree
 
     void stockage();
 

@@ -6,6 +6,7 @@
 #include "QDebug"
 #include <QtMath>
 #include <QMessageBox>
+#include <QCoreApplication>
 
 
 ObjWriter::ObjWriter(QString chemin, int nbRay) // recupere en attribue le nom de chemin de fichier specifié
@@ -333,31 +334,180 @@ void ObjWriter::rec_Line(int nbRay, int nbRebond)
 }
 
 
-void ObjWriter::display_sourceImages(SourceImage &srcImg, float seuil)
+void ObjWriter::display_sourceImages(std::vector<CoordVector> &sourcesImages)
 {
     QFile fichier(m_chemin);
-
-    std::vector<CoordVector> sourcesImages = srcImg.getSourcesImages();
-    std::vector<float> nrg = srcImg.getNrgSI();
 
     fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
 
     // creation d'un entete
-    QString text("o SourcesImages \n");
+    QString text("o Sourcesimages \n");
     fichier.write(text.toLatin1());
 
     // ecriture des vertex représentant les posotions de sources images
     for (int i = 0; i < sourcesImages.size() ; i++)
     {
-        if (nrg[i] > seuil) // On n'ecrit que les sources images dont l'energie est supérieure qu seuil
-        {
-            //CoordVector vertCoord(sourcesImages[i], sourcesImages[i+1], sourcesImages[i+2]);
-            text = "v "+ CoordVector2QString(sourcesImages[i]) + "\n";
-            fichier.write(text.toLatin1());
-        }
+        text = "v "+ CoordVector2QString(sourcesImages[i]) + "\n";
+        fichier.write(text.toLatin1());
     }
 
     fichier.close(); // ferme le fichier
+}
+
+void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal)
+{
+    QFile fichier(m_chemin);
+
+    fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
+
+    // creation d'un entete
+    QString text("mtllib materiaux.mtl\n");
+    text += "o SI_Projected \n";
+    fichier.write(text.toLatin1());
+
+    CoordVector vect;
+
+    float normVec, nbpoint(point.size());
+    std::vector<float> nrgMoy;
+    nrgMoy.resize(nbpoint, 0);
+
+
+    int j;
+
+    // pour faire un carré
+    float splatsize = 0.5;
+    CoordVector a( splatsize/2, splatsize/2,0);
+    CoordVector b( splatsize/2,-splatsize/2,0);
+    CoordVector c(-splatsize/2,-splatsize/2,0);
+    CoordVector d(-splatsize/2, splatsize/2,0);
+
+
+    // ecriture des vertex représentant les posotions de sources images
+    for (int i = 0; i < nbpoint ; i++)
+    {
+        vect    = vecteur(point[i],dirNormal);
+        normVec = norme(vect);
+        vect    = vect/normVec;
+        CoordVector A(a),B(b),C(c),D(d); // initialisation
+
+        makeSplat(A,point[i],vect);
+        makeSplat(B,point[i],vect);
+        makeSplat(C,point[i],vect);
+        makeSplat(D,point[i],vect);
+
+        //point[i].debug();
+        //vect.debug();
+
+        // ecriture des carrés
+        text  = "v "+ CoordVector2QString(A) + "\n";
+        text += "v "+ CoordVector2QString(B) + "\n";
+        text += "v "+ CoordVector2QString(C) + "\n";
+        text += "v "+ CoordVector2QString(D) + "\n";
+        fichier.write(text.toLatin1());
+    }
+
+    // ecriture de la normale
+    for (int i = 0; i < nbpoint ; i++)
+    {
+        vect = vecteur(point[i],dirNormal);
+        normVec = norme(vect);
+
+        text = "vn "+ CoordVector2QString(vect/normVec) + "\n";
+        fichier.write(text.toLatin1());
+
+        // vecteur energie
+        for (j=0 ; j<8 ; j++) nrgMoy[i] += nrg[8*i+j];
+        nrgMoy[i] /= 8;
+    }
+
+    float max = *std::max_element(nrgMoy.begin(), nrgMoy.end());
+
+    for (int i = 0; i < nbpoint ; i++)
+    {
+
+
+        text = "usemtl " + QString::number(floor(nrgMoy[i]/max*99)) + "\n"; // energie moyenne normalisé *100 pour donner le bon nom au materiau
+        text += "s off\n";
+        text += "f ";
+        for (j=1 ; j< 5 ;j++)
+        {
+            text += QString::number(4*i+j) + "//" + QString::number(i+1) + " "; // ecriture des vertex et leur normale
+        }
+        text += "\n";
+        fichier.write(text.toLatin1());
+    }
+
+
+    fichier.close(); // ferme le fichier
+}
+
+//https://visheshvision.wordpress.com/2014/04/28/rendering-a-colored-point-cloud-in-blender/
+void RotateX(CoordVector &P, float ang)
+{
+    float y= P.y*cos(ang) - P.z*sin(ang);
+    float z= P.y*sin(ang) + P.z*cos(ang);
+    P.y=y;
+    P.z=z;
+}
+
+void RotateY(CoordVector &P, float ang)
+{
+    float x= P.x*cos(ang) + P.z*sin(ang);
+    float z= -P.x*sin(ang) + P.z*cos(ang);
+    P.x=x;
+    P.z=z;
+}
+
+void Translate(CoordVector &P,CoordVector V)
+{
+    P.x+=V.x;
+    P.y+=V.y;
+    P.z+=V.z;
+}
+
+void makeSplat(CoordVector &P, CoordVector pos,CoordVector nor)
+{
+    // enter the rotation and translation code here
+    //float magNormal= sqrt(nor.x*nor.x + nor.y*nor.y + nor.z * nor.z);
+    //float theta = asin(nor.y/magNormal);
+    float theta = asin(nor.y); // OK !
+    float phi = atan(nor.x/nor.z);
+    if (nor.z >0) phi+= M_PI;
+
+    //qDebug() << "theta = " << theta << " ; phi = " << phi;
+
+    RotateX(P,theta);
+    RotateY(P,phi);
+    Translate(P,pos);
+}
+
+void genererMLT()
+{
+    QFile fichier(QCoreApplication::applicationDirPath() + "/materiaux.mtl");
+
+    fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
+
+    // creation d'un entete
+    QString text;
+    fichier.write(text.toLatin1());
+
+    // ecriture des vertex représentant les posotions de sources images
+    for (float i = 0; i < 100 ; i++)
+    {
+        text  = "newmlt " + QString::number(i) + "\n";  // nom du materiaux
+        text += "Ka 1.000000 1.000000 1.000000\n"; // couleur ambiante
+        text += "Kd " + HSV2RGB(240-(i*2.4), 1, 1) + "\n"; // couleur diffuse RGB (Hue de 240 à 0)
+        text += "Ks 1.000000 1.000000 1.000000\n"; // specular
+        text += "Ni 1.000000\n"; // densité
+        text += "d 1.000000\n"; // transparence
+        text += "illum 2\n"; // lumière
+        text += "\n";
+
+        fichier.write(text.toLatin1());
+    }
+
+    fichier.close(); // ferme le fichier
+
 }
 
 void ObjWriter::display_octree(const std::vector<Boite> &oct)
@@ -453,5 +603,67 @@ std::vector<CoordVector> coordVertBoite(const Boite &boite)
 
 
     return coordVert;
+
+}
+
+QString HSV2RGB(float h, float s, float v)
+{
+    float r = 0, g = 0, b = 0;
+
+    int i;
+    float f, p, q, t;
+
+    if (h == 360)
+        h = 0;
+    else
+        h = h / 60;
+
+    i = (int)trunc(h);
+    f = h - i;
+
+    p = v * (1.0 - s);
+    q = v * (1.0 - (s * f));
+    t = v * (1.0 - (s * (1.0 - f)));
+
+    switch (i)
+    {
+    case 0:
+        r = v;
+        g = t;
+        b = p;
+        break;
+
+    case 1:
+        r = q;
+        g = v;
+        b = p;
+        break;
+
+    case 2:
+        r = p;
+        g = v;
+        b = t;
+        break;
+
+    case 3:
+        r = p;
+        g = q;
+        b = v;
+        break;
+
+    case 4:
+        r = t;
+        g = p;
+        b = v;
+        break;
+
+    default:
+        r = v;
+        g = p;
+        b = q;
+        break;
+    }
+
+    return QString::number(r) + " " + QString::number(g) + " " + QString::number(b);
 
 }

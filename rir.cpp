@@ -12,6 +12,8 @@ std::vector<bool> toucheListener(Ray &rayon, Listener &listener)
     posOld = rayon.getPos();
     posNew = rayon.getRay();
 
+    std::vector<bool> vivant = rayon.getRayVivant();
+
     float alpha, normeAL;
 
     CoordVector L(listener.getCentre()); // Point au centre du Listener
@@ -21,30 +23,34 @@ std::vector<bool> toucheListener(Ray &rayon, Listener &listener)
 
     for(int i = 0; i<posOld.size() ; i++)
     {
-        AB = vecteur(posOld[i], posNew[i]);
-        AL = vecteur(posOld[i], L);
+        if (vivant[i]) // on ne prend pas les rayons morts
+        {
+            AB = vecteur(posOld[i], posNew[i]);
+            AL = vecteur(posOld[i], L);
 
-       alpha = angle(AB,AL);
-       normeAL = norme(AL);
+           alpha = angle(AB,AL);
+           normeAL = norme(AL);
 
-       // test si le point A est dans le listener
-       if (normeAL > r)
-           {
-           // test sur la direction
-           if (cos(alpha) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
-           {
-               // test sur la distance
-               if (norme(AB) >= normeAL)
+           // test si le point A n'est pas dans le listener
+           if (normeAL > r)
                {
-                   // test sur l'angle
-                   if (normeAL == 0)                  resultat.push_back(true);
-                   else if (alpha <= asin(r/normeAL)) resultat.push_back(true);
+               // test sur la direction
+               if (cos(alpha) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
+               {
+                   // test sur la distance
+                   if (norme(AB) >= normeAL)
+                   {
+                       // test sur l'angle
+                       if (normeAL == 0)                  resultat.push_back(true);
+                       else if (alpha <= asin(r/normeAL)) resultat.push_back(true);
 
-                   else resultat.push_back(false);
-               }   else resultat.push_back(false);
-           }       else resultat.push_back(false);
-        }          else resultat.push_back(true);
+                       else resultat.push_back(false);
+                   }   else resultat.push_back(false);
+               }       else resultat.push_back(false);
+            }          else resultat.push_back(true);
+        }              else resultat.push_back(false);
     }
+
     return resultat;
 }
 
@@ -73,7 +79,7 @@ std::vector<float> &SourceImage::getX()
 {
     return m_x;
 }
-std::vector<float> &SourceImage::getY()
+std::vector<std::vector<float> > &SourceImage::getY()
 {
     return m_y;
 }
@@ -98,7 +104,7 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
     std::vector<CoordVector> vec = rayon.getDir();
     std::vector<float> nrg = rayon.getNRGbackup();
     CoordVector A, vect;
-    float longueurRay, temps;
+    float temps;
 
     int i, k;
 
@@ -109,9 +115,8 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
         {
             A = point[i];
             vect = vec[i];
-            longueurRay = longueurRayonTot[i] - longueurRayonFin[i];
 
-            C = vect*(-longueurRay) + A;
+            C = A - vect*(longueurRayonTot[i] - longueurRayonFin[i]);
 
             // BONNE METHODE (on garde toutes les sources images) :
             // On ajoute les coordonnées au vecteur sources images
@@ -120,9 +125,8 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
             // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
             for (k = 0 ; k<8 ; k ++)
             {
-                m_nrgSI.push_back(nrg[8*i+k]);
-                //m_nrgSI.push_back(nrg[8*i+k] * exp(-absAir[k]*longueurRay));
-                //m_nrgSI.push_back(nrg[8*i+k] * pow(10,-absAir[k]*longueurRay/10));
+                //m_nrgSI.push_back(nrg[8*i+k]);
+                m_nrgSI.push_back(nrg[8*i+k] * pow(10,-absAir[k]*longueurRayonTot[i]/10));
             }
 
             temps = 1000 * norme(vecteur(C,listener.getCentre())) / VITESSE_SON; // en ms
@@ -215,7 +219,8 @@ bool SourceImage::calculerRIR(int f_ech)
         m_x.clear();
         m_y.clear();
         m_x.resize(nb_ech, 0);
-        m_y.resize(nb_ech*8, 0);
+        //m_y.resize(nb_ech*8, 0);
+        m_y.resize(8);
         m_FIR.clear();
 
 
@@ -239,17 +244,44 @@ bool SourceImage::calculerRIR(int f_ech)
         // Ordonnées
         m_FIR.resize(7);
 
-        for (int k = 1 ; k < 8 ; k++) // pour chaque bande à partir de 128Hz
+        for (int k = 0 ; k < 8 ; k++) // pour chaque bande
         {
+            m_y[k].resize(nb_ech);
             for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
             {
-               m_y[floor(m_sourcesImages_Tps[i]*freq) + k*nb_ech] += m_nrgSI[i*8 + k];
+               //m_y[floor(m_sourcesImages_Tps[i]*freq) + k*nb_ech] += m_nrgSI[i*8 + k];
+                m_y[k][floor(m_sourcesImages_Tps[i]*freq)] += m_nrgSI[i*8 + k];
             }
-            maxbuf = *std::max_element(m_y.begin()+k*nb_ech, m_y.begin()+(k+1)*nb_ech);
+            //maxbuf = *std::max_element(m_y.begin()+k*nb_ech, m_y.begin()+(k+1)*nb_ech);
+            maxbuf = *std::max_element(m_y[k].begin(), m_y[k].end());
             if(max<maxbuf) max = maxbuf; // recuperation du max
-            m_FIR[k-1].assign(m_y.begin()+k*nb_ech, m_y.begin()+(k+1)*nb_ech); // creation des FIRs
-            for(float& a : m_FIR[k-1]) {a=sqrt(a/max);} // passage en puissance normalisée
         }
+
+        for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+        {
+            for(float& a : m_y[k])
+            {
+                a/=max;// normalisation
+                if (k>0)
+                {
+                    m_FIR[k-1].push_back(sqrt(a)); // passage en puissance
+                }
+            }
+        }
+/*
+        std::vector<float> zero;
+        zero.resize(nb_ech, 0);
+
+        for (int k = 0 ; k < 7 ; k++) // test avec une seule fréquence
+        {
+            //if(k!=3 && k!=6) m_FIR[k] = zero;
+        }
+
+        m_FIR[0] = zero;
+        m_FIR[1] = zero;
+*/
+
+
         return true;
     }
     else return false;

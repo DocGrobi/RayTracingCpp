@@ -136,8 +136,9 @@ float norme(const CoordVector &a)
 
 bool proche(float a, float b)
 {
-    float seuil = 0.01;
+    float seuil = 0.001;
 
+    // attention division par 0
     if (a/b > 1-seuil && a/b < 1+seuil)
     {
         return true;
@@ -151,6 +152,13 @@ bool proche(float a, float b)
 bool proche(CoordVector a, CoordVector b)
 {
     float seuil = 0.001;
+    if (fabs(a.x-b.x) > seuil) return false;
+    if (fabs(a.y-b.y) > seuil) return false;
+    if (fabs(a.z-b.z) > seuil) return false;
+    return true;
+}
+bool proche(CoordVector a, CoordVector b, float seuil)
+{
     if (fabs(a.x-b.x) > seuil) return false;
     if (fabs(a.y-b.y) > seuil) return false;
     if (fabs(a.z-b.z) > seuil) return false;

@@ -36,7 +36,6 @@ void bandFilters(std::vector< std::vector<float> >& output)
 
      }
      else QMessageBox::critical(NULL,"Erreur","Veuillez placer le fichier bandFilter.txt dans le repertoire de l'executable' !");
-     qDebug() << "nb filtres : " << output.size();
 
 }
 

@@ -222,6 +222,43 @@ Ray::Ray(int Nray, Source S, int nSrc, bool fibonacci)
 
 }
 
+// Constructeur surchargé
+Ray::Ray(const CoordVector &point, const std::vector<CoordVector>& dir){
+
+    m_src = point;
+    CoordVector vect;
+    float nor;
+
+    for (auto &a : dir)
+    {
+        if (!proche(m_src, a)) // on ne prend pas les sources confondues avec le listener
+        {
+            // creation des points initiaux
+            m_ray.push_back(m_src);
+
+            // creation des vecteurs directeurs normalisés
+            vect = vecteur(m_src,a);
+            nor = norme(vect);
+            m_vDir.push_back(vect/nor);
+        }
+    }
+
+    m_Nray = m_ray.size(); // nombre de rayon
+
+
+    // initialisation des attributs
+    m_dMax = 0;
+    m_dist.resize(m_Nray, 0); // longueur totale de chaque rayon
+    m_long.resize(m_Nray, 0); // longueur du dernier segment de rayon
+    m_nrg.resize(m_Nray*8, 1); // 8 bandes de fréquence par rayons
+
+    m_pos.resize(m_Nray, 0);
+    m_dir.resize(m_Nray, 0);
+    m_nbRayMort = 0;
+    m_rayVivant.resize(m_Nray, true); // Tous les rayons sont vivant
+
+}
+
 // Destructeur
 Ray::~Ray()
 {
@@ -291,8 +328,8 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
     std::vector<CoordVector> vertex(mesh.getVert());
 
     // Declarations
-    std::vector<float> absAir = absorptionAir(20);
-    CoordVector point, vect_dir, vect_ref,vect_norm;
+    //std::vector<float> absAir = absorptionAir(20);
+    CoordVector point, vect_dir, vect_ref;
     CoordVector A,B,C; // trois points
     float longueur_inst(0),nor(0);
     int compteur(0),face(0);
@@ -431,12 +468,14 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 // Sécurité si problème d'intersection
                 if(m_long[j] == 1000000)
                 {
+                    qDebug() << "stop";
                     QMessageBox::critical(NULL,"Erreur","Le " + QString::number(j) + "ème rayon n'a pas atteind de face", "Arreter le programme");
+
                     return false;
                 }
 
                 // Mise à jour du point d'origine
-                m_ray[j]+= m_vDir[j]*m_long[j];
+                m_ray[j]+= m_vDir[j]*(m_long[j] - 1e-6); // On eloigne la point de la face de 1um pour éviter les rayons coincés dans des coins
 
                 // Mise à jour du vecteur directeur
                 /*
@@ -457,7 +496,9 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 compteur = 0;
                 for (l=0; l<8; l++)
                 {
-                    m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face+l+1]) * exp(-absAir[l]*m_long[j]);
+                    //m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face+l+1]) * exp(-absAir[l]*m_long[j]);
+                    m_nrg[j*8 + l] *= (1-indiceMat[3*face+l+1]); // l'attenuation de l'air se fait dans les sources images
+
                     //m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]);
                     // test si le rayon est mort
                     if (m_nrg[j*8 + l] > seuil) // s'il existe au moins un rayon vivant
@@ -485,7 +526,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 
 
 // faces puis rayons + octree
-bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct, const std::vector<float>& absair)
+bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
 {
     // chargement du mesh
     std::vector<float> indiceMat(mesh.getIndMat());
@@ -565,7 +606,7 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct, const std::
             m_vDir[j]  = vecteur_reflechi(m_dir[j], norm[face[j]]);
 
             // Mise à jour point d'origine
-            m_ray[j]+= m_dir[j]*m_long[j];
+            m_ray[j]+= m_dir[j]*(m_long[j] - 1e-6); // On eloigne la point de la face de 1um pour éviter les rayons coincés dans des coins
 
             // On ajoute à la longueur des nouveaux rayons à la longueur totale
             m_dist[j] += m_long[j];
@@ -575,16 +616,10 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct, const std::
             for (l=0; l<8; l++)
             {
                 //m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face[j]+l+1]) * pow(10,(-absair[l]*m_long[j]/10));
-                m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face[j]+l+1]);
-                // test si le rayon est mort
-                if (m_nrg[j*8 + l] > seuil) // s'il existe au moins un rayon vivant
-                {
-                    rayonsExistent = true;
-                }
-                else
-                {
-                    compteur++;
-                }
+                m_nrg[j*8 + l] *= (1-indiceMat[3*face[j]+l+1]); // l'attenuation de l'air se fait dans les sources images
+
+                if (m_nrg[j*8 + l] < seuil) compteur++; // comptage des energies < seuil
+
             }
             // si l'énergie sur les 8 bandes est inférieure au seuil le rayons est déclaré mort
             if (compteur == 8)
@@ -593,7 +628,7 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct, const std::
                 //comptage des rayons morts pour la progress bar
                 m_nbRayMort++;
             }
-            compteur = 0;
+            else rayonsExistent = true; // au moins un rayon est vivant
         }
         else
         {

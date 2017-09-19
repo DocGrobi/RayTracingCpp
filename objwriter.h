@@ -19,8 +19,10 @@ class ObjWriter
     void display_ray(Source &source, std::vector<float> &ray, int nbRay, int nb_rebond);
     void rec_Vert(Source &source, int nSrc, Ray &monRay, int nbRay, int num_rebond, float seuil);
     void rec_Line(int nbRay, int nbRebond);
-    void display_sourceImages(SourceImage &srcImg,float seuil);
+    void display_sourceImages(std::vector<CoordVector> &sourcesImages);
     void display_octree(const std::vector<Boite> &oct);
+    void display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal);
+
 
 private:
     QString m_chemin;
@@ -30,5 +32,12 @@ private:
 };
 
 std::vector<CoordVector> coordVertBoite(const Boite &boite);
+QString HSV2RGB(float h, float s, float v);
+void genererMLT();
+void RotateX(CoordVector &P, float ang);
+void RotateY(CoordVector &P, float ang);
+void Translate(CoordVector &P,CoordVector V);
+void makeSplat(CoordVector &P, CoordVector pos,CoordVector nor);
+
 
 #endif // OBJWRITER_H

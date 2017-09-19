@@ -441,7 +441,7 @@
       <x>350</x>
       <y>280</y>
       <width>261</width>
-      <height>321</height>
+      <height>331</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -462,7 +462,7 @@
        <x>10</x>
        <y>20</y>
        <width>241</width>
-       <height>291</height>
+       <height>302</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -573,6 +573,13 @@
         </property>
         <property name="text">
          <string>Exporter Sources Images</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bouton_projection">
+        <property name="text">
+         <string>Exporter Projection SI</string>
         </property>
        </widget>
       </item>
@@ -900,7 +907,7 @@
          <number>1000000000</number>
         </property>
         <property name="value">
-         <number>100</number>
+         <number>100000</number>
         </property>
        </widget>
       </item>

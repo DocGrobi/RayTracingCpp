@@ -101,14 +101,14 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     for (i = 0 ; i< m_vectBoite.size() ; i++)
     {
         if (m_vectBoite[i].estUneFeuille)
-        nbEltFeuille+= m_vectBoite[i].m_numElt.size();
+            nbEltFeuille+= m_vectBoite[i].m_numElt.size();
+
         else if (!m_vectBoite[i].m_numElt.empty())
-            qDebug() << "non feuille non vide : " << i;
+            qDebug() << "non feuille non vide n°: " << i;
     }
-    //qDebug() << "nb elt feuille : " << nbEltFeuille;
-    //qDebug() << "vert size /3 : " << vertex.size()/3;
     if(vertex.size()/3 != nbEltFeuille)
         QMessageBox::critical(NULL,"Erreur","Mauvaise mise en boite des faces");
+
 }
 
 Octree::~Octree()
@@ -234,12 +234,12 @@ void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
                 ind = elt[k];
 
                 /*
-                if (ind == 63 && m_vectBoite.size() == 1821)
+                if (ind == 6666 && indiceBoite == 31567)
                 {
-                   float a, b, c;
-                    a = vert[ind].x;
-                    b = boitesFilles[i].m_coinMin.x;
-                    c = boitesFilles[i].m_coinMin.x + boitesFilles[i].m_arrete;
+                   //float c = boitesFilles[i].m_arrete;
+                   CoordVector bla = vert[ind];
+                   //CoordVector bli = m_coinMin;
+
                     qDebug() << "stop";
 
                 }
@@ -298,9 +298,9 @@ void decoupage(Boite &boitePere, std::vector<Boite>& boitesFilles)
 */
 
     // float
-    // Recuperation des données du père
-    CoordVector coinMin = boitePere.m_coinMin;
-    float arrete = boitePere.m_arrete/2;
+    // Recuperation des données du père avec leger offset pour eviter les pb d'arrondi
+    CoordVector coinMin = boitePere.m_coinMin - 0.001;
+    float arrete = boitePere.m_arrete/2 + 0.002;
 
     boitesFilles[0].m_coinMin = CoordVector(coinMin.x           , coinMin.y          , coinMin.z         );
     boitesFilles[1].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y          , coinMin.z         );

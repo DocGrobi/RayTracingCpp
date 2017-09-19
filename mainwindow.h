@@ -79,6 +79,8 @@ private slots:
 
     void on_bouton_convolution_clicked();
 
+    void on_bouton_projection_clicked();
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;

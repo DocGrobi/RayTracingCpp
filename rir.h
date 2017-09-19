@@ -19,7 +19,7 @@ class SourceImage
         std::vector<CoordVector> &getSourcesImages();
         std::vector<float> &getNrgSI();
         std::vector<float> &getX();
-        std::vector<float> &getY();
+        std::vector<std::vector<float> > &getY();
         void addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, bool rayAuto, const std::vector<float> &absAir);
         void filtrerSourceImages();
         bool calculerRIR(int f_ech);
@@ -35,7 +35,7 @@ class SourceImage
         std::vector<float> m_sourcesImages_Filtrees;
         std::vector<float> m_nrgSI_Filtrees;
         std::vector<float> m_x;
-        std::vector<float> m_y;
+        std::vector<std::vector<float> > m_y;
         std::vector<float> m_sourcesImages_Tps;
         float m_xMax;
         std::vector< std::vector<float> > m_FIR;

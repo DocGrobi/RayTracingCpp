@@ -179,7 +179,8 @@ std::vector<float> absair(float temp, float relh) {
     /*
     // AFFICHAGE DES COURBES
     std::vector<float> x, y;
-    float hum, frO, frN, db_humi;
+    std::vector< std::vector<float> > y2;
+    float db_humi;
 
     // boucle sur la frequence
     for (i = 0 ; i<8 ; i++)
@@ -194,6 +195,8 @@ std::vector<float> absair(float temp, float relh) {
             db_humi = round(1000*db_humi)/1000;
             y.push_back(pow(10,db_humi/10));
         }
+        y2.push_back(y);
+        y.clear();
     }
 
     // humidité en abscisse
@@ -204,7 +207,7 @@ std::vector<float> absair(float temp, float relh) {
 
     // ouvre une nouvelle fenetre
     plotWindow plot;
-    plot.XY(x, y, 0.95);
+    plot.XY(x, y2, 0.95);
     plot.makePlot();
     plot.setModal(true);
     plot.exec();
