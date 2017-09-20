@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
    ui->label_listener->setText(m_listener.afficher());
 
    // CHARGEMENT PARAMETRES
-   ui->checkBox__rebFixe->setChecked(true);
+   ui->checkBox__rebFixe->setChecked(false);
    on_radioButton_Fibonacci_toggled(true);
    on_checkBox_rayAuto_toggled(false);
    m_nbRebond = ui->spinBox_nbRebond->value();
@@ -655,8 +655,8 @@ void MainWindow::on_bouton_convolution_clicked()
                 progress.show();
 
 
-            int wavLength = wav.bytesAvailable();
-            qDebug() << "taille du wav :" << wavLength;
+            //int wavLength = wav.bytesAvailable();
+
 
             // Ecriture des données du wav
             QByteArray donnees = wav.readAll();
@@ -672,15 +672,20 @@ void MainWindow::on_bouton_convolution_clicked()
                 x.push_back((float)i/samplerate);
             }
 
-            x.clear();
+            qDebug() << "taille du wav :" << vectWav.size();
 
+/*
+            // TEST
+            x.clear();
+            vectWav.clear();
+            len = 2048;
+            vectWav.resize(len, 0);
+            vectWav[1024] = 1;
             for (i=0;i<len;++i) {
                 x.push_back(i);
             }
 
-
-
-
+*/
             /*
             QVector<float> vectWav1;
             std::vector<float> vectWav;
@@ -718,32 +723,39 @@ void MainWindow::on_bouton_convolution_clicked()
             //partitionnage(m_sourceImage.getFIR(), firPart, nfft);
 
 
+
             std::vector< std::vector<float> > filtres;
             bandFilters(filtres);
 
 
-
+//*
             // TEST avec un dirac
             std::vector<float> dirac;
             //dirac.resize(nfft, 0);
             //dirac[nfft/2+1] = 1;
             //dirac[nfft/2+1] = 1;
-            dirac.resize(1024, 0);
-            dirac[1023] = 1;
-            //dirac[44099] = 1;
+            //dirac.resize(91025, 0);
+            //dirac.resize(52224, 0);
+            dirac.resize(2000, 0);
+            //dirac[1023] = 1;
+            dirac[0] = 1;
+            for (k = 1000 ; k <1050 ; k++)
+                dirac[k] = 0.2;
+            //dirac[60660] = 0.06;
+            //dirac[90990] = 0.025;
             //dirac[264600] = 1;
             std::vector< std::vector<float> > fir;
-            fir.resize(filtres.size(),dirac);
+            //fir.resize(filtres.size(),dirac);
+            fir.resize(1,dirac);
             partitionnage(fir, firPart, nfft);
             ///
+//*/
+
+
 
             std::vector<float> x2;
-            for (k= 0 ; k < 44100 ; k++) { x2.push_back(k);};
+            for (k= 0 ; k < 1024 ; k++) { x2.push_back(k);};
 
-
-
-
-/*
             plotWindow *firPlot = new plotWindow;
             firPlot->setWindowTitle("FIRs");
             firPlot->XY(x2, firPart, 1e-6);
@@ -751,6 +763,7 @@ void MainWindow::on_bouton_convolution_clicked()
             firPlot->makePlot();
             //firPlot->hideLegend();
             firPlot->show();
+/*
 
             plotWindow *filtrePlot = new plotWindow;
             filtrePlot->setWindowTitle("Filtres");
@@ -760,7 +773,8 @@ void MainWindow::on_bouton_convolution_clicked()
             filtrePlot->show();
  */
 
-            int nFiltre = m_sourceImage.getFIR().size(); // nombre de bande fréquentielle
+            //int nFiltre = m_sourceImage.getFIR().size(); // nombre de bande fréquentielle
+            int nFiltre = 1;
             int nPart = firPart.size()/nFiltre; // nombre de partition par bande
 
             qDebug() << "n fir : " << firPart.size();
@@ -772,16 +786,14 @@ void MainWindow::on_bouton_convolution_clicked()
             }
             qDebug() << "Firs spectrales !";
 
+/*
+
 
             if (filtres.size() != nFiltre) QMessageBox::warning(NULL,"Attention", QString::number(nFiltre) + " bandes et " + QString::number(filtres.size()) + " filtres");
             else {
-                qDebug() << "fir 1 :" << firPart[0].size() << "points";
-                qDebug() << "fir 2 :" << firPart[1].size() << "points";
                 for (k = 0; k< nFiltre ; k++) // pour chaque bande
                 {
                     zeroPadding(filtres[k], nfft);
-                    qDebug() << "filtre" << k << " : " << filtres[k].size() << "points";
-
                     rffts(filtres[k].data(), nlog, 1); // on passe les filtres en frequentielle sur nfft points
                     for (j=0 ; j <nPart ; j++) // Pour chaque partie de FIR de nfft points
                     {
@@ -803,7 +815,7 @@ void MainWindow::on_bouton_convolution_clicked()
                 }
             }
             qDebug() << "Somme effectuee !";
-
+*/
 
            /* ///TEST
             //for (k=1 ; k < firPart.size() ; k++) {std::transform(firPart[0].begin(), firPart[0].end(), firPart[k].begin(), firPart[0].begin(), std::plus<float>());}
@@ -826,10 +838,8 @@ void MainWindow::on_bouton_convolution_clicked()
             partitionner(vectWav, nfft, wavPart);
 
             qDebug() << "Wav partitionne !";
+            qDebug() << "nb wavPart :" << wavPart.size();
 
-
-            qDebug() << "wavPart 1 :" << wavPart[0].size() << "points";
-            qDebug() << "wavPart 2 :" << wavPart[1].size() << "points";
             /*
             plotWindow *filtrePlot = new plotWindow;
             filtrePlot->setWindowTitle("Wav");
@@ -857,14 +867,12 @@ void MainWindow::on_bouton_convolution_clicked()
                     // multiplication spectrale du wav et des filtres
                     rspectprod(wavPart[k].data(), firPart[j].data(), buf1.data(), nfft);
                     //std::transform(wavPart[k].begin(), wavPart[k].end(), firPart[j].begin(), buf1.begin(), std::multiplies<float>());
-
+                    //riffts(buf1.data(), nlog, 1);
                     std::transform(buf2[j+k].begin(), buf2[j+k].end(), buf1.begin(), buf2[j+k].begin(), std::plus<float>()); // somme terme à terme http://www.cplusplus.com/reference/algorithm/transform/
                 }
                 progress.setValue(k);
-
             }
             qDebug() << "Wavs spectrales convolues !";
-            qDebug() << "nb wavPart :" << wavPart.size();
 
 
             // iFFT
@@ -907,7 +915,7 @@ void MainWindow::on_bouton_convolution_clicked()
             audioPlot2->setYLabel("Amplitude");
             audioPlot2->hideLegend();
             audioPlot2->show();
-
+/*
             //TEST Difference
             plotWindow *firPlot = new plotWindow;
             firPlot->setWindowTitle("Différences");
@@ -919,7 +927,7 @@ void MainWindow::on_bouton_convolution_clicked()
             firPlot->makePlot();
             firPlot->hideLegend();
             firPlot->show();
-
+*/
 
             wav.writeNewWav(newData);
             m_fichierAudio = QCoreApplication::applicationDirPath() + "/resultat.wav";

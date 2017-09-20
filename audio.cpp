@@ -57,7 +57,7 @@ void partitionner(std::vector<float> &donnee, int taille, std::vector< std::vect
     buffer.resize(taille, 0); // zero padding sur le dernier vecteur
     for(i = 0; i< taille/2; i++)
         {
-            buffer[i] = donnee[i+taille/2];
+            buffer[i+taille/2] = donnee[i];
         }
     output.push_back(buffer);
 
@@ -73,7 +73,7 @@ void partitionner(std::vector<float> &donnee, int taille, std::vector< std::vect
     }
 
     // zero padding sur l'avant dernier vecteur
-    buffer.resize(taille, 0);
+    buffer.assign(taille,0);
     for(i = 0; i< donnee.size()-rang; i++)
         {
             buffer[i] = donnee[i+rang];
@@ -81,22 +81,23 @@ void partitionner(std::vector<float> &donnee, int taille, std::vector< std::vect
     output.push_back(buffer);
 
     // création d'un dernier vecteur pour avoir la premiere moitier correspondant à la fin du vecteur
-    buffer.resize(taille, 0);
+    buffer.assign(taille, 0);
     for(i = 0; i< taille/2; i++)
         {
             buffer[i] = output[output.size()-1][i+taille/2];
         }
     output.push_back(buffer);
+
 }
 
 void recombiner(std::vector< std::vector<float> > &input, std::vector<float> &output)
 {
     output.clear();
     int i;
+    int size = input[0].size()/2 ;
     for(std::vector<float> &a : input)
     {
-        for(i = 0 ; i<a.size()/2; i++)
-        //for(i = a.size()/2 ; i<a.size(); i++)
+        for(i = 0 ; i< size; i++)
         {
             output.push_back(a[i]);
         }
