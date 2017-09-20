@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>619</width>
+    <width>632</width>
     <height>817</height>
    </rect>
   </property>
@@ -440,7 +440,7 @@
      <rect>
       <x>350</x>
       <y>280</y>
-      <width>261</width>
+      <width>271</width>
       <height>331</height>
      </rect>
     </property>
@@ -456,27 +456,62 @@
     <property name="title">
      <string>Boutons</string>
     </property>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="gridLayoutWidget_7">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>241</width>
-       <height>302</height>
+       <width>251</width>
+       <height>311</height>
       </rect>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetNoConstraint</enum>
-      </property>
-      <item>
+     <layout class="QGridLayout" name="gridLayout_6">
+      <item row="14" column="1">
+       <widget class="QSpinBox" name="spinBox_regrouperSI">
+        <property name="maximum">
+         <number>10000</number>
+        </property>
+        <property name="value">
+         <number>10</number>
+        </property>
+       </widget>
+      </item>
+      <item row="14" column="2">
+       <widget class="QCheckBox" name="checkBox_projeter">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Projeter</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="3">
+       <widget class="QPushButton" name="bouton_sourcesImages">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Exporter Sources Images</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="3">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>Imports :</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="0" colspan="3">
        <widget class="QPushButton" name="bouton_source">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -489,7 +524,7 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="2" column="0" colspan="3">
        <widget class="QPushButton" name="bouton_listener">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -502,7 +537,7 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="3" column="0" colspan="3">
        <widget class="QLabel" name="label_2">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -515,7 +550,7 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="4" column="0" colspan="3">
        <widget class="QPushButton" name="bouton_octree">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
@@ -528,7 +563,7 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="5" column="0" colspan="3">
        <widget class="QPushButton" name="bouton_normales">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
@@ -541,7 +576,7 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="6" column="0" colspan="3">
        <widget class="QPushButton" name="bouton_rayons">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
@@ -563,40 +598,26 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QPushButton" name="bouton_sourcesImages">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Exporter Sources Images</string>
-        </property>
-       </widget>
-      </item>
-      <item>
+      <item row="9" column="0" colspan="3">
        <widget class="QPushButton" name="bouton_projection">
         <property name="text">
          <string>Exporter Projection SI</string>
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QLabel" name="label_3">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      <item row="14" column="0">
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
         </property>
         <property name="text">
-         <string>Ouverture Fenêtre :</string>
+         <string>Regrouper en (m) :</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="15" column="0" colspan="3">
        <widget class="QPushButton" name="bouton_RIR">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
@@ -815,7 +836,7 @@
      <rect>
       <x>10</x>
       <y>0</y>
-      <width>601</width>
+      <width>611</width>
       <height>141</height>
      </rect>
     </property>
@@ -1364,7 +1385,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>619</width>
+     <width>632</width>
      <height>22</height>
     </rect>
    </property>

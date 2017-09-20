@@ -388,6 +388,7 @@ void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::ve
         vect    = vecteur(point[i],dirNormal);
         normVec = norme(vect);
         vect    = vect/normVec;
+        point[i]+= vect*0.1;// on reduit la distance au listener
         CoordVector A(a),B(b),C(c),D(d); // initialisation
 
         makeSplat(A,point[i],vect);
@@ -421,12 +422,12 @@ void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::ve
     }
 
     float max = *std::max_element(nrgMoy.begin(), nrgMoy.end());
+    float min = *std::min_element(nrgMoy.begin(), nrgMoy.end());
 
     for (int i = 0; i < nbpoint ; i++)
     {
-
-
-        text = "usemtl " + QString::number(floor(nrgMoy[i]/max*99)) + "\n"; // energie moyenne normalisé *100 pour donner le bon nom au materiau
+        //text = "usemtl " + QString::number(round(99*(nrgMoy[i]-min)/(max-min))) + "\n"; // energie moyenne vaut 99 pour le max et 0 pour le min
+        text = "usemtl " + QString::number(round(99*log10(9*(nrgMoy[i]-min)/(max-min)+1))) + "\n";
         text += "s off\n";
         text += "f ";
         for (j=1 ; j< 5 ;j++)

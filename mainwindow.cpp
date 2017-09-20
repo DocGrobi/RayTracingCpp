@@ -363,6 +363,7 @@ void MainWindow::on_bouton_projection_clicked()
         std::vector<CoordVector> SI2;
         std::vector<float> nrg = m_sourceImage.getNrgSI();
         std::vector<float> nrg2;
+        int seuil = ui->spinBox_regrouperSI->value();
 
         bool srcCommune = false;
         int i, j, k;
@@ -371,7 +372,7 @@ void MainWindow::on_bouton_projection_clicked()
         {
             for (k = 0; k< SI2.size() ; k++)
             {
-                if (proche(SI[i],SI2[k], 1))
+                if (proche(SI[i],SI2[k], seuil))
                 {
                     srcCommune = true;
                     for (j=0 ; j<8 ; j++)
@@ -407,8 +408,10 @@ void MainWindow::on_bouton_projection_clicked()
         //genererMLT();
         ObjWriter monObjWriter(m_fichierExport, monRay.getNbRay());
         //monObjWriter.display_sourceImages(monRay.getRay());
-        monObjWriter.display_coloredTriangle(monRay.getRay(),nrg2, m_listener.getCentre());
-        //monObjWriter.display_coloredTriangle(m_sourceImage.getSourcesImages(), m_sourceImage.getNrgSI(), m_listener.getCentre());
+        if (ui->checkBox_projeter->isChecked())
+            monObjWriter.display_coloredTriangle(monRay.getRay(),nrg2, m_listener.getCentre());
+        else
+            monObjWriter.display_coloredTriangle(SI2, nrg2, m_listener.getCentre());
     }
      /*
     //TEST :
