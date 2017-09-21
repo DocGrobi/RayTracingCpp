@@ -257,6 +257,7 @@ bool SourceImage::calculerRIR(int f_ech)
             if(max<maxbuf) max = maxbuf; // recuperation du max
         }
 
+        //int max2 = 0;
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
         {
             for(float& a : m_y[k])
@@ -265,9 +266,24 @@ bool SourceImage::calculerRIR(int f_ech)
                 if (k>0)
                 {
                     m_FIR[k-1].push_back(sqrt(a)); // passage en puissance
+                    //m_FIR[k-1].push_back(a);
                 }
+                //a/=max;// normalisation
             }
+            /*
+            if(k>0)
+            {
+                maxbuf = *std::max_element(m_FIR[k-1].begin(), m_FIR[k-1].end());
+                if(max2<maxbuf) max2 = maxbuf; // recuperation du max
+            }
+            */
         }
+/*
+        for (int k = 0 ; k < 7 ; k++) // normalisation
+        {
+            for(float& a : m_FIR[k]) a/=max2;
+        }
+*/
 /*
         std::vector<float> zero;
         zero.resize(nb_ech, 0);

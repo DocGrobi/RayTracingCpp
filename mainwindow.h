@@ -11,6 +11,8 @@
 #include <QAudioRecorder>
 #include "plotwindow.h"
 
+
+
 namespace Ui {
 class MainWindow;
 }
@@ -23,6 +25,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void suppFichier();// Suppression des fichiers d'export existant
+    void tests();
 
 private slots:
     void on_bouton_normales_clicked();

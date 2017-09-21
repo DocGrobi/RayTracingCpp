@@ -37,6 +37,7 @@ void bandFilters(std::vector< std::vector<float> >& output)
      }
      else QMessageBox::critical(NULL,"Erreur","Veuillez placer le fichier bandFilter.txt dans le repertoire de l'executable' !");
 
+
 }
 
 void zeroPadding(std::vector<float>& vecteur, int taille)
@@ -102,6 +103,21 @@ void recombiner(std::vector< std::vector<float> > &input, std::vector<float> &ou
             output.push_back(a[i]);
         }
     }
+}
+
+std::vector<float> convolution_temporelle(std::vector<float> &a,std::vector<float> &b)
+{
+    std::vector<float> resultat;
+    resultat.resize(a.size()+b.size()-1,0);
+    int i,  j;
+    for (i=0; i< a.size() ; i++)
+    {
+        for(j=0; j <b.size() ; j++)
+        {
+            resultat[i+j] += a[i]*b[j];
+        }
+    }
+    return resultat;
 }
 
 

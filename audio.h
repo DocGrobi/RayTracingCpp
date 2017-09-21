@@ -11,6 +11,7 @@ void bandFilters(std::vector<std::vector<float> > &output);
 void zeroPadding(std::vector<float>& vecteur, int taille);
 void partitionner(std::vector<float> &donnee, int taille, std::vector<std::vector<float> > &output);
 void recombiner(std::vector< std::vector<float> > &input, std::vector<float> &output);
+std::vector<float> convolution_temporelle(std::vector<float> &a,std::vector<float> &b);
 
 
 

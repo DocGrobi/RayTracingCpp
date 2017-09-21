@@ -718,41 +718,57 @@ void MainWindow::on_bouton_convolution_clicked()
             qDebug() << "nfft : " << nfft;
             nlog = round(log(nfft) / log(2));
 
-            // Partitionnement de la FIR
-            std::vector< std::vector<float> > firPart;
-            //partitionnage(m_sourceImage.getFIR(), firPart, nfft);
-
-
 
             std::vector< std::vector<float> > filtres;
             bandFilters(filtres);
 
+            std::vector< std::vector<float> > fir;
+            // convolution avec les filtres
+            for (k= 0; k<filtres.size() ; k++)
+            {
+                fir.push_back(convolution_temporelle(m_sourceImage.getFIR()[k],filtres[k]));
+            }
+            // Partitionnement de la FIR
+            std::vector< std::vector<float> > firPart;
+            partitionnage(fir, firPart, nfft);
 
-//*
+            qDebug() << "code erreur fft init : " << fftInit(nlog);
+
+            // fft des FIR partitionnées
+            for (auto &a : firPart) { rffts(a.data(), nlog, 1); // on passe fir en frequentielle (directement enregistré dans lui-même)
+            }
+            qDebug() << "Firs spectrales !";
+
+            // Somme fréquencielle
+            int nFiltre = fir.size(); // nombre de bande fréquentielle
+            int nPart = firPart.size()/nFiltre; // nombre de partition par bande
+            qDebug() << "n fir : " << firPart.size();
+            qDebug() << "n part : " << nPart;
+
+            for (k=1; k<nFiltre ; k++)
+            {
+                for (i=0; i<nPart ; i++)
+                {
+                    *std::transform(firPart[i].begin(), firPart[i].end(), firPart[i+k*nPart].begin(), firPart[i].begin(), std::plus<float>()); // somme des 7 bandes dans la première
+                }
+            }
+
+/*
             // TEST avec un dirac
             std::vector<float> dirac;
-            //dirac.resize(nfft, 0);
-            //dirac[nfft/2+1] = 1;
-            //dirac[nfft/2+1] = 1;
-            //dirac.resize(91025, 0);
-            //dirac.resize(52224, 0);
-            dirac.resize(2000, 0);
-            //dirac[1023] = 1;
+            dirac.resize(2500, 0);
+
             dirac[0] = 1;
-            for (k = 1000 ; k <1050 ; k++)
-                dirac[k] = 0.2;
-            //dirac[60660] = 0.06;
-            //dirac[90990] = 0.025;
-            //dirac[264600] = 1;
-            std::vector< std::vector<float> > fir;
-            //fir.resize(filtres.size(),dirac);
-            fir.resize(1,dirac);
+            dirac[583] = 1;
+
+            fir.resize(filtres.size(),dirac);
+            //fir.resize(1,dirac);
             partitionnage(fir, firPart, nfft);
-            ///
-//*/
+            //for (k=0 ;k< 7;k++) filtres.push_back(dirac);
+*/
 
 
-
+/*
             std::vector<float> x2;
             for (k= 0 ; k < 1024 ; k++) { x2.push_back(k);};
 
@@ -763,7 +779,7 @@ void MainWindow::on_bouton_convolution_clicked()
             firPlot->makePlot();
             //firPlot->hideLegend();
             firPlot->show();
-/*
+
 
             plotWindow *filtrePlot = new plotWindow;
             filtrePlot->setWindowTitle("Filtres");
@@ -773,18 +789,6 @@ void MainWindow::on_bouton_convolution_clicked()
             filtrePlot->show();
  */
 
-            //int nFiltre = m_sourceImage.getFIR().size(); // nombre de bande fréquentielle
-            int nFiltre = 1;
-            int nPart = firPart.size()/nFiltre; // nombre de partition par bande
-
-            qDebug() << "n fir : " << firPart.size();
-            qDebug() << "n part : " << nPart;
-            qDebug() << "code erreur fft init : " << fftInit(nlog);
-
-            // fft des FIR partitionnées
-            for (auto &a : firPart) { rffts(a.data(), nlog, 1); // on passe fir en frequentielle (directement enregistré dans lui-même)
-            }
-            qDebug() << "Firs spectrales !";
 
 /*
 
@@ -798,17 +802,27 @@ void MainWindow::on_bouton_convolution_clicked()
                     for (j=0 ; j <nPart ; j++) // Pour chaque partie de FIR de nfft points
                     {
                         rspectprod(firPart[j+k*nPart].data(), filtres[k].data(), firPart[j+k*nPart].data(), nfft);
+                        //std::transform(firPart[j+k*nPart].begin(), firPart[j+k*nPart].end(), filtres[k].begin(), firPart[j+k*nPart].begin(), std::multiplies<float>());
+
                     }
                 }
             }
 
+            plotWindow *filtrePlot = new plotWindow;
+            //for (auto &a : firPart) {riffts(a.data(), nlog, 1);}
+            filtrePlot->setWindowTitle("Filtres");
+            //zeroPadding(filtres, nfft);
+            filtrePlot->XY(x2, firPart, 1e-6);
+            filtrePlot->makePlot();
+            filtrePlot->show();
 
             // somme par bande
             for (j=0 ; j <nPart ; j++) // pour chaque partie d'une bande
             {
                 for (i=0 ; i <nfft ; i++) // pour chaque element
                 {
-                     for (k = 1; k< nFiltre ; k++) // on somme les valeurs des 7 bandes dans la premiere
+                    for (k = 1; k< nFiltre ; k++) // on somme les valeurs des 7 bandes dans la premiere
+                    //for (k = 1; k< nFiltre-1 ; k++)
                     {
                         firPart[j][i] += firPart[j+k*nPart][i];
                     }
@@ -1012,4 +1026,83 @@ void MainWindow::on_bouton_convolution_clicked()
 }
 
 
+void MainWindow::tests()
+{
+
+    /// RIR de cube analytique
+
+    // Dimension du cube
+    CoordVector L(1,1,1); //longueur, largeur, hauteur
+
+    // Position src et listener
+    CoordVector src = m_source.getCentre();
+    CoordVector mic = m_listener.getCentre();
+
+    // Positions relatives et énergie des sources images
+    std::vector<CoordVector> src_im;
+    std::vector<float> src_im_tps;
+    std::vector< std::vector<float> > nrg;
+    nrg.resize(8);
+    float a, b, d;
+    int i,j;
+    for (i = -30 ; i <=30 ; i++)
+    {
+        a = i + 0.5 - 0.5*pow(-1,i);
+        b = pow(-1,i);
+
+        CoordVector si(src*b + L*a - mic);
+
+        d = norme(si); // distance
+
+        src_im.push_back(si); // ajout position
+        src_im_tps.push_back(1000*d/VITESSE_SON); // distance temporelle ms
+
+        for (j = 0; j< 8 ; j++)
+        {
+            nrg[j].push_back(1/pow(d,2));
+        }
+    }
+
+    // A FAIRE : dissipation par les parois et par l'air
+
+
+    // Création de la RIR temporelle
+
+    float tps_max = *std::max_element(src_im_tps.begin(), src_im_tps.end());
+
+    float freq = (float)ui->spinBox_freqEchan->value()/1000; // car on a des temps en ms (convertion en float)
+    int nb_ech = ceil(tps_max*freq);
+
+    float max(0), maxbuf(0);
+    if (nb_ech > 0)
+    {
+        std::vector<float> x;
+        std::vector<std::vector<float> > y;
+        x.resize(nb_ech, 0);
+        y.resize(8);
+
+       // Abscisses
+        for (float i = 0 ; i <nb_ech ; i++)
+       {
+           x[i] = i/freq; // valeurs en ms
+       }
+
+        for (j = 0 ; j < 8 ; j++) // pour chaque bande
+        {
+            y[j].resize(nb_ech);
+            for (i=0 ; i< src_im_tps.size(); i++) // pour chaque source image
+            {
+                y[j][floor(src_im_tps[i]*freq)] += nrg[j][i];
+            }
+            maxbuf = *std::max_element(y[j].begin(), y[j].end());
+            if(max<maxbuf) max = maxbuf; // recuperation du max
+        }
+
+        for (j = 0 ; j < 8 ; j++) // pour chaque bande
+        {
+            for (auto &a : y[j]) {a/=max;} // normalisation
+        }
+    }
+
+}
 
