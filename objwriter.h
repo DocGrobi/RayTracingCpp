@@ -33,7 +33,7 @@ private:
 
 std::vector<CoordVector> coordVertBoite(const Boite &boite);
 QString HSV2RGB(float h, float s, float v);
-void genererMLT();
+void genererMTL();
 void RotateX(CoordVector &P, float ang);
 void RotateY(CoordVector &P, float ang);
 void Translate(CoordVector &P,CoordVector V);

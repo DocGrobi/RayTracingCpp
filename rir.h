@@ -8,6 +8,8 @@
 // les méthodes
 std::vector<bool> toucheListener(Ray &rayon, Listener &listener);
 void partitionnage(std::vector<std::vector<float> > &fir, std::vector<std::vector<float> > &firPart, int taille);
+void unite(std::vector< CoordVector> &si_in, std::vector< CoordVector> &si_out, std::vector<float> &nrg_in, std::vector<float> &nrg_out, float distance);
+
 
 // Les classes
 
@@ -21,9 +23,7 @@ class SourceImage
         std::vector<float> &getX();
         std::vector<std::vector<float> > &getY();
         void addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, bool rayAuto, const std::vector<float> &absAir);
-        void filtrerSourceImages();
         bool calculerRIR(int f_ech);
-        int redimentionnement(int taille);
         void partitionnage(int taille);
         std::vector< std::vector<float> >&getFIR();
         std::vector< std::vector<float> >&getFirPart();

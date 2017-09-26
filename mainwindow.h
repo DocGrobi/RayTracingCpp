@@ -7,11 +7,11 @@
 #include "octree.h"
 #include <QElapsedTimer>
 #include <QMediaPlayer>
-#include <QAudioProbe>
-#include <QAudioRecorder>
 #include "plotwindow.h"
 
-
+#include <QBuffer>
+#include <QAudioDeviceInfo>
+#include <QAudioOutput>
 
 namespace Ui {
 class MainWindow;
@@ -26,6 +26,8 @@ public:
     ~MainWindow();
     void suppFichier();// Suppression des fichiers d'export existant
     void tests();
+
+
 
 private slots:
     void on_bouton_normales_clicked();
@@ -84,6 +86,10 @@ private slots:
 
     void on_bouton_projection_clicked();
 
+    void on_bouton_test_clicked();
+
+    void handleStateChanged(QAudio::State newState);
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
@@ -98,12 +104,15 @@ private:
     bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe;
     QMediaPlayer *player;
 
-    QAudioRecorder *audioRecorder;
 
     plotWindow *plot, *audioPlot, *audioPlot2, *firPlot, *filtrePlot;
 
-    //QAudioProbe *audioProbe;
-    //QByteArray *musicDataBuffer;
+    QBuffer *buffer;
+    QByteArray *arr;
+    QAudioOutput *audio;
+
+    QFile raw;
+    QBuffer *raw_buf;
 };
 
 #endif // MAINWINDOW_H

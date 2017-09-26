@@ -96,7 +96,6 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
 {
     std::vector<bool> touche = toucheListener(rayon,listener);
     CoordVector C; // la source image
-    //std::vector<float> absAir = absorptionAir(20);
 
     std::vector<float> longueurRayonTot = rayon.getDist();
     std::vector<float> longueurRayonFin = rayon.getLong();
@@ -118,7 +117,6 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
 
             C = A - vect*(longueurRayonTot[i] - longueurRayonFin[i]);
 
-            // BONNE METHODE (on garde toutes les sources images) :
             // On ajoute les coordonnées au vecteur sources images
             m_sourcesImages.push_back(C);
 
@@ -135,80 +133,16 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
             m_sourcesImages_Tps.push_back(temps);
 
             // On garde le temps max
-            if (temps > m_xMax)
-            {
-                m_xMax = temps;
-            }
-
-            // MAUVAISE METHODE (à conserver pour le traitement acoustique par la suite) :
-            /*
-            bool srcTrouvee = false;
-
-            for (int j = 0 ; j < m_sourcesImages.size() ; j = j+3) // test parmi les Sources images deja enregistrées
-            {
-                if (proche(C.x , m_sourcesImages[j]) && proche(C.y , m_sourcesImages[j+1]) && proche(C.z , m_sourcesImages[j+2]))
-                {
-                    // SI la source image existe deja
-                    srcTrouvee = true;
-
-                    m_nbSI[j/3]++; // on augmente le compteur du correspondant à la j/3-ème source image
-
-                    // on cumule les énergies pour chaque bande
-                    for (int k = 0 ; k<8 ; k ++)
-                    {
-                       m_nrgSI[j/3*8 + k] = m_nrgSI[j/3*8 + k] + nrg[8*i+k];
-                    }
-                }
-            }
-            if (!srcTrouvee) // S'il s'agit d'une nouvelle source image
-            {
-                // On ajoute les coordonnée au vecteur sources images
-                m_sourcesImages.push_back(C.x);
-                m_sourcesImages.push_back(C.y);
-                m_sourcesImages.push_back(C.z);
-
-                // On crée une nouvelle valeur au vecteur compteur et on dit qu'il y a 1 source image
-                m_nbSI.push_back(1);
-
-                // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
-                for (int k = 0 ; k<8 ; k ++)
-                {
-                    m_nrgSI.push_back(nrg[8*i+k]);
-                }
-            }
-            */
+            if (temps > m_xMax) m_xMax = temps;
         }
     }
 
 }
 
-void SourceImage::filtrerSourceImages()
-{
-    // FAUX NE MARCHE PAS POUR LA SPHERE
-    /*
-    // On ne garde que les sources images en plus de 10 exemplaires
-    for (int i = 0 ; i< m_nbSI.size(); i++)
-    {
-        if (m_nbSI[i] > 10)
-        {
-            for (int j =0 ; j <3 ; j++)
-            {
-                m_sourcesImages_Filtrees.push_back(m_sourcesImages[3*i+j]);
-            }
-
-            for (int j =0 ; j <8 ; j++)
-            {
-                m_nrgSI_Filtrees.push_back(m_nrgSI[8*i+j]);
-            }
-        }
-    }
-    */
-}
 
 
 bool SourceImage::calculerRIR(int f_ech)
 {
-
     float freq = (float)f_ech/1000; // car on a des temps en ms (convertion en float)
 
     int nb_ech = ceil(m_xMax*freq);
@@ -219,28 +153,15 @@ bool SourceImage::calculerRIR(int f_ech)
         m_x.clear();
         m_y.clear();
         m_x.resize(nb_ech, 0);
-        //m_y.resize(nb_ech*8, 0);
         m_y.resize(8);
         m_FIR.clear();
-
 
        // Abscisses
         for (float i = 0 ; i <nb_ech ; i++)
        {
            m_x[i] = i/freq; // valeurs en ms
        }
-    /*
-        // Ordonnées
-        for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
-        {
-            for (int k = 0 ; k < 8 ; k++) // pour chaque bande
-            {
-                m_y[round(8*m_sourcesImages_Tps[i]*freq + k) ] += m_nrgSI[i*8 + k];
 
-            }
-
-        }
-    */
         // Ordonnées
         m_FIR.resize(7);
 
@@ -249,78 +170,25 @@ bool SourceImage::calculerRIR(int f_ech)
             m_y[k].resize(nb_ech);
             for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
             {
-               //m_y[floor(m_sourcesImages_Tps[i]*freq) + k*nb_ech] += m_nrgSI[i*8 + k];
                 m_y[k][floor(m_sourcesImages_Tps[i]*freq)] += m_nrgSI[i*8 + k];
             }
-            //maxbuf = *std::max_element(m_y.begin()+k*nb_ech, m_y.begin()+(k+1)*nb_ech);
             maxbuf = *std::max_element(m_y[k].begin(), m_y[k].end());
             if(max<maxbuf) max = maxbuf; // recuperation du max
         }
 
-        //int max2 = 0;
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
         {
             for(float& a : m_y[k])
             {
                 a/=max;// normalisation
-                if (k>0)
-                {
-                    m_FIR[k-1].push_back(sqrt(a)); // passage en puissance
-                    //m_FIR[k-1].push_back(a);
-                }
-                //a/=max;// normalisation
+                if (k>0) m_FIR[k-1].push_back(sqrt(a)); // passage en puissance
             }
-            /*
-            if(k>0)
-            {
-                maxbuf = *std::max_element(m_FIR[k-1].begin(), m_FIR[k-1].end());
-                if(max2<maxbuf) max2 = maxbuf; // recuperation du max
-            }
-            */
         }
-/*
-        for (int k = 0 ; k < 7 ; k++) // normalisation
-        {
-            for(float& a : m_FIR[k]) a/=max2;
-        }
-*/
-/*
-        std::vector<float> zero;
-        zero.resize(nb_ech, 0);
-
-        for (int k = 0 ; k < 7 ; k++) // test avec une seule fréquence
-        {
-            //if(k!=3 && k!=6) m_FIR[k] = zero;
-        }
-
-        m_FIR[0] = zero;
-        m_FIR[1] = zero;
-*/
-
-
         return true;
     }
     else return false;
 }
 
-int SourceImage::redimentionnement(int taille)
-{
-
-    int j;
-    int i = m_FIR[0].size();
-
-    if(i<taille) // wav plus long que RIR
-    {
-        for (auto &a : m_FIR)
-        {
-            for (j = i ; j <taille ; j++)
-            {
-                a.push_back(0); // zeropadding
-            }
-        }
-    }
-    return i;
-}
 
 void SourceImage::partitionnage(int taille)
 {
@@ -385,5 +253,35 @@ void partitionnage(std::vector< std::vector<float> > &fir, std::vector< std::vec
                 i++; // puis on décale
             }
         }
+    }
+}
+
+void unite(std::vector< CoordVector> &si_in, std::vector< CoordVector> &si_out, std::vector<float> &nrg_in, std::vector<float> &nrg_out, float distance)
+{
+    bool srcCommune = false;
+    int i, j, k;
+
+    for (i = 0; i< si_in.size() ; i++)
+    {
+        for (k = 0; k< si_out.size() ; k++)
+        {
+            if (proche(si_in[i],si_out[k], distance))
+            {
+                srcCommune = true;
+                for (j=0 ; j<8 ; j++)
+                {
+                    nrg_out[k] += nrg_in[i];
+                }
+            }
+        }
+        if (!srcCommune)
+        {
+            si_out.push_back(si_in[i]);
+            for (j=0 ; j<8 ; j++)
+            {
+                nrg_out.push_back(nrg_in[i+j]);
+            }
+        }
+        else srcCommune = false;
     }
 }

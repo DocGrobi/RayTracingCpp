@@ -427,7 +427,7 @@ void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::ve
     for (int i = 0; i < nbpoint ; i++)
     {
         //text = "usemtl " + QString::number(round(99*(nrgMoy[i]-min)/(max-min))) + "\n"; // energie moyenne vaut 99 pour le max et 0 pour le min
-        text = "usemtl " + QString::number(round(99*log10(9*(nrgMoy[i]-min)/(max-min)+1))) + "\n";
+        text = "usemtl " + QString::number(round(240*log10(9*(nrgMoy[i]-min)/(max-min)+1))) + "\n";
         text += "s off\n";
         text += "f ";
         for (j=1 ; j< 5 ;j++)
@@ -482,7 +482,7 @@ void makeSplat(CoordVector &P, CoordVector pos,CoordVector nor)
     Translate(P,pos);
 }
 
-void genererMLT()
+void genererMTL()
 {
     QFile fichier(QCoreApplication::applicationDirPath() + "/materiaux.mtl");
 
@@ -493,14 +493,14 @@ void genererMLT()
     fichier.write(text.toLatin1());
 
     // ecriture des vertex représentant les posotions de sources images
-    for (float i = 0; i < 100 ; i++)
+    for (float i = 0; i < 241 ; i++)
     {
-        text  = "newmlt " + QString::number(i) + "\n";  // nom du materiaux
-        text += "Ka 1.000000 1.000000 1.000000\n"; // couleur ambiante
-        text += "Kd " + HSV2RGB(240-(i*2.4), 1, 1) + "\n"; // couleur diffuse RGB (Hue de 240 à 0)
-        text += "Ks 1.000000 1.000000 1.000000\n"; // specular
-        text += "Ni 1.000000\n"; // densité
-        text += "d 1.000000\n"; // transparence
+        text  = "newmtl " + QString::number(i) + "\n";  // nom du materiaux
+        text += "Ka 1 1 1\n"; // couleur ambiante
+        text += "Kd " + HSV2RGB(240-i, 1, 1) + "\n"; // couleur diffuse RGB (Hue de 240 à 0)
+        text += "Ks 0 0 0\n"; // specular
+        text += "Ni 1\n"; // densité
+        text += "d 0.5\n"; // transparence
         text += "illum 2\n"; // lumière
         text += "\n";
 
