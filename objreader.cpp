@@ -3,6 +3,7 @@
 #include "QIODevice"
 #include "QTextStream"
 #include "QDebug"
+#include <QMessageBox>
 
 
 Source::Source() {
@@ -85,6 +86,8 @@ void Listener::chargerListener()
    CoordVector point(m_vert[0], m_vert[1], m_vert[2]);
    //m_rayon = (max-min)/2;
    m_rayon = norme(vecteur(m_centreListener, point));
+   if (m_rayon < 0.001) QMessageBox::warning(NULL,"Attention","Le rayon du Listener est inférieur à 1mm. Veuillez recharger un Listener", "OK");
+
 }
 
 QString Listener::afficher()

@@ -84,7 +84,7 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     }
 
     // Mise à jour taille des boites
-    /*
+
     for (i = 0 ; i< m_vectBoite.size() ; i++) // pour chaque boite qui n'est pas une feuille vide
     {
         if (!m_vectBoite[i].estUneFeuille || !m_vectBoite[i].m_numElt.empty())
@@ -93,7 +93,7 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
             m_vectBoite[i].m_coinMin = m_vectBoite[i].m_min - 0.00001; // Pour eliminer les problèmes d'arrondi
         }
     }
-*/
+
     // Vérifier s'il y a besoin de faire baver
 
     // Vérification

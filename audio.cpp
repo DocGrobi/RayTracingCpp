@@ -338,4 +338,3 @@ void WavFile::writeNewWav(std::vector<int> &donnees)
       f.seekp( 0 + 4 );
       write_word( f, file_length - 8, 4 );
 }
-

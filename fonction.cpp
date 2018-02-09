@@ -236,6 +236,14 @@ float coordMax(const CoordVector &a)
 
     return max;
 }
+float coordMin(const CoordVector &a)
+{
+    float min = a.x;
+    if (min > a.y) min = a.y;
+    if (min > a.z) min = a.z;
+
+    return min;
+}
 
 CoordVector inverse(CoordVector const& a)
 {

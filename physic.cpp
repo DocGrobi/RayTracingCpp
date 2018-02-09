@@ -143,6 +143,7 @@ std::vector<QString> &Material::getNomMat()
 
 
 //Ref : http://www.sengpielaudio.com/calculator-air.htm
+// view-source:http://resource.npl.co.uk/acoustics/techguides/absorption/
 std::vector<float> absair(float temp, float relh) {
 
     std::vector<float> freq, resultat;

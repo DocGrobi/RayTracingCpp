@@ -7,6 +7,8 @@
 #include "audio.h"
 #include "physic.h"
 #include "fftext.h"
+#include "XFir.hpp"
+#include "XHrir.hpp"
 
 
 
@@ -33,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
    m_nbRayon = ui->spinBox_nbRay->value();
    m_nbFaceFeuille = ui->spinBox_nbFaceFeuille->value();
    m_fichierExport = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
-
+   m_longueurRayMax = 9999999;
 
    // OCTREE
    int nbvert = m_meshObj.getVert().size();
@@ -74,7 +76,6 @@ MainWindow::MainWindow(QWidget *parent) :
        connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
 
        buffer = new QBuffer;
-       buffer->open(QIODevice::ReadWrite);
    }
 }
 
@@ -302,7 +303,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                     if (!monRay.rebondSansMemoire(m_meshObj, -1)) i=m_nbRebond;
                     qDebug() << "temps rayons : " << m_timer.restart() << "ms";
                 }
-                maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto, absAir);
+                maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir);
             }
             monObjWriter.display_sourceImages(maSourceImage.getSourcesImages());
             progress.setValue(m_nbRebond);
@@ -324,7 +325,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                     if (progress.wasCanceled())
                                 break; // arrete la boucle
 
-                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto, absAir);
+                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir);
                     m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                 }
             }
@@ -338,10 +339,10 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                     if (progress.wasCanceled())
                                 break; // arrete la boucle
 
-                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto, absAir);
+                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir);
                 }
             }
-            maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, m_rayAuto, absAir); // On le refait une fois à la sortie de boucle pour les dernier rayon
+            maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir); // On le refait une fois à la sortie de boucle pour les dernier rayon
             monObjWriter.display_sourceImages(maSourceImage.getSourcesImages());
 
             progress.setValue(m_nbRayon);
@@ -489,14 +490,17 @@ void MainWindow::on_checkBox_rayAuto_toggled(bool checked) {
    m_rayAuto = checked;
    if(m_rayAuto)
    {
-       m_longueurRayMax =   sqrt(m_nbRayon/m_seuilArret-1)
+       /*m_longueurRayMax =   sqrt(m_nbRayon/m_seuilArret-1)
                             * 2*m_seuilArret/m_nbRayon
                             * m_listener.getRayon();
+       */
+       m_longueurRayMax =  sqrt(m_listener.getRayon()/2*sqrt(m_nbRayon/m_seuilArret));
        QMessageBox msgBox;
        msgBox.setText("Temps maximum pour mesure statistique : " + QString::number(m_longueurRayMax/VITESSE_SON)+ "s");
        msgBox.setIcon(QMessageBox::Information);
        msgBox.exec();
    }
+   else m_longueurRayMax = 9999999;
 }
 
 
@@ -631,7 +635,7 @@ void MainWindow::on_bouton_convolution_clicked()
 
             // Reinitialisation du buffer
             audio->stop();
-            buffer->close();
+            if (buffer->isOpen()) buffer->close();
             delete buffer;
             buffer = new QBuffer;
             buffer->open(QIODevice::ReadWrite);
@@ -745,41 +749,44 @@ void MainWindow::on_bouton_convolution_clicked()
             int prog = wavPart.size();
             progress.setRange(0,prog*1.1);
 
+     // HRIR
+            /*
+            std::vector<float> v1;
+            v1.resize(128);
+            std::vector<std::vector<float> > v2;
+            v2.resize(12303,v1);
+            std::vector<std::vector<std::vector<float> > > array3D;
+            array3D.resize(2, v2);
 
+            QString fichier = QCoreApplication::applicationDirPath() + "/MyHead1_.xhead";
+            std::string file = fichier.toStdString();
+            openXFile(file,2, 12308, 128, array3D);
+            //XFir xfir(1,2,nfft,wav.fileFormat().sampleRate());
+            XHrir xhrir(1, wav.fileFormat().sampleRate(), file);
+            // chercher les HRIR
+            int indice = xhrir.sph2ind(0,0); // valeur à modifier selon orientation du listener
+            std::vector<float> azel(2);
+            xhrir.ind2sph(indice,azel.data());
+            xhrir.getFilter(1,2);
+            */
+
+
+
+
+            //for (auto &a : wavPart) {rffts(a.data(), nlog, 1);} // on fait d'abord la fft
 
             // initialisation lecture temps reel
             std::vector<qint16> newData2;
             newData2.resize(nfft/2);
 
-            audio->setBufferSize(nfft/2);
-
             qint64 pos;
-
-            rffts(wavPart[0].data(), nlog, 1); // fft
-            for(j=0 ; j <nPart ; j++) // pour chaque partie du filtre
-            {
-                // multiplication spectrale du wav et des filtres
-                rspectprod(wavPart[k].data(), firPart[j].data(), buf1.data(), nfft);
-                std::transform(buf2[j+k].begin(), buf2[j+k].end(), buf1.begin(), buf2[j+k].begin(), std::plus<float>()); // somme terme à terme http://www.cplusplus.com/reference/algorithm/transform/
-            }
-
-            riffts(buf2[0].data(), nlog, 1); //ifft
-
-            // lecture audio temps reel
-            for (i = 0; i< nfft/2 ; i++) newData2[i]=(qint16)buf2[0][i]; // on passe de float à 16bit int
-            arr->clear();
-            arr->append(reinterpret_cast<const char *>(newData2.data()), newData2.size()*2); // on passe en QByteArray
-
-            buffer->seek(0);
-            buffer->write(arr->data(), arr->length());
-            buffer->seek(0);
+            audio->setBufferSize(nfft/2);
             audio->start(buffer);
 
-            qDebug() << "arr size" << arr->size();
-            qDebug() << "buffer size" << buffer->size();
+            //QElapsedTimer timer;
 
 
-            for (k = 1; k < wavPart.size(); k++)
+            for (k = 0; k < wavPart.size(); k++)
             {
                 rffts(wavPart[k].data(), nlog, 1); // fft
                 for(j=0 ; j <nPart ; j++) // pour chaque partie du filtre
@@ -790,7 +797,8 @@ void MainWindow::on_bouton_convolution_clicked()
                 }
                 progress.setValue(k);
 
-                riffts(buf2[k].data(), nlog, 1);
+                riffts(buf2[k].data(), nlog, 1); //ifft
+
                 for (i = 0; i< nfft/2 ; i++) newData2[i]=(qint16)buf2[k][i];
                 //newData2.assign(buf2[k].begin(),buf2[k].begin()+nfft/2);
                 arr->clear();
@@ -800,8 +808,9 @@ void MainWindow::on_bouton_convolution_clicked()
                 buffer->seek(buffer->size()); // on se place à la fin
                 buffer->write(arr->data(), arr->length()); // on ecrit le nouveau buffer
                 buffer->seek(pos); // on se remet à la bonne position pour lire
-
             }
+
+
             qDebug() << "Wavs spectrales convolues !";
 
 
@@ -831,19 +840,7 @@ void MainWindow::on_bouton_convolution_clicked()
             recombiner(buf2, newWav);
             qDebug() << "taille newWav : " << newWav.size();
 
-/*            // TEST
-            for(auto &a : newWav){out << (qint16)a;}
-            //buffer->seek(0);
-            pos = buffer->pos();
-            buffer->seek(buffer->size());
-            buffer->write(arr->data(), arr->length());
-            //buffer->seek(0);
-            buffer->seek(pos);
-            audio->start(buffer);
 
-            qDebug() << audio->error();
-            qDebug() << audio->state();
-*/
             for (i=vectWav.size() ; i < newWav.size() ; i++) {
                 x.push_back((float)i/samplerate);
             }
@@ -892,11 +889,14 @@ void MainWindow::tests()
     /// RIR de cube analytique
 
     // Dimension du cube
-    CoordVector L(1,1,1); //longueur, largeur, hauteur
+    CoordVector L(20,20,20); //longueur, largeur, hauteur
 
     // Position src et listener
     CoordVector src = m_source.getCentre();
     CoordVector mic = m_listener.getCentre();
+
+    qDebug() << "source :";
+    src.debug();
 
     // Positions relatives et énergie des sources images
     std::vector<CoordVector> src_im;
@@ -904,34 +904,48 @@ void MainWindow::tests()
     std::vector< std::vector<float> > nrg;
     nrg.resize(8);
     float d;
-    int i,j, k, l;
-    int ordre = 30;
+    float i,j, k, l;
+    float ordre = 30;
+    float ordrebuf;
+    //float Rmax = (ordre-1)*coordMin(L);
     CoordVector si;
     for (i = -ordre ; i <=ordre ; i++)
-    {
-        si.x = (src.x*pow(-1,i) + L.x*(i + 0.5 - 0.5*pow(-1,i)) - mic.x);
-        for (j = -ordre ; j<= ordre; j++)
+    {      
+        //si.x = src.x*pow(-1,i) + L.x*(i + 0.5 - 0.5*pow(-1,i));
+        si.x = i*L.x + src.x*pow(-1,i);
+        for (j = -(ordre-abs(i)) ; j<= ordre-abs(i); j++)
         {
-            si.y = (src.y*pow(-1,j) + L.y*(j + 0.5 - 0.5*pow(-1,j)) - mic.y);
-            for (k = -ordre ; k<= ordre; k++)
+            if (ordre-abs(i)-abs(j)< 0) ordrebuf = 0;
+            else ordrebuf = ordre-abs(i)-abs(j);
+            //si.y = src.y*pow(-1,j) + L.y*(j + 0.5 - 0.5*pow(-1,j));
+            si.y = j*L.y + src.y*pow(-1,j);
+            for (k = -ordrebuf ; k<= ordrebuf; k++)
             {
-                si.z = (src.z*pow(-1,k) + L.z*(k + 0.5 - 0.5*pow(-1,k)) - mic.z);
+                //si.z = src.z*pow(-1,k) + L.z*(k + 0.5 - 0.5*pow(-1,k));
+                si.z = k*L.z + src.z*pow(-1,k);
 
-                d = norme(si); // distance
-                if (d > 1e-6) // pour eviter les divisions par 0
+                d = norme(vecteur(si,mic)); // distance
+                //if (d<Rmax)
                 {
                     src_im.push_back(si); // ajout position
                     src_im_tps.push_back(1000*d/VITESSE_SON); // distance temporelle ms
 
-                    for (l = 0; l< 8 ; l++)
+                    if (d > 1e-6) // pour eviter les divisions par 0 (cas source et mic confondus)
                     {
-                        nrg[l].push_back(1/pow(d,2));
+                        for (l = 0; l< 8 ; l++){
+                            nrg[l].push_back(1/pow(d,2));
+                        }
+                    }
+                    else {
+                        for (l = 0; l< 8 ; l++) {
+                            nrg[l].push_back(1);
+                        }
                     }
                 }
-
             }
         }
     }
+
 
     // A FAIRE : dissipation par les parois et par l'air
 
@@ -958,7 +972,7 @@ void MainWindow::tests()
         y.resize(8);
 
        // Abscisses
-        for (float i = 0 ; i <nb_ech ; i++)
+        for (i = 0 ; i <nb_ech ; i++)
        {
            x[i] = i/freq; // valeurs en ms
        }
@@ -973,17 +987,32 @@ void MainWindow::tests()
             maxbuf = *std::max_element(y[j].begin(), y[j].end());
             if(max<maxbuf) max = maxbuf; // recuperation du max
         }
+        qDebug() << "max : " << max;
 
         for (j = 0 ; j < 8 ; j++) // pour chaque bande
         {
             for (auto &a : y[j]) {a/=max;} // normalisation
         }
 
+        // Affichage de la différence
+
+        std::vector<std::vector<float> > y_rir = m_sourceImage.getY();
+
+        if (y_rir.size()>0)
+        {
+            qDebug() << "y : " << y[0].size();
+            qDebug() << "y rir : " << y_rir[0].size();
+            std::transform(y[0].begin(), y[0].begin()+y_rir[0].size(), y_rir[0].begin(), y[0].begin(), std::minus<float>());
+        }
+        else QMessageBox::warning(NULL,"Attention","Veuillez d'abord exporter les SI ET calculer la RIR pour afficher la différence");
+
+
         plotWindow *plot = new plotWindow;
-        plot->XY(x,y,1e-6);
+        plot->XY(x,y[0]);
         plot->makePlot();
         plot->show();
     }
+
 
     //affichage
     suppFichier();
@@ -996,36 +1025,11 @@ void MainWindow::tests()
 
 void MainWindow::on_bouton_test_clicked()
 {
-    //tests();
+    tests();
 
-
-    //buffer->open(QIODevice::ReadWrite);
     // play streaming
 /*    WavFile wav;
 
-    if(wav.open(m_fichierAudio))
-    {
-        QByteArray donnees = wav.readAll();
-        const char * data=donnees.constData(); // retourne le pointeur d'accés aux données
-        const qint16 * datai=reinterpret_cast<const qint16 *>(data);
-        int len=donnees.size()/(sizeof(qint16));
-        std::vector<float> vectWav;
-        for (int i=0;i<len;++i) {
-            vectWav.push_back(((float)datai[i]));
-        }
-        arr->clear();
-        std::vector<qint16> data2;
-
-        for(auto &a : vectWav){data2.push_back((qint16)a);}
-        arr->append(reinterpret_cast<const char *>(data2.data()), data2.size()*2);
-        qint64 pos;
-        pos = buffer->pos();
-        buffer->seek(buffer->size());
-        buffer->write(arr->data(), arr->length());
-        buffer->seek(pos);
-    }
-
-/*
     if(wav.open(m_fichierAudio))
     {
         arr->clear();

@@ -355,7 +355,8 @@ void plotWindow::logScale()
         }
         m_echelleLog = true;
         yMax = 10*log10(yMax);
-        yMin = 10*log10(yMin);
+        if (yMin<=0) yMin = -120;
+        else yMin = 10*log10(yMin);
 
         ui->customPlot->clearGraphs();
         makePlot();

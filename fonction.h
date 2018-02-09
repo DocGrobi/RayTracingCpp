@@ -84,10 +84,8 @@ inline CoordVector operator-(CoordVector const&a,CoordVector const&b){CoordVecto
 CoordVector inverse(CoordVector const& a);
 // inline permet de mettre les fonction dans le .h
 float coordMax(const CoordVector &a);
+float coordMin(const CoordVector &a);
 QString CoordVector2QString(const CoordVector &coord);
-
-
-
 
 
 inline CoordDouble operator+(CoordDouble const&a,CoordDouble const&b){CoordDouble c(a);c+=b;return c;}

@@ -26,7 +26,11 @@ SOURCES  += main.cpp\
     mainwindow.cpp \
     fftext.cpp \
     fftlib.cpp \
-    matlib.cpp
+    matlib.cpp \
+    XFir.cpp \
+    XHRir.cpp \
+    XUtils.cpp \
+    XSpatFir.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -42,11 +46,17 @@ HEADERS  += mainwindow.h \
             audio.h \
     fftext.h \
     fftlib.h \
-    matlib.h
+    matlib.h \
+    XFir.hpp \
+    XHRir.hpp \
+    XUtils.hpp \
+    XSpatFir.hpp \
+
 
 
 FORMS    += mainwindow.ui \
             plotwindow.ui
+
 
 
 # remove possible other optimization flags
@@ -56,5 +66,4 @@ QMAKE_CXXFLAGS_RELEASE -= -O2
 
 # add the desired -O3 if not present
 QMAKE_CXXFLAGS_RELEASE *= -O3
-
 

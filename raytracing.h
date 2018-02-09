@@ -33,12 +33,13 @@ public:
     std::vector<float>& getDist() ;
     std::vector<float>& getLong() ;
     std::vector<bool>& getRayVivant() ;
+    void killRay(int i);
 
     int getNbRay() const;
     int getRayMorts() const;
 
     bool rebondSansMemoire(MeshObj mesh, float seuil);
-    bool rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct); // fonction surchargée avec octree
+    bool rebondSansMemoire(MeshObj &mesh, float seuil,Octree &oct); // fonction surchargée avec octree
 
     void stockage();
 

@@ -309,6 +309,10 @@ int Ray::getRayMorts() const{
     return m_nbRayMort;
 }
 
+void Ray::killRay(int i){
+    m_rayVivant[i] = false;
+}
+
 void Ray::stockage(){
     m_pos = m_ray;
     m_dir = m_vDir;
@@ -336,6 +340,8 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
     bool rayonsExistent = false;
     int j(0), k(0), l(0);
    // int nbVertex = vertex.size();
+
+    *std::transform(m_dist.begin(), m_dist.end(), m_long.begin(), m_dist.begin(), std::plus<float>()); // ajout de la dernière longueur de rayon à la distance totale
 
     stockage();
 
@@ -474,23 +480,8 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                     return false;
                 }
 
-                // Mise à jour du point d'origine
-                m_ray[j]+= m_vDir[j]*(m_long[j] - 1e-6); // On eloigne la point de la face de 1um pour éviter les rayons coincés dans des coins
-
-                // Mise à jour du vecteur directeur
-                /*
-                vect_norm.x = normales[face];
-                vect_norm.y = normales[face+1];
-                vect_norm.z = normales[face+2];
-                vect_ref = vecteur_reflechi(vect_dir,vect_norm);
-                */
-
-                vect_ref = vecteur_reflechi(vect_dir,normales[face]);
-                nor = norme(vect_ref);
-                m_vDir[j] = vect_ref/nor;
-
                 // On ajoute la longueur du nouveau rayon à la longueur totale
-                m_dist[j] += m_long[j];
+               // m_dist[j] += m_long[j];
 
                 //On met à jour l'énergie du nouveau rayon pour chaque bande
                 compteur = 0;
@@ -519,6 +510,15 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 }
                 compteur = 0;
             }
+            //Mise à jour des rayons vivant
+            if (m_rayVivant[j])
+            {
+                // Mise à jour du point d'origine
+                m_ray[j]+= m_vDir[j]*(m_long[j] - 1e-6); // On eloigne la point de la face de 1um pour éviter les rayons coincés dans des coins
+                vect_ref = vecteur_reflechi(vect_dir,normales[face]);
+                nor = norme(vect_ref);
+                m_vDir[j] = vect_ref/nor;
+            }
     }
 
     return rayonsExistent;
@@ -544,6 +544,9 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
     //int nbVertex = vertex.size();
     std::vector<int> face;
     face.resize(m_Nray, 0);
+
+    *std::transform(m_dist.begin(), m_dist.end(), m_long.begin(), m_dist.begin(), std::plus<float>()); // ajout de la dernière longueur de rayon à la distance totale
+
     m_long.assign(m_Nray, 1000000);
     CoordVector e1, e2, pvec, tvec, qvec;
     float longueur_inst(0), det, u, v, invDet;
@@ -602,14 +605,16 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                 return false;
             }
 
+/*
             // Mise à jour vecteur directeur
             m_vDir[j]  = vecteur_reflechi(m_dir[j], norm[face[j]]);
 
             // Mise à jour point d'origine
             m_ray[j]+= m_dir[j]*(m_long[j] - 1e-6); // On eloigne la point de la face de 1um pour éviter les rayons coincés dans des coins
+*/
 
             // On ajoute à la longueur des nouveaux rayons à la longueur totale
-            m_dist[j] += m_long[j];
+            //m_dist[j] += m_long[j];
 
             //Mise à jour de l'énergie des rayons pour chaque bande
             compteur = 0;
@@ -630,9 +635,17 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
             }
             else rayonsExistent = true; // au moins un rayon est vivant
         }
-        else
+       // else { m_long[j] = 0; }// A vérifier pourquoi on fait ça ...
+
+        //Mise à jour des rayons vivant
+        if (m_rayVivant[j])
         {
-            m_long[j] = 0; // A vérifier pourquoi on fait ça ...
+            // Mise à jour vecteur directeur
+            m_vDir[j]  = vecteur_reflechi(m_dir[j], norm[face[j]]);
+
+            // Mise à jour point d'origine
+            m_ray[j]+= m_dir[j]*(m_long[j] - 1e-6); // On eloigne la point de la face de 1um pour éviter les rayons coincés dans des coins
+
         }
     }
     return rayonsExistent;
