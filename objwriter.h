@@ -23,11 +23,15 @@ class ObjWriter
     void display_octree(const std::vector<Boite> &oct);
     void display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal);
 
+    void display_Beam_init();
+    void display_Beam_vert(Ray &rayon, Listener &listener);
+    void display_Beam_line();
 
 private:
     QString m_chemin;
     std::vector<int> m_rayMort;
     std::vector<int> m_buff_rayMort;
+    int m_nbligne;
 
 };
 

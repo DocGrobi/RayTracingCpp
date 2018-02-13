@@ -150,7 +150,7 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
     std::vector<float> touche = toucheListener2(rayon,listener);
     CoordVector C; // la source image
 
-    std::vector<float> longueurRayonTot = rayon.getDist(); // A FAIRE : longueurRayonTot[i] - longueurRayonFin[i] directement dans raytracing.cpp
+    std::vector<float> longueurRayonTot = rayon.getDist(); // Distance parcourue avant le dernier rebond
     //std::vector<float> longueurRayonFin = rayon.getLong();
     std::vector<CoordVector> point = rayon.getPos();
     std::vector<CoordVector> vec = rayon.getDir();

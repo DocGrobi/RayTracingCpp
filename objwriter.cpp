@@ -41,6 +41,7 @@ ObjWriter::ObjWriter(QString chemin, int nbRay) // recupere en attribue le nom d
 
 
       m_chemin = newName; // attribution du dernier nom
+      m_nbligne = 0;
 }
 
 ObjWriter::~ObjWriter()
@@ -215,6 +216,7 @@ void ObjWriter::display_ray(Source &source, std::vector<float> &ray, int nbRay, 
 }
 
 
+
 void ObjWriter::rec_Vert(Source &source, int nSrc, Ray &monRay, int nbRay, int num_rebond, float seuil)
 {
     QFile fichier(m_chemin);
@@ -333,6 +335,73 @@ void ObjWriter::rec_Line(int nbRay, int nbRebond)
     fichier.close(); // ferme le fichier
 }
 
+// pour un faisceau
+void ObjWriter::display_Beam_init()
+{
+    QFile fichier(m_chemin);
+
+    fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
+
+    // creation d'un entete
+    QString text("o Beams \n");
+    fichier.write(text.toLatin1());
+}
+
+void ObjWriter::display_Beam_vert(Ray &rayon, Listener &listener)
+{
+
+    QFile fichier(m_chemin);
+    QString text;
+
+
+    if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier et place le curseur à la fin
+    {
+        std::vector<float> touche = toucheListener2(rayon,listener);
+        std::vector<float> longueurRayonTot = rayon.getDist(); // Distance parcourue avant le dernier rebond
+        std::vector<CoordVector> point = rayon.getPos();
+        std::vector<CoordVector> vec = rayon.getDir();
+        CoordVector A, C, vect;
+
+        for( int i =0 ; i< touche.size() ; i++)
+        {
+            if (touche[i]>=0) // si le rayon touche le listener
+            {
+                A = point[i];
+                vect = vec[i];
+               C = A - vect*longueurRayonTot[i];
+
+                longueurRayonTot[i]+=touche[i]; // ajout de la distance au listener à la longueur totale
+
+                text = "v "+ CoordVector2QString(C) + "\n";
+                text+= "v "+ CoordVector2QString(C+(vect*longueurRayonTot[i])) + "\n";
+                fichier.write(text.toLatin1());
+                m_nbligne+=2;
+            }
+        }
+    }
+    fichier.close(); // ferme le fichier
+}
+
+void ObjWriter::display_Beam_line()
+{
+
+    QFile fichier(m_chemin);
+    QString ligne;
+
+    if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier et place le curseur à la fin
+    {
+        if (m_nbligne>0)
+        {
+            for (int i = 1; i<= m_nbligne ; i+=2)
+            {
+                ligne = "l " + QString::number(i) + " " + QString::number(i+1) + "\n";
+                fichier.write(ligne.toLatin1());
+            }
+
+        }
+    }
+    fichier.close(); // ferme le fichier
+}
 
 void ObjWriter::display_sourceImages(std::vector<CoordVector> &sourcesImages)
 {

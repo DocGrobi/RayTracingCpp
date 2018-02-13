@@ -90,6 +90,8 @@ private slots:
 
     void handleStateChanged(QAudio::State newState);
 
+    void on_bouton_faisceau_clicked();
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;

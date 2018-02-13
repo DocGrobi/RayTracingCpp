@@ -243,6 +243,104 @@ void MainWindow::on_bouton_rayons_clicked()
     progress.cancel();
 }
 
+void MainWindow::on_bouton_faisceau_clicked()
+{
+    suppFichier(); // Suppression des fichiers d'export existant
+
+    // Ouvrir fenetre de progress bar
+    QProgressDialog progress(this);
+        progress.setWindowModality(Qt::WindowModal);
+        progress.setLabelText("working...");
+        progress.setRange(0,0);
+        progress.setMinimumDuration(0);
+        progress.show();
+
+    // OCTREE
+    if (m_methodeRapide) m_octree.chargerRayonRacine(m_nbRayon);
+
+
+    for (int nSrc = 0; nSrc < m_source.getNbSource() ; nSrc++)
+    {
+        // EXPORT
+        ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
+        monObjWriter.display_Beam_init();
+        // RAYONS
+        Ray monRay(m_nbRayon, m_source, nSrc, m_fibonacci);
+        if(!m_fibonacci) m_nbRayon = monRay.getNbRay(); // Au cas où on prend la source blender
+
+        if (m_nbRebondFixe)
+        {
+            progress.setRange(0,m_nbRebond);
+
+            //Méthode d'affichage incrémentale
+            for (int i =0; i<m_nbRebond ; i++)
+            {
+                // progress bar
+                progress.setValue(i);
+                if (progress.wasCanceled()) i=m_nbRebond;
+                if (m_methodeRapide)
+                {
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
+                    if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) // calcul des points d'intersection entre rayons et faces
+                            i=m_nbRebond; // arrete la boucle
+                }
+                else
+                {
+                    if(!monRay.rebondSansMemoire(m_meshObj, -1)) // calcul des points d'intersection entre rayons et faces
+                            i=m_nbRebond; // arrete la boucle
+                }
+                monObjWriter.display_Beam_vert(monRay, m_listener); // ecriture des vertex
+
+            }
+            monObjWriter.display_Beam_line(); // ecriture des edges entre les vertex
+            progress.setValue(m_nbRebond);
+        }
+        /*
+        else
+        {
+            progress.setRange(0,m_nbRayon);
+            progress.setValue(1);
+
+            int i(0);
+            if (m_methodeRapide)
+            {
+                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
+                // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
+                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+                {
+                    // progress bar
+                    progress.setValue(monRay.getRayMorts());
+                    if (progress.wasCanceled()) break; // arrete la boucle
+
+                    monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
+                    i++;
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
+                }
+            }
+            else
+            {
+                // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
+                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
+                {
+                    // progress bar
+                    progress.setValue(monRay.getRayMorts());
+                    if (progress.wasCanceled()) break; // arrete la boucle
+
+                    monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
+                    i++;
+                }
+            }
+
+            monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture du dernier vertex
+            monObjWriter.rec_Line(m_nbRayon,0); // ecriture des edges entre les vertex
+
+            progress.setValue(m_nbRayon);
+        }
+        */
+    }
+
+}
+
 
 void MainWindow::on_bouton_sourcesImages_clicked()
 {
@@ -905,7 +1003,7 @@ void MainWindow::tests()
     nrg.resize(8);
     float d;
     float i,j, k, l;
-    float ordre = 30;
+    float ordre = m_nbRebond;
     float ordrebuf;
     //float Rmax = (ordre-1)*coordMin(L);
     CoordVector si;
@@ -952,10 +1050,13 @@ void MainWindow::tests()
 
     // Création de la RIR temporelle
 
-    float tps_max = *std::max_element(src_im_tps.begin(), src_im_tps.end());
+     std::vector<std::vector<float> > y_rir = m_sourceImage.getY();
+
+    //float tps_max = *std::max_element(src_im_tps.begin(), src_im_tps.end());
 
     float freq = (float)ui->spinBox_freqEchan->value()/1000; // car on a des temps en ms (convertion en float)
-    int nb_ech = ceil(tps_max*freq);
+    //int nb_ech = ceil(tps_max*freq);
+    int nb_ech = y_rir[0].size();
 
     qDebug() << freq;
     qDebug() << nb_ech;
@@ -982,7 +1083,8 @@ void MainWindow::tests()
             y[j].resize(nb_ech);
             for (i=0 ; i< src_im_tps.size(); i++) // pour chaque source image
             {
-                y[j][floor(src_im_tps[i]*freq)] += nrg[j][i];
+                if (floor(src_im_tps[i]*freq) < nb_ech)
+                    y[j][floor(src_im_tps[i]*freq)] += nrg[j][i];
             }
             maxbuf = *std::max_element(y[j].begin(), y[j].end());
             if(max<maxbuf) max = maxbuf; // recuperation du max
@@ -996,13 +1098,27 @@ void MainWindow::tests()
 
         // Affichage de la différence
 
-        std::vector<std::vector<float> > y_rir = m_sourceImage.getY();
+
 
         if (y_rir.size()>0)
         {
             qDebug() << "y : " << y[0].size();
             qDebug() << "y rir : " << y_rir[0].size();
             std::transform(y[0].begin(), y[0].begin()+y_rir[0].size(), y_rir[0].begin(), y[0].begin(), std::minus<float>());
+
+            /*
+            for (i = 0 ; i <nb_ech ; i++)
+           {
+              if (y[0][i] == 0) y[0][i] = abs(y_rir[0][i]);
+              else y[0][i] = abs((y_rir[0][i]-y[0][i])/y[0][i]);
+           }
+           */
+            /*
+           for (i = y_rir[0].size() ; i <y[0].size() ; i++)
+           {
+               y[0][i] = 0;
+           }
+            */
         }
         else QMessageBox::warning(NULL,"Attention","Veuillez d'abord exporter les SI ET calculer la RIR pour afficher la différence");
 
@@ -1076,3 +1192,5 @@ void MainWindow::handleStateChanged(QAudio::State newState)
             break;
     }
 }
+
+

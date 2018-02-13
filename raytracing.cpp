@@ -546,8 +546,8 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
     face.resize(m_Nray, 0);
 
     *std::transform(m_dist.begin(), m_dist.end(), m_long.begin(), m_dist.begin(), std::plus<float>()); // ajout de la dernière longueur de rayon à la distance totale
-
     m_long.assign(m_Nray, 1000000);
+
     CoordVector e1, e2, pvec, tvec, qvec;
     float longueur_inst(0), det, u, v, invDet;
 

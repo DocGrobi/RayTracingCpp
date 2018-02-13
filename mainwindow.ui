@@ -462,37 +462,12 @@
        <x>10</x>
        <y>20</y>
        <width>251</width>
-       <height>311</height>
+       <height>341</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
-      <item row="14" column="1">
-       <widget class="QSpinBox" name="spinBox_regrouperSI">
-        <property name="maximum">
-         <number>10000</number>
-        </property>
-        <property name="value">
-         <number>10</number>
-        </property>
-       </widget>
-      </item>
-      <item row="14" column="2">
-       <widget class="QCheckBox" name="checkBox_projeter">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Projeter</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0" colspan="3">
-       <widget class="QPushButton" name="bouton_sourcesImages">
+      <item row="5" column="0" colspan="3">
+       <widget class="QPushButton" name="bouton_normales">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
           <horstretch>0</horstretch>
@@ -500,14 +475,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Exporter Sources Images</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0" colspan="3">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Imports :</string>
+         <string>Exporter Normales</string>
         </property>
        </widget>
       </item>
@@ -524,6 +492,31 @@
         </property>
        </widget>
       </item>
+      <item row="15" column="0">
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Regrouper en (m) :</string>
+        </property>
+       </widget>
+      </item>
+      <item row="16" column="0" colspan="3">
+       <widget class="QPushButton" name="bouton_RIR">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Afficher RIR</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="0" colspan="3">
        <widget class="QPushButton" name="bouton_listener">
         <property name="sizePolicy">
@@ -537,16 +530,26 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0" colspan="3">
-       <widget class="QLabel" name="label_2">
+      <item row="8" column="0" colspan="3">
+       <widget class="QPushButton" name="bouton_sourcesImages">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Exports au format .obj :</string>
+         <string>Exporter Sources Images</string>
+        </property>
+       </widget>
+      </item>
+      <item row="15" column="1">
+       <widget class="QSpinBox" name="spinBox_regrouperSI">
+        <property name="maximum">
+         <number>10000</number>
+        </property>
+        <property name="value">
+         <number>10</number>
         </property>
        </widget>
       </item>
@@ -563,16 +566,31 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0" colspan="3">
-       <widget class="QPushButton" name="bouton_normales">
+      <item row="3" column="0" colspan="3">
+       <widget class="QLabel" name="label_2">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Exporter Normales</string>
+         <string>Exports au format .obj :</string>
+        </property>
+       </widget>
+      </item>
+      <item row="15" column="2">
+       <widget class="QCheckBox" name="checkBox_projeter">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Projeter</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -598,35 +616,24 @@
         </property>
        </widget>
       </item>
-      <item row="9" column="0" colspan="3">
+      <item row="0" column="0" colspan="3">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Imports :</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0" colspan="3">
        <widget class="QPushButton" name="bouton_projection">
         <property name="text">
          <string>Exporter Projection SI</string>
         </property>
        </widget>
       </item>
-      <item row="14" column="0">
-       <widget class="QLabel" name="label">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
+      <item row="7" column="0" colspan="3">
+       <widget class="QPushButton" name="bouton_faisceau">
         <property name="text">
-         <string>Regrouper en (m) :</string>
-        </property>
-       </widget>
-      </item>
-      <item row="15" column="0" colspan="3">
-       <widget class="QPushButton" name="bouton_RIR">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Afficher RIR</string>
+         <string>Exporter Faisceau</string>
         </property>
        </widget>
       </item>
