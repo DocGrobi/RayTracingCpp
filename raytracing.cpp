@@ -219,6 +219,7 @@ Ray::Ray(int Nray, Source S, int nSrc, bool fibonacci)
     m_dir.resize(m_Nray, 0);
     m_nbRayMort = 0;
     m_rayVivant.resize(m_Nray, true); // Tous les rayons sont vivant
+    m_rayVivantBackup.resize(m_Nray, true);
 
 }
 
@@ -302,7 +303,7 @@ std::vector<float> &Ray::getLong(){
 }
 
 std::vector<bool> &Ray::getRayVivant(){
-    return m_rayVivant;
+    return m_rayVivantBackup;
 }
 
 int Ray::getRayMorts() const{
@@ -317,6 +318,7 @@ void Ray::stockage(){
     m_pos = m_ray;
     m_dir = m_vDir;
     m_nrgBackup = m_nrg;
+    m_rayVivantBackup = m_rayVivant;
 }
 
 

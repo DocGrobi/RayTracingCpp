@@ -281,12 +281,12 @@ void MainWindow::on_bouton_faisceau_clicked()
                 if (m_methodeRapide)
                 {
                     m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
-                    if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) // calcul des points d'intersection entre rayons et faces
+                    if(!monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree)) // calcul des points d'intersection entre rayons et faces
                             i=m_nbRebond; // arrete la boucle
                 }
                 else
                 {
-                    if(!monRay.rebondSansMemoire(m_meshObj, -1)) // calcul des points d'intersection entre rayons et faces
+                    if(!monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation)) // calcul des points d'intersection entre rayons et faces
                             i=m_nbRebond; // arrete la boucle
                 }
                 monObjWriter.display_Beam_vert(monRay, m_listener); // ecriture des vertex
@@ -295,50 +295,7 @@ void MainWindow::on_bouton_faisceau_clicked()
             monObjWriter.display_Beam_line(); // ecriture des edges entre les vertex
             progress.setValue(m_nbRebond);
         }
-        /*
-        else
-        {
-            progress.setRange(0,m_nbRayon);
-            progress.setValue(1);
-
-            int i(0);
-            if (m_methodeRapide)
-            {
-                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
-                // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
-                {
-                    // progress bar
-                    progress.setValue(monRay.getRayMorts());
-                    if (progress.wasCanceled()) break; // arrete la boucle
-
-                    monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
-                    i++;
-                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
-                }
-            }
-            else
-            {
-                // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
-                {
-                    // progress bar
-                    progress.setValue(monRay.getRayMorts());
-                    if (progress.wasCanceled()) break; // arrete la boucle
-
-                    monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
-                    i++;
-                }
-            }
-
-            monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture du dernier vertex
-            monObjWriter.rec_Line(m_nbRayon,0); // ecriture des edges entre les vertex
-
-            progress.setValue(m_nbRayon);
-        }
-        */
     }
-
 }
 
 
@@ -392,13 +349,13 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                     m_timer.restart();
                     m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                     qDebug() << "temps octree : " << m_timer.restart() << "ms";
-                    if (!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) i=m_nbRebond;
+                    if (!monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree)) i=m_nbRebond;
                     qDebug() << "temps rayons : " << m_timer.restart() << "ms";
                 }
                 else
                 {
                     m_timer.restart();
-                    if (!monRay.rebondSansMemoire(m_meshObj, -1)) i=m_nbRebond;
+                    if (!monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation)) i=m_nbRebond;
                     qDebug() << "temps rayons : " << m_timer.restart() << "ms";
                 }
                 maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir);
@@ -781,6 +738,7 @@ void MainWindow::on_bouton_convolution_clicked()
             std::vector< std::vector<float> > firPart;
             partitionnage(fir, firPart, nfft);
 
+
             qDebug() << "code erreur fft init : " << fftInit(nlog);
 
             // fft des FIR partitionnées
@@ -987,7 +945,7 @@ void MainWindow::tests()
     /// RIR de cube analytique
 
     // Dimension du cube
-    CoordVector L(20,20,20); //longueur, largeur, hauteur
+    CoordVector L(2,2,2); //longueur, largeur, hauteur
 
     // Position src et listener
     CoordVector src = m_source.getCentre();
@@ -1063,19 +1021,31 @@ void MainWindow::tests()
     qDebug() << nrg[0][0];
     qDebug() << src_im_tps[0];
 
+    std::vector<CoordVector> src_im_exp = m_sourceImage.getSourcesImages();
+    for(auto& a: src_im_exp) arrondir(a);
+    std::vector<CoordVector> SItriees = ranger(src_im_exp);
+    qDebug() << "SI EXP :";
+    for(auto&a : SItriees) a.debug();
+    qDebug() << "SI THEO :";
+    for(auto&a : src_im) a.debug();
 
     float max(0), maxbuf(0);
     if (nb_ech > 0)
     {
         std::vector<float> x;
         std::vector<std::vector<float> > y;
+        std::vector<std::vector<float> > yBis;
         x.resize(nb_ech, 0);
         y.resize(8);
+        yBis.resize(2);
+        yBis[0].resize(nb_ech, 0);
+        yBis[1].resize(nb_ech, 0);
+
 
        // Abscisses
         for (i = 0 ; i <nb_ech ; i++)
        {
-           x[i] = i/freq; // valeurs en ms
+           x[i] = i/freq; // valeurs en ms     
        }
 
         for (j = 0 ; j < 8 ; j++) // pour chaque bande
@@ -1104,15 +1074,15 @@ void MainWindow::tests()
         {
             qDebug() << "y : " << y[0].size();
             qDebug() << "y rir : " << y_rir[0].size();
-            std::transform(y[0].begin(), y[0].begin()+y_rir[0].size(), y_rir[0].begin(), y[0].begin(), std::minus<float>());
 
-            /*
+            //std::transform(y[0].begin(), y[0].begin()+y_rir[0].size(), y_rir[0].begin(), y[0].begin(), std::minus<float>());
+
             for (i = 0 ; i <nb_ech ; i++)
            {
-              if (y[0][i] == 0) y[0][i] = abs(y_rir[0][i]);
+              if (y[0][i] == 0) y[0][i] = m_seuilAttenuation;//abs(y_rir[0][i]);
               else y[0][i] = abs((y_rir[0][i]-y[0][i])/y[0][i]);
            }
-           */
+
             /*
            for (i = y_rir[0].size() ; i <y[0].size() ; i++)
            {
@@ -1122,9 +1092,12 @@ void MainWindow::tests()
         }
         else QMessageBox::warning(NULL,"Attention","Veuillez d'abord exporter les SI ET calculer la RIR pour afficher la différence");
 
+        yBis[0] = y_rir[0];
+        yBis[1] =y[1];
 
         plotWindow *plot = new plotWindow;
-        plot->XY(x,y[0]);
+        plot->XY(x,yBis, m_seuilAttenuation);
+        //plot->XY(x,y[0]);
         plot->makePlot();
         plot->show();
     }
@@ -1138,6 +1111,50 @@ void MainWindow::tests()
 
 }
 
+void MainWindow::test2() //fonction 1/d^2
+{
+    std::vector<std::vector<float> > y_rir = m_sourceImage.getY();
+
+   float freq = (float)ui->spinBox_freqEchan->value()/1000; // car on a des temps en ms (convertion en float)
+   int nb_ech = y_rir[0].size();
+
+   if (nb_ech > 0)
+   {
+       std::vector<float> x;
+       std::vector<std::vector<float> > y;
+       x.resize(nb_ech, 0);
+       y.resize(2);
+
+       y[0].push_back(1);
+       y[1].push_back(1);
+
+      // Abscisses
+       for (float i = 1 ; i <nb_ech ; i++)
+      {
+          x[i] = i/freq; // valeurs en ms
+          y[0].push_back(1/pow(x[i],2));
+          y[1].push_back(y_rir[0][i]/2);
+      }
+
+       plotWindow *plot = new plotWindow;
+       plot->XY(x,y,m_seuilAttenuation);
+       plot->makePlot();
+       plot->show();
+   }
+
+}
+
+void MainWindow::test3() //fonction rangement
+{
+    CoordVector a(1,3,5), b(-1, 8, 1), c(-1, 8, 0), d(-1, 1, 0);
+    std::vector<CoordVector> test;
+    test.push_back(a);
+    test.push_back(b);
+    test.push_back(c);
+    test.push_back(d);
+    std::vector<CoordVector> resultat = ranger(test);
+    for(auto& a: resultat) a.debug();
+}
 
 void MainWindow::on_bouton_test_clicked()
 {

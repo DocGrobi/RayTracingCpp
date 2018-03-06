@@ -77,14 +77,13 @@ std::vector<float> toucheListener2(Ray &rayon, Listener &listener)
         if (vivant[i]) // on ne prend pas les rayons morts
         {
             //AB = vecteur(posOld[i], posNew[i]);
-            AL = vecteur(posOld[i], L);
-
-           alpha = angle(dir[i],AL);
+           AL = vecteur(posOld[i], L);
            normeAL = norme(AL);
 
            // test si le point A n'est pas dans le listener
            if (normeAL > r)
                {
+               alpha = angle(dir[i],AL);
                // test sur la direction
                if (cos(alpha) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
                {
@@ -158,8 +157,8 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
     CoordVector A, vect;
     float temps;
 
-    int i, k;
-
+    int i, k, j;
+    bool SI_trouvee = false;
 
     for (i = 0 ; i< touche.size() ; i++) // rayon par rayon
     {
@@ -172,29 +171,45 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                 A = point[i];
                 vect = vec[i];
 
-               // C = A - vect*(longueurRayonTot[i] - longueurRayonFin[i]);
                C = A - vect*longueurRayonTot[i];
 
-                longueurRayonTot[i]+=touche[i]; // ajout de la distance au listener à la longueur totale
+               longueurRayonTot[i]+=touche[i]; // ajout de la distance au listener à la longueur totale
 
-                // On ajoute les coordonnées au vecteur sources images
-                m_sourcesImages.push_back(C);
+               /// Nouvelle méthode
+               for (j= m_sourcesImages.size()-1 ; j>=0; j--) // balayage des source images deja existante depuis la fin
+               {
+                   if (proche(C, m_sourcesImages[j])) // si la nouvelle SI est proche d'une ancienne
+                   {
+                       for (k = 0 ; k<8 ; k ++) // On ajoute les énérgies
+                       {
+                           m_nrgSI[8*j+k]+=nrg[8*i+k];
+                           //m_nrgSI[8*j+k]+=(nrg[8*i+k] * pow(10,-absAir[k]*longueurRayonTot[i]/10));
+                       }
+                       SI_trouvee = true; // on a trouvé une SI en doublons
+                       break; // et on sort de la boucle
+                   }
+               }
+               if (SI_trouvee) SI_trouvee = false; // Si on a trouvé une SI on n'a rien à faire
+               else /// Ancienne méthode
+               {
+                    // On ajoute les coordonnées au vecteur sources images
+                    m_sourcesImages.push_back(C);
 
-                // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
-                for (k = 0 ; k<8 ; k ++)
-                {
-                    m_nrgSI.push_back(nrg[8*i+k]);
-                    //m_nrgSI.push_back(nrg[8*i+k] * pow(10,-absAir[k]*longueurRayonTot[i]/10));
+                    // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
+                    for (k = 0 ; k<8 ; k ++)
+                    {
+                        m_nrgSI.push_back(nrg[8*i+k]);
+                        //m_nrgSI.push_back(nrg[8*i+k] * pow(10,-absAir[k]*longueurRayonTot[i]/10));
+                    }
+
+                    temps = 1000 * longueurRayonTot[i] / VITESSE_SON; // en ms //  A FAIRE : utiliser longueurRayonTot
+
+                    // On créé le vecteur des valeurs en temps
+                    m_sourcesImages_Tps.push_back(temps);
+
+                    // On garde le temps max
+                    if (temps > m_xMax) m_xMax = temps;
                 }
-
-                //temps = 1000 * norme(vecteur(C,listener.getCentre())) / VITESSE_SON; // en ms //  A FAIRE : utiliser longueurRayonTot
-                temps = 1000 * longueurRayonTot[i] / VITESSE_SON; // en ms //  A FAIRE : utiliser longueurRayonTot
-
-                // On créé le vecteur des valeurs en temps
-                m_sourcesImages_Tps.push_back(temps);
-
-                // On garde le temps max
-                if (temps > m_xMax) m_xMax = temps;
             }
         }
     }

@@ -63,6 +63,7 @@ private:
     std::vector<float> m_dist;  // Distance totale parcourue par les rayons au moment t
 
     std::vector<bool> m_rayVivant;  // longueur du dernier segment de rayon
+    std::vector<bool> m_rayVivantBackup;
     int m_nbRayMort;
 
 };

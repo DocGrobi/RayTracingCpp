@@ -151,7 +151,7 @@ bool proche(float a, float b)
 
 bool proche(CoordVector a, CoordVector b)
 {
-    float seuil = 0.001;
+    float seuil = 0.01;
     if (fabs(a.x-b.x) > seuil) return false;
     if (fabs(a.y-b.y) > seuil) return false;
     if (fabs(a.z-b.z) > seuil) return false;
@@ -163,6 +163,88 @@ bool proche(CoordVector a, CoordVector b, float seuil)
     if (fabs(a.y-b.y) > seuil) return false;
     if (fabs(a.z-b.z) > seuil) return false;
     return true;
+}
+
+void arrondir(CoordVector & a)
+{
+    a.x = round(a.x);
+    a.y = round(a.y);
+    a.z = round(a.z);
+}
+
+
+std::vector<CoordVector> ranger(std::vector<CoordVector> a)
+{
+    std::vector<CoordVector> resultat;
+    int i, j, k, kbuf;
+    std::vector<float> ax, ay, az, ax2, ay2, az2, ax3, ay3, az3;
+    for (auto& coord : a) // création de trois vecteur de float pour les coordonnée x, y, z
+    {
+        ax.push_back(coord.x);
+        ay.push_back(coord.y);
+        az.push_back(coord.z);
+    }
+    float xmin, ymin, zmin;
+    std::vector<int> indice2erase, indice2erase2;
+    int buf;
+    while(!ax.empty())
+    {
+        xmin=*std::min_element(ax.begin(), ax.end());
+        for(i=0; i<ax.size(); i++)
+        {
+            if(ax[i]==xmin)
+            {
+                ax2.push_back(ax[i]);
+                ay2.push_back(ay[i]);
+                az2.push_back(az[i]);
+                indice2erase.push_back(i);
+            }
+        }
+        while(!ay2.empty())
+        {
+            ymin=*std::min_element(ay2.begin(), ay2.end());
+            for(j=0; j<ay2.size(); j++)
+            {
+                if(ay2[j]==ymin)
+                {
+                    ax3.push_back(ax2[j]);
+                    ay3.push_back(ay2[j]);
+                    az3.push_back(az2[j]);
+                    indice2erase2.push_back(j);
+                }
+            }
+            while(!az3.empty())
+            {
+                zmin=*std::min_element(az3.begin(), az3.end());
+                for(k=0; k<az3.size(); k++)
+                {
+                    if(az3[k]==zmin)
+                    {
+                        resultat.push_back(CoordVector(ax3[k], ay3[k], az3[k]));
+                        break;
+                    }
+                }
+                ax3.erase(ax3.begin()+k);
+                ay3.erase(ay3.begin()+k);
+                az3.erase(az3.begin()+k);
+            }
+            for(int ind=indice2erase2.size()-1; ind>=0; ind--) {
+                ax2.erase(ax2.begin()+indice2erase2[ind]);
+                ay2.erase(ay2.begin()+indice2erase2[ind]);
+                az2.erase(az2.begin()+indice2erase2[ind]);
+            }
+            indice2erase2.clear();
+
+        for(int ind=indice2erase.size()-1; ind>=0; ind--) {
+            ax.erase(ax.begin()+indice2erase[ind]);
+            ay.erase(ay.begin()+indice2erase[ind]);
+            az.erase(az.begin()+indice2erase[ind]);
+            }
+        indice2erase.clear();
+
+        }
+    }
+    return resultat;
 }
 
 // Les classes

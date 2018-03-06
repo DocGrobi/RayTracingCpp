@@ -26,6 +26,8 @@ public:
     ~MainWindow();
     void suppFichier();// Suppression des fichiers d'export existant
     void tests();
+    void test2();
+    void test3();
 
 
 
