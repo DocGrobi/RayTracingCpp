@@ -16,6 +16,12 @@ void debugStdVect(std::vector<signed short>& vect)//pour le debug
     qDebug() << vector;
 }
 
+void debugStdVect(std::vector<int>& vect)
+{
+    QVector<int> vector = QVector<int>::fromStdVector(vect);
+    qDebug() << vector;
+}
+
 CoordVector sph2cart(float ro, float theta, float phi)
 {
     float x,y,z;
@@ -167,16 +173,18 @@ bool proche(CoordVector a, CoordVector b, float seuil)
 
 void arrondir(CoordVector & a)
 {
+    a = a*10E4;
     a.x = round(a.x);
     a.y = round(a.y);
     a.z = round(a.z);
+    a = a/10E4;
 }
 
 
-std::vector<CoordVector> ranger(std::vector<CoordVector> a)
+std::vector<CoordVector> ranger(std::vector<CoordVector> a, std::vector<int> & indices)
 {
     std::vector<CoordVector> resultat;
-    int i, j, k, kbuf;
+    int i, j, k;
     std::vector<float> ax, ay, az, ax2, ay2, az2, ax3, ay3, az3;
     for (auto& coord : a) // création de trois vecteur de float pour les coordonnée x, y, z
     {
@@ -186,7 +194,10 @@ std::vector<CoordVector> ranger(std::vector<CoordVector> a)
     }
     float xmin, ymin, zmin;
     std::vector<int> indice2erase, indice2erase2;
-    int buf;
+    indices.clear();
+    int compteur(0);
+
+
     while(!ax.empty())
     {
         xmin=*std::min_element(ax.begin(), ax.end());
@@ -221,12 +232,21 @@ std::vector<CoordVector> ranger(std::vector<CoordVector> a)
                     if(az3[k]==zmin)
                     {
                         resultat.push_back(CoordVector(ax3[k], ay3[k], az3[k]));
+
+                        for (int w=0; w<a.size(); w++)
+                        {
+                            if(a[w].x == ax3[k]
+                            && a[w].y == ay3[k]
+                            && a[w].z == az3[k])
+                            indices.push_back(w);
+                        }
                         break;
                     }
                 }
                 ax3.erase(ax3.begin()+k);
                 ay3.erase(ay3.begin()+k);
                 az3.erase(az3.begin()+k);
+                compteur=0;
             }
             for(int ind=indice2erase2.size()-1; ind>=0; ind--) {
                 ax2.erase(ax2.begin()+indice2erase2[ind]);
@@ -234,16 +254,16 @@ std::vector<CoordVector> ranger(std::vector<CoordVector> a)
                 az2.erase(az2.begin()+indice2erase2[ind]);
             }
             indice2erase2.clear();
-
+        }
         for(int ind=indice2erase.size()-1; ind>=0; ind--) {
             ax.erase(ax.begin()+indice2erase[ind]);
             ay.erase(ay.begin()+indice2erase[ind]);
             az.erase(az.begin()+indice2erase[ind]);
             }
         indice2erase.clear();
-
-        }
     }
+
+
     return resultat;
 }
 
@@ -308,6 +328,11 @@ CoordVector operator*(const CoordVector &a, float b) {
 
 CoordVector operator/(const CoordVector &a, float b) {
     return CoordVector (a.x/b, a.y/b, a.z/b);
+}
+
+bool operator==(const CoordVector &a, const CoordVector &b){
+    if(a.x==b.x &&a.y==b.y && a.z == b.z) return true;
+    else return false;
 }
 
 float coordMax(const CoordVector &a)

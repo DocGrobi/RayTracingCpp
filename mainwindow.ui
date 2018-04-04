@@ -711,7 +711,7 @@
            <set>Qt::AlignCenter</set>
           </property>
           <property name="value">
-           <number>10</number>
+           <number>1</number>
           </property>
          </widget>
         </item>

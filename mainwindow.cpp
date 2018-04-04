@@ -23,7 +23,9 @@ MainWindow::MainWindow(QWidget *parent) :
    ui->label_listener->setText(m_listener.afficher());
 
    // CHARGEMENT PARAMETRES
-   on_checkBox__rebFixe_toggled(false);
+   //on_checkBox__rebFixe_toggled(false);
+   on_checkBox__rebFixe_toggled(true);
+
    on_radioButton_Fibonacci_toggled(true);
    on_checkBox_rayAuto_toggled(false);
    m_nbRebond = ui->spinBox_nbRebond->value();
@@ -39,10 +41,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
    // OCTREE
    int nbvert = m_meshObj.getVert().size();
+   qDebug() << nbvert;
    // On limite le nombre de faces par feuille au nombre de face total
    ui->spinBox_nbFaceFeuille->setMaximum(nbvert/3);
    // active l'octree selon le nombre d'éléments
-   if (nbvert > 50) on_checkBox_methodeRapide_toggled(true);
+   if (nbvert > 200) {
+       //on_checkBox_methodeRapide_toggled(true);
+       ui->checkBox_methodeRapide->setChecked(true);
+   }
    else on_checkBox_methodeRapide_toggled(false);
 
    // PLAYER
@@ -561,8 +567,22 @@ void MainWindow::on_checkBox_rayAuto_toggled(bool checked) {
 
 void MainWindow::on_checkBox_methodeRapide_toggled(bool checked)
 {
-    if(checked) m_octree = Octree(m_meshObj,m_nbFaceFeuille);
+
+    if(checked) {
+        // lancer le timer
+        QElapsedTimer timer2;
+        timer2.start();
+
+        m_octree = Octree(m_meshObj,m_nbFaceFeuille);
+
+        double temps = timer2.elapsed();
+        //temps = temps /1000;
+        ui->lcd_timer->display(temps);
+        qDebug() << "temps création octree : " << temps << "ms";
+    }
     m_methodeRapide = checked;
+
+
 }
 
 void MainWindow::on_bouton_audioFile_clicked()
@@ -945,7 +965,7 @@ void MainWindow::tests()
     /// RIR de cube analytique
 
     // Dimension du cube
-    CoordVector L(2,2,2); //longueur, largeur, hauteur
+    CoordVector L(10,10,10); //longueur, largeur, hauteur
 
     // Position src et listener
     CoordVector src = m_source.getCentre();
@@ -965,6 +985,7 @@ void MainWindow::tests()
     float ordrebuf;
     //float Rmax = (ordre-1)*coordMin(L);
     CoordVector si;
+    float nrgMax;
     for (i = -ordre ; i <=ordre ; i++)
     {      
         //si.x = src.x*pow(-1,i) + L.x*(i + 0.5 - 0.5*pow(-1,i));
@@ -989,13 +1010,12 @@ void MainWindow::tests()
                     if (d > 1e-6) // pour eviter les divisions par 0 (cas source et mic confondus)
                     {
                         for (l = 0; l< 8 ; l++){
-                            nrg[l].push_back(1/pow(d,2));
+                            nrg[l].push_back(1/pow(d,2));        
                         }
+                        if(nrgMax<1/pow(d,2)) nrgMax = 1/pow(d,2);
                     }
                     else {
-                        for (l = 0; l< 8 ; l++) {
-                            nrg[l].push_back(1);
-                        }
+                        QMessageBox::warning(NULL,"Attention","Source et micro confondus");
                     }
                 }
             }
@@ -1003,11 +1023,137 @@ void MainWindow::tests()
     }
 
 
+    float tpsMin, tpsMax;
+
+    tpsMax = *std::max_element(src_im_tps.begin(),src_im_tps.end());
+
+    std::vector<float> ind0, si_tps_save;
+    si_tps_save = src_im_tps;
+    while (tpsMin<tpsMax)
+    {
+        tpsMin = *std::min_element(src_im_tps.begin(),src_im_tps.end());
+        for(i=0; i<src_im_tps.size(); i++)
+        {
+            if(src_im_tps[i]==tpsMin) {
+                ind0.push_back(i);
+                src_im_tps[i]=tpsMax;
+                break;
+            }
+        }
+    }
+
+
+    std::vector<float> src_im_exp_tps = m_sourceImage.getSI_Tps();
+    float tpsMin1, tpsMax1;
+
+    tpsMax1 = *std::max_element(src_im_tps.begin(),src_im_tps.end());
+
+    std::vector<float> ind1;
+    while (tpsMin1<tpsMax1)
+    {
+        tpsMin1 = *std::min_element(src_im_exp_tps.begin(),src_im_exp_tps.end());
+        for(i=0; i<src_im_exp_tps.size(); i++)
+        {
+            if(src_im_exp_tps[i]==tpsMin1) {
+                ind1.push_back(i);
+                src_im_exp_tps[i]=tpsMax1;
+                break;
+            }
+        }
+    }
+
+    src_im_exp_tps = m_sourceImage.getSI_Tps();
+    std::vector<float> x;
+    std::vector<std::vector<float> > y;
+    y.resize(2);
+    std::vector<float> nrgExp = m_sourceImage.getNrgSI();
+    std::vector<CoordVector> src_im_exp = m_sourceImage.getSourcesImages();
+
+    // normalisation
+    for (l = 0; l< 8 ; l++)
+    {
+        for (auto&a : nrg[l]) a/=nrgMax;
+    }
+    float nrgExpMax = *std::max_element(nrgExp.begin(), nrgExp.end());
+    for (auto&a : nrgExp) a/=nrgExpMax;
+
+    std::vector<float> erreurRelative;
+    std::vector<float> erreurRelative2;
+
+    for(i=0; i<src_im_exp_tps.size(); i++)
+    {
+        x.push_back(i);
+        //y[0].push_back(nrg[0][ind0[i]]);
+        //y[1].push_back(nrgExp[8*ind1[i]]);
+        erreurRelative.push_back(std::abs(nrg[0][ind0[i]]-nrgExp[8*ind1[i]])/nrg[0][ind0[i]]);
+        erreurRelative2.push_back(std::abs(si_tps_save[ind0[i]]-src_im_exp_tps[ind1[i]])/si_tps_save[ind0[i]]);
+        qDebug() << src_im_exp_tps[ind1[i]];
+        src_im[ind0[i]].debug();
+        arrondir(src_im_exp[ind1[i]]);
+        src_im_exp[ind1[i]].debug();
+
+
+    }
+
+    y[0]=erreurRelative;
+    y[1]=erreurRelative2;
+
+    float moyenne = std::accumulate(erreurRelative.begin(), erreurRelative.end(), 0.0);
+    moyenne/=erreurRelative.size();
+    qDebug() << "Moyenne : " << moyenne;
+
+    float moyenne2 = std::accumulate(erreurRelative2.begin(), erreurRelative2.end(), 0.0);
+    moyenne2/=erreurRelative2.size();
+    qDebug() << "Moyenne2 : " << moyenne2;
+
+/*
+
+    for(auto& a: src_im_exp) arrondir(a);
+    std::vector<int> indices;
+    std::vector<CoordVector> SItriees = ranger(src_im_exp, indices);
+
+
+
+    qDebug() << "nrg theo size :" << nrg[0].size();
+    qDebug() << "nrg Exp size :" << nrgExp.size()/8;
+    qDebug() << "indices size :" << indices.size();
+
+
+
+
+    qDebug() << "SI THEO :";
+    for (i=src_im.size()/2; i<src_im.size(); i++)
+    {
+        //src_im[i].debug();
+        //if(nrg[0][i]>0.0001)
+        x.push_back(i);
+        y[0].push_back(nrg[0][i]);
+        qDebug() << nrg[0][i];
+    }
+
+    qDebug() << "SI EXP :";
+    for (i=SItriees.size()/2; i<SItriees.size(); i++)
+    {
+
+        //SItriees[i].debug();
+    }
+
+    // trie des enérgies
+    for (i=0; i<indices.size(); i++)
+    {
+        if(8*indices[i]>nrgExp.size()/2 //&& nrgExp[8*indices[i]]>0.0001
+                )
+                y[1].push_back(nrgExp[8*indices[i]]);
+    }
+
+*/
+
+
     // A FAIRE : dissipation par les parois et par l'air
 
 
     // Création de la RIR temporelle
-
+/*
      std::vector<std::vector<float> > y_rir = m_sourceImage.getY();
 
     //float tps_max = *std::max_element(src_im_tps.begin(), src_im_tps.end());
@@ -1021,13 +1167,7 @@ void MainWindow::tests()
     qDebug() << nrg[0][0];
     qDebug() << src_im_tps[0];
 
-    std::vector<CoordVector> src_im_exp = m_sourceImage.getSourcesImages();
-    for(auto& a: src_im_exp) arrondir(a);
-    std::vector<CoordVector> SItriees = ranger(src_im_exp);
-    qDebug() << "SI EXP :";
-    for(auto&a : SItriees) a.debug();
-    qDebug() << "SI THEO :";
-    for(auto&a : src_im) a.debug();
+
 
     float max(0), maxbuf(0);
     if (nb_ech > 0)
@@ -1083,25 +1223,22 @@ void MainWindow::tests()
               else y[0][i] = abs((y_rir[0][i]-y[0][i])/y[0][i]);
            }
 
-            /*
-           for (i = y_rir[0].size() ; i <y[0].size() ; i++)
-           {
-               y[0][i] = 0;
-           }
-            */
         }
         else QMessageBox::warning(NULL,"Attention","Veuillez d'abord exporter les SI ET calculer la RIR pour afficher la différence");
 
         yBis[0] = y_rir[0];
         yBis[1] =y[1];
 
-        plotWindow *plot = new plotWindow;
-        plot->XY(x,yBis, m_seuilAttenuation);
-        //plot->XY(x,y[0]);
-        plot->makePlot();
-        plot->show();
+
     }
 
+*/
+    plotWindow *plot = new plotWindow;
+    //plot->XY(x,y, m_seuilAttenuation);
+    plot->XY(x,y[1]);
+    //plot->XY(x,erreurRelative);
+    plot->makePlot();
+    plot->show();
 
     //affichage
     suppFichier();
@@ -1146,14 +1283,18 @@ void MainWindow::test2() //fonction 1/d^2
 
 void MainWindow::test3() //fonction rangement
 {
-    CoordVector a(1,3,5), b(-1, 8, 1), c(-1, 8, 0), d(-1, 1, 0);
+    CoordVector a(1,3,5), b(-1, 8, 1), c(-1, 8, 0), d(-1, 1, 0), e(1,3,1);
     std::vector<CoordVector> test;
     test.push_back(a);
     test.push_back(b);
     test.push_back(c);
     test.push_back(d);
-    std::vector<CoordVector> resultat = ranger(test);
+    test.push_back(e);
+    std::vector<int> indices;
+    std::vector<CoordVector> resultat = ranger(test, indices);
     for(auto& a: resultat) a.debug();
+    debugStdVect(indices);
+
 }
 
 void MainWindow::on_bouton_test_clicked()

@@ -21,6 +21,7 @@ class SourceImage
         ~SourceImage();
         std::vector<CoordVector> &getSourcesImages();
         std::vector<float> &getNrgSI();
+        std::vector<float> &getSI_Tps();
         std::vector<float> &getX();
         std::vector<std::vector<float> > &getY();
         void addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, const std::vector<float> &absAir);

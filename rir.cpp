@@ -121,6 +121,11 @@ std::vector<CoordVector> &SourceImage::getSourcesImages()
     return m_sourcesImages;
 }
 
+std::vector<float> &SourceImage::getSI_Tps()
+{
+    return m_sourcesImages_Tps;
+}
+
 std::vector<float> &SourceImage::getNrgSI()
 {
     return m_nrgSI;

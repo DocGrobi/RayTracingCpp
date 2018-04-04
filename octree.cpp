@@ -97,17 +97,23 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     // Vérifier s'il y a besoin de faire baver
 
     // Vérification
-    int nbEltFeuille(0);
+    int nbEltFeuille(0), nbFeuille(0);
     for (i = 0 ; i< m_vectBoite.size() ; i++)
     {
         if (m_vectBoite[i].estUneFeuille)
+        {
             nbEltFeuille+= m_vectBoite[i].m_numElt.size();
+            //nbFeuille++;
+        }
 
         else if (!m_vectBoite[i].m_numElt.empty())
             qDebug() << "non feuille non vide n°: " << i;
     }
     if(vertex.size()/3 != nbEltFeuille)
         QMessageBox::critical(NULL,"Erreur","Mauvaise mise en boite des faces");
+
+    //qDebug() << "nb feuille : " << nbFeuille;
+
 
 }
 
@@ -322,7 +328,7 @@ void decoupage(Boite &boitePere, std::vector<Boite>& boitesFilles)
 
 bool appartientBoite(Boite &boite, std::vector<CoordVector> const& vert, int indice)
 {
-    /*
+   //*
     // Version avec le centre
     CoordVector centreFace;
     for (int i = 0 ; i < 3 ; i++)
@@ -336,8 +342,8 @@ bool appartientBoite(Boite &boite, std::vector<CoordVector> const& vert, int ind
     if (centreFace.y/3 > boite.m_coinMin.y + boite.m_arrete)  return false;
     if (centreFace.z/3 < boite.m_coinMin.z)                   return false;
     if (centreFace.z/3 > boite.m_coinMin.z + boite.m_arrete)  return false;
-    */
-
+    //*/
+/*
     // Version avec le premier point de la face
     if (vert[indice].x < boite.m_coinMin.x)                   return false;
     if (vert[indice].x > boite.m_coinMin.x + boite.m_arrete)  return false;
@@ -345,7 +351,7 @@ bool appartientBoite(Boite &boite, std::vector<CoordVector> const& vert, int ind
     if (vert[indice].y > boite.m_coinMin.y + boite.m_arrete)  return false;
     if (vert[indice].z < boite.m_coinMin.z)                   return false;
     if (vert[indice].z > boite.m_coinMin.z + boite.m_arrete)  return false;
-
+*/
     return true;
 }
 

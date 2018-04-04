@@ -67,12 +67,13 @@ float norme(const CoordVector &a);
 float angle(const CoordVector &a,const CoordVector &b);
 void debugStdVect(std::vector<float>& vect); // permet d'afficher un std::vector dans la console
 void debugStdVect(std::vector<signed short>& vect);
+void debugStdVect(std::vector<int>& vect);
 //CoordVector coord_New_Base(const CoordVector &point, std::vector<float> &mat );
 bool proche(float a, float b);
 bool proche(CoordVector a, CoordVector b);
 bool proche(CoordVector a, CoordVector b, float seuil);
 //inline float normalize(ffloat max){return sqrt(a)/max;}
-std::vector<CoordVector> ranger(std::vector<CoordVector> a);
+std::vector<CoordVector> ranger(std::vector<CoordVector> a, std::vector<int> &indices);
 void arrondir(CoordVector & a);
 
 CoordVector operator+(const CoordVector &a, const CoordVector &b);
@@ -82,6 +83,7 @@ CoordVector operator*(const CoordVector &a, float b);
 CoordVector operator/(const CoordVector &a, float b);
 inline CoordVector operator-(CoordVector const& a){return CoordVector(-a.x,-a.y,-a.z);}
 inline CoordVector operator-(CoordVector const&a,CoordVector const&b){CoordVector c(a);c-=b;return c;}
+bool operator==(const CoordVector &a, const CoordVector &b);
 CoordVector inverse(CoordVector const& a);
 // inline permet de mettre les fonction dans le .h
 float coordMax(const CoordVector &a);
