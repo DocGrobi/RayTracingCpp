@@ -23,8 +23,8 @@ MainWindow::MainWindow(QWidget *parent) :
    ui->label_listener->setText(m_listener.afficher());
 
    // CHARGEMENT PARAMETRES
-   //on_checkBox__rebFixe_toggled(false);
-   on_checkBox__rebFixe_toggled(true);
+   on_checkBox__rebFixe_toggled(false);
+   //on_checkBox__rebFixe_toggled(true);
 
    on_radioButton_Fibonacci_toggled(true);
    on_checkBox_rayAuto_toggled(false);
@@ -83,6 +83,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
        buffer = new QBuffer;
    }
+
 }
 
 
@@ -318,6 +319,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     SourceImage maSourceImage;
 
 
+
     // Ouvrir fenetre de progress bar
     QProgressDialog progress(this);
         progress.setWindowModality(Qt::WindowModal);
@@ -414,6 +416,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
     temps = temps /1000;
     ui->lcd_timer->display(temps);
 
+    qDebug() << "temps :" << temps;
     progress.cancel();
 
     m_sourceImage = maSourceImage;
@@ -450,23 +453,30 @@ void MainWindow::on_bouton_projection_clicked()
 
         qDebug() << "SI : " << SI.size() << " ; SI2 : " << SI2.size() << " ; nrg : " << nrg2.size();
 
-        // création des impacts
-        Ray monRay(m_listener.getCentre(), SI2);
-        if (m_methodeRapide)
-        {
-            m_octree.chargerRayonRacine(monRay.getNbRay());
-            m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
-            monRay.rebondSansMemoire(m_meshObj,-1,m_octree);
-        }
-        else monRay.rebondSansMemoire(m_meshObj,-1);
-
-        //EXPORT
-        suppFichier(); // Suppression des fichiers d'export existant
-        ObjWriter monObjWriter(m_fichierExport, monRay.getNbRay());
-        if (ui->checkBox_projeter->isChecked())
-            monObjWriter.display_coloredTriangle(monRay.getRay(),nrg2, m_listener.getCentre());
+        if (SI2.size() < 2) QMessageBox::warning(NULL,"Attention","Pas assez de sources images");
         else
-            monObjWriter.display_coloredTriangle(SI2, nrg2, m_listener.getCentre());
+        {
+
+            //EXPORT
+            suppFichier(); // Suppression des fichiers d'export existant
+            ObjWriter monObjWriter(m_fichierExport, SI2.size());
+            if (ui->checkBox_projeter->isChecked())
+            {
+                // création des impacts
+                Ray monRay(m_listener.getCentre(), SI2);
+                if (m_methodeRapide)
+                {
+                    m_octree.chargerRayonRacine(monRay.getNbRay());
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
+                    monRay.rebondSansMemoire(m_meshObj,-1,m_octree);
+                }
+                else monRay.rebondSansMemoire(m_meshObj,-1);
+
+                monObjWriter.display_coloredTriangle(monRay.getRay(),nrg2, m_listener.getCentre(), m_source.getCentre());
+            }
+            else
+                monObjWriter.display_coloredTriangle(SI2, nrg2, m_listener.getCentre(), m_source.getCentre());
+        }
     }
 }
 
@@ -555,7 +565,8 @@ void MainWindow::on_checkBox_rayAuto_toggled(bool checked) {
                             * 2*m_seuilArret/m_nbRayon
                             * m_listener.getRayon();
        */
-       m_longueurRayMax =  sqrt(m_listener.getRayon()/2*sqrt(m_nbRayon/m_seuilArret));
+       //m_longueurRayMax =  sqrt(m_listener.getRayon()/2*sqrt(m_nbRayon/m_seuilArret));
+       m_longueurRayMax =  m_nbRayon*m_listener.getRayon()/(2*m_seuilArret*sqrt(m_nbRayon/m_seuilArret-1));
        QMessageBox msgBox;
        msgBox.setText("Temps maximum pour mesure statistique : " + QString::number(m_longueurRayMax/VITESSE_SON)+ "s");
        msgBox.setIcon(QMessageBox::Information);
@@ -965,285 +976,188 @@ void MainWindow::tests()
     /// RIR de cube analytique
 
     // Dimension du cube
-    CoordVector L(10,10,10); //longueur, largeur, hauteur
+    CoordVector L(2,4,3); //longueur, largeur, hauteur
+
+    //float f[] = {0.4, 0.5, 0.6, 0.7, 0.8, 0.9};//x, -x, y, -y, z, -z
+    float f[] = {20,20,20,20,20,20};//x, -x, y, -y, z, -z en % d'attenaution
+    std::vector<float> att(f, f+sizeof(f)/sizeof(float));
 
     // Position src et listener
     CoordVector src = m_source.getCentre();
     CoordVector mic = m_listener.getCentre();
+    //float r = m_listener.getRayon();
 
+    debugStdVect(att);
     qDebug() << "source :";
     src.debug();
 
     // Positions relatives et énergie des sources images
     std::vector<CoordVector> src_im;
-    std::vector<float> src_im_tps;
-    std::vector< std::vector<float> > nrg;
-    nrg.resize(8);
-    float d;
+    std::vector<float> src_im_tps, nrgbis;
+    //std::vector< std::vector<float> > nrg;
+    //nrg.resize(8);
+    float d, attenuation, i0, i1, i2, i3, i4, i5;
     float i,j, k, l;
     float ordre = m_nbRebond;
     float ordrebuf;
     //float Rmax = (ordre-1)*coordMin(L);
     CoordVector si;
-    float nrgMax;
+
+    for(i=0; i< att.size(); i++)
+    {
+        att[i]=1-(att[i]/100);
+    }
+    debugStdVect(att);
+
+/*
+    src.x += L.x/2;
+    src.y += L.y/2;
+    src.z += L.z/2;
+
+    CoordVector mic2;
+    mic2.x = mic.x + L.x/2;
+    mic2.y = mic.y + L.y/2;
+    mic2.z = mic.z + L.z/2;
+*/
+    bool sitrouvee = false;
     for (i = -ordre ; i <=ordre ; i++)
     {      
-        //si.x = src.x*pow(-1,i) + L.x*(i + 0.5 - 0.5*pow(-1,i));
+        //si.x = src.x*pow(-1,i) + L.x*(i + 0.5 - 0.5*pow(-1,i)) - mic2.x;
         si.x = i*L.x + src.x*pow(-1,i);
+        i0 = std::abs(0.5*i - 0.25 + 0.25*pow(-1, i));
+        i1 = std::abs(0.5*i + 0.25 - 0.25*pow(-1, i));
         for (j = -(ordre-abs(i)) ; j<= ordre-abs(i); j++)
         {
             if (ordre-abs(i)-abs(j)< 0) ordrebuf = 0;
             else ordrebuf = ordre-abs(i)-abs(j);
-            //si.y = src.y*pow(-1,j) + L.y*(j + 0.5 - 0.5*pow(-1,j));
+            //si.y = src.y*pow(-1,j) + L.y*(j + 0.5 - 0.5*pow(-1,j)) - mic2.y;
             si.y = j*L.y + src.y*pow(-1,j);
+            i2 = std::abs(0.5*j - 0.25 + 0.25*pow(-1, j));
+            i3 = std::abs(0.5*j + 0.25 - 0.25*pow(-1, j));
             for (k = -ordrebuf ; k<= ordrebuf; k++)
             {
-                //si.z = src.z*pow(-1,k) + L.z*(k + 0.5 - 0.5*pow(-1,k));
+                //si.z = src.z*pow(-1,k) + L.z*(k + 0.5 - 0.5*pow(-1,k)) - mic2.z;
                 si.z = k*L.z + src.z*pow(-1,k);
+                i4 = std::abs(0.5*k - 0.25 + 0.25*pow(-1, k));
+                i5 = std::abs(0.5*k + 0.25 - 0.25*pow(-1, k));
 
-                d = norme(vecteur(si,mic)); // distance
-                //if (d<Rmax)
+
+                for (l=0 ; l< src_im.size() ; l++)
                 {
-                    src_im.push_back(si); // ajout position
-                    src_im_tps.push_back(1000*d/VITESSE_SON); // distance temporelle ms
-
-                    if (d > 1e-6) // pour eviter les divisions par 0 (cas source et mic confondus)
-                    {
-                        for (l = 0; l< 8 ; l++){
-                            nrg[l].push_back(1/pow(d,2));        
-                        }
-                        if(nrgMax<1/pow(d,2)) nrgMax = 1/pow(d,2);
-                    }
-                    else {
-                        QMessageBox::warning(NULL,"Attention","Source et micro confondus");
-                    }
+                    if (proche(si,src_im[l])) {sitrouvee = true; qDebug() <<"source trouvée !";}
                 }
+                if(!sitrouvee)
+                    {
+                        //attenuation
+                       /* if(pow(-1, i) < 0) attenuation = pow(att[0], i);
+                        else attenuation = pow(att[1], i);
+                        if(pow(-1, j) < 0) attenuation *= pow(att[2], j);
+                        else attenuation *= pow(att[3], j);
+                        if(pow(-1, k) < 0) attenuation *= pow(att[4], k);
+                        else attenuation *= pow(att[5], k);
+*/
+
+                        attenuation =    pow(att[0], i0)
+                                        *pow(att[1], i1)
+                                        *pow(att[2], i2)
+                                        *pow(att[3], i3)
+                                        *pow(att[4], i4)
+                                        *pow(att[5], i5);
+
+                        if(attenuation > 0 && attenuation <=1)
+                        {
+                            //qDebug() << attenuation;
+                            src_im.push_back(si); // ajout position
+                            src_im_tps.push_back(1000*d/VITESSE_SON); // distance temporelle ms
+
+                            d = norme(vecteur(si,mic)); // distance
+
+                            if (d > 1e-6) // pour eviter les divisions par 0 (cas source et mic confondus)
+                            {
+                                for (l = 0; l< 8 ; l++){
+                                    //nrg[l].push_back(1/pow(d,2));
+                                    //nrgbis.push_back(1/pow(d,2));
+                                    nrgbis.push_back(attenuation/pow(d,2));
+                                }
+                                //if(nrgMax<1/pow(d,2)) nrgMax = 1/pow(d,2);
+                            }
+                            else {
+                                QMessageBox::warning(NULL,"Attention","Source et micro confondus");
+                            }
+                        }
+
+
+                    }
+                else sitrouvee=false;
             }
         }
     }
 
-
-    float tpsMin, tpsMax;
-
-    tpsMax = *std::max_element(src_im_tps.begin(),src_im_tps.end());
-
-    std::vector<float> ind0, si_tps_save;
-    si_tps_save = src_im_tps;
-    while (tpsMin<tpsMax)
+    if(src_im.size()<1)
     {
-        tpsMin = *std::min_element(src_im_tps.begin(),src_im_tps.end());
-        for(i=0; i<src_im_tps.size(); i++)
-        {
-            if(src_im_tps[i]==tpsMin) {
-                ind0.push_back(i);
-                src_im_tps[i]=tpsMax;
-                break;
-            }
-        }
+        QMessageBox::warning(NULL,"Attention","Pas de sources images théoriques");
+        return;
     }
 
 
-    std::vector<float> src_im_exp_tps = m_sourceImage.getSI_Tps();
-    float tpsMin1, tpsMax1;
-
-    tpsMax1 = *std::max_element(src_im_tps.begin(),src_im_tps.end());
-
-    std::vector<float> ind1;
-    while (tpsMin1<tpsMax1)
-    {
-        tpsMin1 = *std::min_element(src_im_exp_tps.begin(),src_im_exp_tps.end());
-        for(i=0; i<src_im_exp_tps.size(); i++)
-        {
-            if(src_im_exp_tps[i]==tpsMin1) {
-                ind1.push_back(i);
-                src_im_exp_tps[i]=tpsMax1;
-                break;
-            }
-        }
-    }
-
-    src_im_exp_tps = m_sourceImage.getSI_Tps();
     std::vector<float> x;
     std::vector<std::vector<float> > y;
-    y.resize(2);
+    y.resize(3);
     std::vector<float> nrgExp = m_sourceImage.getNrgSI();
     std::vector<CoordVector> src_im_exp = m_sourceImage.getSourcesImages();
 
-    // normalisation
-    for (l = 0; l< 8 ; l++)
+    float max0 = *std::max_element(nrgExp.begin(), nrgExp.end());
+    float max1 = *std::max_element(nrgbis.begin(), nrgbis.end());
+
+    for(auto&a : nrgbis) a/=(max1/max0);
+    max1 = *std::max_element(nrgbis.begin(), nrgbis.end());
+
+    for (j=0; j< src_im_exp.size(); j++)
     {
-        for (auto&a : nrg[l]) a/=nrgMax;
-    }
-    float nrgExpMax = *std::max_element(nrgExp.begin(), nrgExp.end());
-    for (auto&a : nrgExp) a/=nrgExpMax;
-
-    std::vector<float> erreurRelative;
-    std::vector<float> erreurRelative2;
-
-    for(i=0; i<src_im_exp_tps.size(); i++)
-    {
-        x.push_back(i);
-        //y[0].push_back(nrg[0][ind0[i]]);
-        //y[1].push_back(nrgExp[8*ind1[i]]);
-        erreurRelative.push_back(std::abs(nrg[0][ind0[i]]-nrgExp[8*ind1[i]])/nrg[0][ind0[i]]);
-        erreurRelative2.push_back(std::abs(si_tps_save[ind0[i]]-src_im_exp_tps[ind1[i]])/si_tps_save[ind0[i]]);
-        qDebug() << src_im_exp_tps[ind1[i]];
-        src_im[ind0[i]].debug();
-        arrondir(src_im_exp[ind1[i]]);
-        src_im_exp[ind1[i]].debug();
-
-
-    }
-
-    y[0]=erreurRelative;
-    y[1]=erreurRelative2;
-
-    float moyenne = std::accumulate(erreurRelative.begin(), erreurRelative.end(), 0.0);
-    moyenne/=erreurRelative.size();
-    qDebug() << "Moyenne : " << moyenne;
-
-    float moyenne2 = std::accumulate(erreurRelative2.begin(), erreurRelative2.end(), 0.0);
-    moyenne2/=erreurRelative2.size();
-    qDebug() << "Moyenne2 : " << moyenne2;
-
-/*
-
-    for(auto& a: src_im_exp) arrondir(a);
-    std::vector<int> indices;
-    std::vector<CoordVector> SItriees = ranger(src_im_exp, indices);
-
-
-
-    qDebug() << "nrg theo size :" << nrg[0].size();
-    qDebug() << "nrg Exp size :" << nrgExp.size()/8;
-    qDebug() << "indices size :" << indices.size();
-
-
-
-
-    qDebug() << "SI THEO :";
-    for (i=src_im.size()/2; i<src_im.size(); i++)
-    {
-        //src_im[i].debug();
-        //if(nrg[0][i]>0.0001)
-        x.push_back(i);
-        y[0].push_back(nrg[0][i]);
-        qDebug() << nrg[0][i];
-    }
-
-    qDebug() << "SI EXP :";
-    for (i=SItriees.size()/2; i<SItriees.size(); i++)
-    {
-
-        //SItriees[i].debug();
-    }
-
-    // trie des enérgies
-    for (i=0; i<indices.size(); i++)
-    {
-        if(8*indices[i]>nrgExp.size()/2 //&& nrgExp[8*indices[i]]>0.0001
-                )
-                y[1].push_back(nrgExp[8*indices[i]]);
-    }
-
-*/
-
-
-    // A FAIRE : dissipation par les parois et par l'air
-
-
-    // Création de la RIR temporelle
-/*
-     std::vector<std::vector<float> > y_rir = m_sourceImage.getY();
-
-    //float tps_max = *std::max_element(src_im_tps.begin(), src_im_tps.end());
-
-    float freq = (float)ui->spinBox_freqEchan->value()/1000; // car on a des temps en ms (convertion en float)
-    //int nb_ech = ceil(tps_max*freq);
-    int nb_ech = y_rir[0].size();
-
-    qDebug() << freq;
-    qDebug() << nb_ech;
-    qDebug() << nrg[0][0];
-    qDebug() << src_im_tps[0];
-
-
-
-    float max(0), maxbuf(0);
-    if (nb_ech > 0)
-    {
-        std::vector<float> x;
-        std::vector<std::vector<float> > y;
-        std::vector<std::vector<float> > yBis;
-        x.resize(nb_ech, 0);
-        y.resize(8);
-        yBis.resize(2);
-        yBis[0].resize(nb_ech, 0);
-        yBis[1].resize(nb_ech, 0);
-
-
-       // Abscisses
-        for (i = 0 ; i <nb_ech ; i++)
-       {
-           x[i] = i/freq; // valeurs en ms     
-       }
-
-        for (j = 0 ; j < 8 ; j++) // pour chaque bande
+        //y[1].push_back(nrg[0][i]);
+        for (i=0; i< src_im.size(); i++)
         {
-            y[j].resize(nb_ech);
-            for (i=0 ; i< src_im_tps.size(); i++) // pour chaque source image
+            if (proche(src_im_exp[j],src_im[i]) && nrgExp[8*j] > 100)
             {
-                if (floor(src_im_tps[i]*freq) < nb_ech)
-                    y[j][floor(src_im_tps[i]*freq)] += nrg[j][i];
+                y[0].push_back(norme(vecteur(src_im_exp[j],src_im[i])));
+
+                y[1].push_back((nrgbis[8*i]-nrgExp[8*j])/nrgbis[8*i]);
+                y[2].push_back((nrgbis[8*i]-nrgExp[8*j])/max1);
+                //y[0].push_back(nrgExp[8*j]);
+                //y[1].push_back(nrg[0][i]);
+                //nrgExp.erase(nrgExp.begin()+8*j);
+                //src_im[i].debug();
+                //qDebug() << "exp : " << nrgExp[8*j] << " -> theo : " << nrg[0][i];
+                //j = src_im_exp.size();
+                //src_im_exp.erase(src_im_exp.begin()+j);
+                //break;
+                if(proche(src_im_exp[j],src))
+                {qDebug() << "source" << "i = " << i << " ; j = " << j;}
             }
-            maxbuf = *std::max_element(y[j].begin(), y[j].end());
-            if(max<maxbuf) max = maxbuf; // recuperation du max
         }
-        qDebug() << "max : " << max;
-
-        for (j = 0 ; j < 8 ; j++) // pour chaque bande
-        {
-            for (auto &a : y[j]) {a/=max;} // normalisation
-        }
-
-        // Affichage de la différence
-
-
-
-        if (y_rir.size()>0)
-        {
-            qDebug() << "y : " << y[0].size();
-            qDebug() << "y rir : " << y_rir[0].size();
-
-            //std::transform(y[0].begin(), y[0].begin()+y_rir[0].size(), y_rir[0].begin(), y[0].begin(), std::minus<float>());
-
-            for (i = 0 ; i <nb_ech ; i++)
-           {
-              if (y[0][i] == 0) y[0][i] = m_seuilAttenuation;//abs(y_rir[0][i]);
-              else y[0][i] = abs((y_rir[0][i]-y[0][i])/y[0][i]);
-           }
-
-        }
-        else QMessageBox::warning(NULL,"Attention","Veuillez d'abord exporter les SI ET calculer la RIR pour afficher la différence");
-
-        yBis[0] = y_rir[0];
-        yBis[1] =y[1];
-
-
     }
 
-*/
+
+    for (i=0; i< y[0].size() ; i++)
+    {
+        x.push_back(i);
+    }
+    qDebug() << i;
+
+
     plotWindow *plot = new plotWindow;
     //plot->XY(x,y, m_seuilAttenuation);
-    plot->XY(x,y[1]);
+    plot->XY(x,y);
     //plot->XY(x,erreurRelative);
     plot->makePlot();
     plot->show();
+
 
     //affichage
     suppFichier();
     ObjWriter monObjWriter(m_fichierExport, 1);
     monObjWriter.display_sourceImages(src_im);
+    //monObjWriter.display_coloredTriangle(src_im, nrgbis, mic, src);
 
 
 }

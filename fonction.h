@@ -41,6 +41,8 @@ class CoordVector
         CoordVector operator=(const CoordVector &fv);
         CoordVector operator+=(const CoordVector &fv);
         CoordVector operator-=(CoordVector const&a);
+        CoordVector operator+=(float fv);
+        CoordVector operator-=(float fv);
         QVector<float> CoordVector2Qvector(CoordVector coord);
         void debug();
         inline float operator[](int i)const{return ((float*)this)[i%3];}

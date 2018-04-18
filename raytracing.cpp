@@ -257,7 +257,7 @@ Ray::Ray(const CoordVector &point, const std::vector<CoordVector>& dir){
     m_dir.resize(m_Nray, 0);
     m_nbRayMort = 0;
     m_rayVivant.resize(m_Nray, true); // Tous les rayons sont vivant
-
+m_rayVivantBackup = m_rayVivant;
 }
 
 // Destructeur
@@ -522,6 +522,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 m_vDir[j] = vect_ref/nor;
             }
     }
+        qDebug() << "m_raymorts" << m_nbRayMort;
 
     return rayonsExistent;
 }

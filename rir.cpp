@@ -4,13 +4,14 @@
 #include "QDebug"
 
 // les méthodes
-std::vector<bool> toucheListener(Ray &rayon, Listener &listener)
+std::vector<float> toucheListener(Ray &rayon, Listener &listener) // par equ parametrique
 {
-    std::vector<bool> resultat;
+    std::vector<float> resultat;
 
-    std::vector<CoordVector> posOld, posNew;
+    std::vector<CoordVector> posOld, posNew, u;
     posOld = rayon.getPos();
     posNew = rayon.getRay();
+    u = rayon.getDir();
 
     std::vector<bool> vivant = rayon.getRayVivant();
 
@@ -19,36 +20,35 @@ std::vector<bool> toucheListener(Ray &rayon, Listener &listener)
     CoordVector L(listener.getCentre()); // Point au centre du Listener
     float r(listener.getRayon()); // Rayon du Listener
 
-    CoordVector AB, AL;
+    CoordVector AL;
+
+
+    float delta, lambda1, lambda2, a, b, c;
 
     for(int i = 0; i<posOld.size() ; i++)
     {
         if (vivant[i]) // on ne prend pas les rayons morts
         {
-            AB = vecteur(posOld[i], posNew[i]);
-            AL = vecteur(posOld[i], L);
+            //AB = vecteur(posOld[i], posNew[i]);
+            AL = vecteur(L, posOld[i]);
 
-           alpha = angle(AB,AL);
+           //alpha = angle(AB,AL);
            normeAL = norme(AL);
 
-           // test si le point A n'est pas dans le listener
-           if (normeAL > r)
-               {
-               // test sur la direction
-               if (cos(alpha) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
-               {
-                   // test sur la distance
-                   if (norme(AB) >= normeAL)
-                   {
-                       // test sur l'angle
-                       if (normeAL == 0)                  resultat.push_back(true);
-                       else if (alpha <= asin(r/normeAL)) resultat.push_back(true);
-
-                       else resultat.push_back(false);
-                   }   else resultat.push_back(false);
-               }       else resultat.push_back(false);
-            }          else resultat.push_back(true);
-        }              else resultat.push_back(false);
+            a=pow(norme(u[i]), 2);
+            b= 2*produitScalaire(u[i], AL);
+            c= pow(normeAL,2) - pow(r,2);
+            delta = pow(b,2)-4*a*c;
+            if(delta >=0)
+            {
+                lambda1 = (-b-sqrt(delta))/(2*a);
+                lambda2 = (-b+sqrt(delta))/(2*a);
+                if(lambda1 >= 0 || lambda2 >= 0) resultat.push_back(normeAL);
+                else resultat.push_back(-1);
+            }
+           else resultat.push_back(-1);
+        }
+        else resultat.push_back(-1);
     }
 
     return resultat;
@@ -72,6 +72,7 @@ std::vector<float> toucheListener2(Ray &rayon, Listener &listener)
 
     CoordVector AL;
 
+    int ray_mort(0);
     for(int i = 0; i<posOld.size() ; i++)
     {
         if (vivant[i]) // on ne prend pas les rayons morts
@@ -85,6 +86,7 @@ std::vector<float> toucheListener2(Ray &rayon, Listener &listener)
                {
                alpha = angle(dir[i],AL);
                // test sur la direction
+               //if (produitScalaire(dir[i],AL) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
                if (cos(alpha) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
                {
                    // test sur la distance
@@ -99,9 +101,10 @@ std::vector<float> toucheListener2(Ray &rayon, Listener &listener)
                    }   else resultat.push_back(-1);
                }       else resultat.push_back(-1);
             }          else resultat.push_back(normeAL);
-        }              else resultat.push_back(-1);
+        }              else {resultat.push_back(-1); ray_mort++;}
     }
 
+    qDebug() << "rayons morts :" << ray_mort;
     return resultat;
 }
 
@@ -165,9 +168,10 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
     int i, k, j;
     bool SI_trouvee = false;
 
+    int ray_mort(0);
     for (i = 0 ; i< touche.size() ; i++) // rayon par rayon
     {
-        if ((longueurRayonTot[i]+touche[i])>longueurMax) rayon.killRay(i);
+        if ((longueurRayonTot[i]+touche[i])>longueurMax) {rayon.killRay(i); ray_mort++;}
         else
         {
             //if ((rayAuto && longueurRayonTot[i]<longueurMax && touche[i]) || (!rayAuto && touche[i]) ) // si le rayon touche le listener
@@ -218,6 +222,7 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
             }
         }
     }
+     //qDebug() << "rayons tués" << ray_mort;
 
 }
 

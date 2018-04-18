@@ -423,7 +423,7 @@ void ObjWriter::display_sourceImages(std::vector<CoordVector> &sourcesImages)
     fichier.close(); // ferme le fichier
 }
 
-void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal)
+void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal, const CoordVector &posSource)
 {
     QFile fichier(m_chemin);
 
@@ -451,13 +451,32 @@ void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::ve
     CoordVector d(-splatsize/2, splatsize/2,0);
 
 
-    // ecriture des vertex représentant les posotions de sources images
-    for (int i = 0; i < nbpoint ; i++)
+    //ECRITURE SOURCE
+    vect    = vecteur(posSource,dirNormal);
+    normVec = norme(vect);
+    vect    = vect/normVec;
+    //point[i]+= vect*0.1;// on reduit la distance au listener
+    CoordVector A(a),B(b),C(c),D(d); // initialisation
+    makeSplat(A,posSource,vect);
+    makeSplat(B,posSource,vect);
+    makeSplat(C,posSource,vect);
+    makeSplat(D,posSource,vect);
+    // ecriture des carrés
+    text  = "v "+ CoordVector2QString(A) + "\n";
+    text += "v "+ CoordVector2QString(B) + "\n";
+    text += "v "+ CoordVector2QString(C) + "\n";
+    text += "v "+ CoordVector2QString(D) + "\n";
+    fichier.write(text.toLatin1());
+
+
+
+    // ecriture des vertex représentant les positions de sources images
+    for (int i = 1; i < nbpoint ; i++)
     {
         vect    = vecteur(point[i],dirNormal);
         normVec = norme(vect);
         vect    = vect/normVec;
-        point[i]+= vect*0.1;// on reduit la distance au listener
+        //point[i]+= vect*0.1;// on reduit la distance au listener
         CoordVector A(a),B(b),C(c),D(d); // initialisation
 
         makeSplat(A,point[i],vect);
@@ -493,10 +512,15 @@ void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::ve
     float max = *std::max_element(nrgMoy.begin(), nrgMoy.end());
     float min = *std::min_element(nrgMoy.begin(), nrgMoy.end());
 
+    float max2 = *std::max_element(nrg.begin(), nrg.end());
+    float min2 = *std::min_element(nrg.begin(), nrg.end());
+
     for (int i = 0; i < nbpoint ; i++)
     {
         //text = "usemtl " + QString::number(round(99*(nrgMoy[i]-min)/(max-min))) + "\n"; // energie moyenne vaut 99 pour le max et 0 pour le min
-        text = "usemtl " + QString::number(round(240*log10(9*(nrgMoy[i]-min)/(max-min)+1))) + "\n";
+        //text = "usemtl " + QString::number(round(240*log10(9*(nrgMoy[i]-min)/(max-min)+1))) + "\n";
+        //text = "usemtl " + QString::number(round(6-log10(nrg[8*i]/max2)*40)) + "\n"; //energie basse frequence
+        text = "usemtl " + QString::number(round(log10(min/nrgMoy[i])*240/log10(min/max))) + "\n";
         text += "s off\n";
         text += "f ";
         for (j=1 ; j< 5 ;j++)

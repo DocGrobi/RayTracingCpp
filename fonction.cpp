@@ -157,7 +157,7 @@ bool proche(float a, float b)
 
 bool proche(CoordVector a, CoordVector b)
 {
-    float seuil = 0.01;
+    float seuil = 0.0001;
     if (fabs(a.x-b.x) > seuil) return false;
     if (fabs(a.y-b.y) > seuil) return false;
     if (fabs(a.z-b.z) > seuil) return false;
@@ -299,6 +299,24 @@ CoordVector CoordVector::operator-=(const CoordVector &a)
     x-=a.x;
     y-=a.y;
     z-=a.z;
+
+    return *this;
+}
+
+CoordVector CoordVector::operator+=(float fv)
+{
+    x+=fv;
+    y+=fv;
+    z+=fv;
+
+    return *this;
+}
+
+CoordVector CoordVector::operator-=(float fv)
+{
+    x-=fv;
+    y-=fv;
+    z-=fv;
 
     return *this;
 }

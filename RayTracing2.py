@@ -115,7 +115,11 @@ class Settings(PropertyGroup):
                           default = "",
                           description = "File to be imported",
                           subtype = 'FILE_PATH'
-    )    
+    )   
+#    my_bool = BoolProperty(name = "bool",
+#                          description = "Import spherical images-sources",
+#                          default = False
+#    )  
 
 class RayTracingPanel(bpy.types.Panel):
     bl_label = "Ray Tracing"
@@ -128,8 +132,8 @@ class RayTracingPanel(bpy.types.Panel):
     def draw(self, context):
         mytool = context.scene.my_tool
         
-        TheCol = self.layout.column(align=True)
-        TheCol.operator("bpy.ops.mesh.primitive_uv_sphere_add", text="New Source", icon="MESH_UVSPHERE")
+        #TheCol = self.layout.column(align=True)
+        #TheCol.operator("bpy.ops.mesh.primitive_uv_sphere_add", text="New Source", icon="MESH_UVSPHERE")
         
         # FILE
         self.layout.prop(mytool, "file", text="App file")
@@ -149,6 +153,12 @@ class RayTracingPanel(bpy.types.Panel):
         
         TheCol = self.layout.column(align=True)
         TheCol.operator("imp.rt", text="IMPORT", icon="IMPORT")
+        
+        #checkbox
+        TheCol = self.layout.column(align=True)
+        #row = TheCol.row(align=True)
+        #self.layout.prop(mytool, "bool", text="Spherical SI")
+        TheCol.operator("sph.rt", text="Spherical SI", icon="MESH_UVSPHERE")
 
 class runRayTracing(bpy.types.Operator):
     bl_idname = "run.rt"
@@ -217,17 +227,38 @@ class impRayTracing(bpy.types.Operator):
         try:            
 #            #bpy.ops.export_scene.obj(filepath = objFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True, axis_forward='Y', axis_up='Z')
              bpy.ops.import_scene.obj(filepath = inFile)
-             
 
         except AttributeError:
             print("OUPS !")
         return {"FINISHED"}
+
+class sphericalSI(bpy.types.Operator):
+    bl_idname = "sph.rt"
+    bl_label = "Convert to spherical SI"
+
+    def invoke(self, context, event):
+        
+        # si on veut des sources images rondes
+        try:            
+            bpy.ops.object.editmode_toggle()
+            bpy.context.space_data.pivot_point = 'INDIVIDUAL_ORIGINS'
+            bpy.ops.transform.resize(value=(4, 4, 4), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=2.14359)
+            bpy.ops.object.editmode_toggle()
+            bpy.ops.object.modifier_add(type='SOLIDIFY')
+            bpy.context.object.modifiers["Solidify"].thickness = 2
+            bpy.context.object.modifiers["Solidify"].offset = 0
+            bpy.ops.object.modifier_add(type='SUBSURF')
+            bpy.context.object.modifiers["Subsurf"].levels = 2
+        except AttributeError:
+            print("OUPS !")
+        return {"FINISHED"}    
 
 bpy.utils.register_class(expListener)
 bpy.utils.register_class(expSource)
 bpy.utils.register_class(impRayTracing)
 bpy.utils.register_class(runRayTracing)
 bpy.utils.register_class(RayTracingPanel)
+bpy.utils.register_class(sphericalSI)
 
 def register():
     bpy.utils.register_module(__name__)

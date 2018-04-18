@@ -21,7 +21,7 @@ class ObjWriter
     void rec_Line(int nbRay, int nbRebond);
     void display_sourceImages(std::vector<CoordVector> &sourcesImages);
     void display_octree(const std::vector<Boite> &oct);
-    void display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal);
+    void display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal, const CoordVector &posSource);
 
     void display_Beam_init();
     void display_Beam_vert(Ray &rayon, Listener &listener);

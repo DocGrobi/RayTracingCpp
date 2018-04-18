@@ -370,6 +370,7 @@ void Octree::chargerRayonRacine(int nbRay)
 void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<CoordVector> const& dir, std::vector<bool> const& RayVivant)
 {
     int i, j, ind, numPere;
+   // std::vector<CoordVector> orig2 = orig; std::vector<bool> RayVivant2 = RayVivant;
 
     // Pour chaque boite : chargement de l'indice des rayons qui intersectent avec elle
     for (i = 1 ; i < m_vectBoite.size() ; i++)
