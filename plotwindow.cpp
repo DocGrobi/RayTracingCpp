@@ -71,6 +71,7 @@ void plotWindow::makePlot()
         ui->customPlot->addGraph();
         ui->customPlot->graph(k)->setData(vectX, courbe[k]);
         QString nom = QString::number(62.5*pow(2,k)) + "Hz";
+        //QString nom = QString::number(-10+k*10) + "°C";
         ui->customPlot->graph(k)->setName(nom);
         ui->customPlot->graph(k)->setPen(QPen(QColor::fromHsv(360/courbe.size()*k,255,255)));
     }

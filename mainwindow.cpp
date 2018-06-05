@@ -366,7 +366,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                     if (!monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation)) i=m_nbRebond;
                     qDebug() << "temps rayons : " << m_timer.restart() << "ms";
                 }
-                maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir);
+                maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir,m_seuilAttenuation );
             }
             monObjWriter.display_sourceImages(maSourceImage.getSourcesImages());
             progress.setValue(m_nbRebond);
@@ -381,31 +381,41 @@ void MainWindow::on_bouton_sourcesImages_clicked()
             {
                 // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
                 m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
-                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+                monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree);
+                //while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+               // {
+
+
+                while(maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir, m_seuilAttenuation))
                 {
                     // progress bar
                     progress.setValue(monRay.getRayMorts());
                     if (progress.wasCanceled())
                                 break; // arrete la boucle
-
-                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir);
+                    //maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir);
                     m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
+                    monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree);// en plus
                 }
             }
             else
             {
                 // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
-                {
-                    // progress bar
-                    progress.setValue(monRay.getRayMorts());
-                    if (progress.wasCanceled())
-                                break; // arrete la boucle
-
-                    maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir);
+                //while(
+                      monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation);
+                              //)
+                {                    
+                    //maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir);
+                    while(maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir, m_seuilAttenuation))
+                    {
+                        // progress bar
+                        progress.setValue(monRay.getRayMorts());
+                        if (progress.wasCanceled())
+                                    break; // arrete la boucle
+                        monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation);
+                    }
                 }
             }
-            maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir); // On le refait une fois à la sortie de boucle pour les dernier rayon
+           // maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir); // On le refait une fois à la sortie de boucle pour les dernier rayon
             monObjWriter.display_sourceImages(maSourceImage.getSourcesImages());
 
             progress.setValue(m_nbRayon);
@@ -978,8 +988,10 @@ void MainWindow::tests()
     // Dimension du cube
     CoordVector L(2,4,3); //longueur, largeur, hauteur
 
-    //float f[] = {0.4, 0.5, 0.6, 0.7, 0.8, 0.9};//x, -x, y, -y, z, -z
-    float f[] = {20,20,20,20,20,20};//x, -x, y, -y, z, -z en % d'attenaution
+    std::vector<float> absR = absair(m_temperature, m_humidite);//absorptionAir(20);
+    //std::vector<float> absR = absorptionAir(20);
+    float f[] = {0,0,0,0,0,0};//x, -x, y, -y, z, -z
+    //float f[] = {60,50,40,30,20,10};//x, -x, y, -y, z, -z en % d'attenaution
     std::vector<float> att(f, f+sizeof(f)/sizeof(float));
 
     // Position src et listener
@@ -1003,10 +1015,19 @@ void MainWindow::tests()
     //float Rmax = (ordre-1)*coordMin(L);
     CoordVector si;
 
+    /*
     for(i=0; i< att.size(); i++)
     {
         att[i]=1-(att[i]/100);
     }
+    */
+    //correspondance
+    att[0]=1-(f[1]/100);
+    att[1]=1-(f[0]/100);
+    att[2]=1-(f[5]/100);
+    att[3]=1-(f[4]/100);
+    att[4]=1-(f[2]/100);
+    att[5]=1-(f[3]/100);
     debugStdVect(att);
 
 /*
@@ -1077,7 +1098,8 @@ void MainWindow::tests()
                                 for (l = 0; l< 8 ; l++){
                                     //nrg[l].push_back(1/pow(d,2));
                                     //nrgbis.push_back(1/pow(d,2));
-                                    nrgbis.push_back(attenuation/pow(d,2));
+                                    nrgbis.push_back(attenuation/pow(d,2)*exp(-absR[l]*d));
+                                    //nrgbis.push_back(attenuation/pow(d,2)*pow(10,-absR[l]*d/10));
                                 }
                                 //if(nrgMax<1/pow(d,2)) nrgMax = 1/pow(d,2);
                             }
@@ -1093,21 +1115,29 @@ void MainWindow::tests()
         }
     }
 
-    if(src_im.size()<1)
-    {
-        QMessageBox::warning(NULL,"Attention","Pas de sources images théoriques");
-        return;
-    }
+
 
 
     std::vector<float> x;
     std::vector<std::vector<float> > y;
-    y.resize(3);
+    y.resize(8);
     std::vector<float> nrgExp = m_sourceImage.getNrgSI();
     std::vector<CoordVector> src_im_exp = m_sourceImage.getSourcesImages();
 
+    if(src_im_exp.size() < 1)
+    {
+        QMessageBox::warning(NULL,"Attention","Pas de source image expérimentale");
+        return;
+    }
+
     float max0 = *std::max_element(nrgExp.begin(), nrgExp.end());
     float max1 = *std::max_element(nrgbis.begin(), nrgbis.end());
+
+    if(src_im.size()<1 || max1 < 0.000001)
+    {
+        QMessageBox::warning(NULL,"Attention","Pas de sources images théoriques");
+        return;
+    }
 
     for(auto&a : nrgbis) a/=(max1/max0);
     max1 = *std::max_element(nrgbis.begin(), nrgbis.end());
@@ -1119,10 +1149,15 @@ void MainWindow::tests()
         {
             if (proche(src_im_exp[j],src_im[i]) && nrgExp[8*j] > 100)
             {
-                y[0].push_back(norme(vecteur(src_im_exp[j],src_im[i])));
+                //y[0].push_back(norme(vecteur(src_im_exp[j],src_im[i])));
 
-                y[1].push_back((nrgbis[8*i]-nrgExp[8*j])/nrgbis[8*i]);
-                y[2].push_back((nrgbis[8*i]-nrgExp[8*j])/max1);
+                for (l=0 ; l < 8 ; l++)
+                {
+                    y[l].push_back((nrgbis[8*i+l]-nrgExp[8*j+l])/nrgbis[8*i+l]);
+                    //y[l].push_back((nrgbis[8*i+l]-nrgExp[8*j+l])/max1);
+                }
+
+                //y[2].push_back((nrgbis[8*i]-nrgExp[8*j])/max1);
                 //y[0].push_back(nrgExp[8*j]);
                 //y[1].push_back(nrg[0][i]);
                 //nrgExp.erase(nrgExp.begin()+8*j);
@@ -1142,7 +1177,11 @@ void MainWindow::tests()
     {
         x.push_back(i);
     }
-    qDebug() << i;
+    if(i<1)
+    {
+        QMessageBox::warning(NULL,"Attention","Pas de sources images théoriques");
+        return;
+    }
 
 
     plotWindow *plot = new plotWindow;
@@ -1195,19 +1234,10 @@ void MainWindow::test2() //fonction 1/d^2
 
 }
 
-void MainWindow::test3() //fonction rangement
+void MainWindow::test3()
 {
-    CoordVector a(1,3,5), b(-1, 8, 1), c(-1, 8, 0), d(-1, 1, 0), e(1,3,1);
-    std::vector<CoordVector> test;
-    test.push_back(a);
-    test.push_back(b);
-    test.push_back(c);
-    test.push_back(d);
-    test.push_back(e);
-    std::vector<int> indices;
-    std::vector<CoordVector> resultat = ranger(test, indices);
-    for(auto& a: resultat) a.debug();
-    debugStdVect(indices);
+
+
 
 }
 
@@ -1266,3 +1296,91 @@ void MainWindow::handleStateChanged(QAudio::State newState)
 }
 
 
+
+void MainWindow::on_bouton_saveRir_clicked()
+{
+
+    std::vector<std::vector<float> > rir = m_sourceImage.getY();
+    if(!rir.empty())
+    {
+        QString chemin = QCoreApplication::applicationDirPath() + "/rirSauvegardee.txt";
+        QFile fichier(chemin);
+
+         // sauvegarder rir
+        fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
+        QString text;
+        float freq = 62.5/2;
+
+        for(auto &a : rir)
+            {
+            freq*=2;
+            text = QString::number(freq) + "\n";
+            fichier.write(text.toLatin1());
+            text = "";
+                for(auto &b : a)
+                {
+                    text += QString::number(b) + " ";
+                    //fichier.write(text.toLatin1());
+                }
+                text += "\n";
+                fichier.write(text.toLatin1());
+            }
+         fichier.close(); // ferme le fichier
+    }
+    else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
+}
+
+
+void MainWindow::on_bouton_diffRir_clicked()
+{
+     // différence de rir
+     std::vector<std::vector<float> > diff_rir = m_sourceImage.getY();
+     if(!diff_rir.empty())
+     {
+         QString chemin = QCoreApplication::applicationDirPath() + "/rirSauvegardee.txt";
+         QFile fichier(chemin);
+
+         float i(0), j;
+         float min;
+         QStringList valString;
+         QString ligne;
+         std::vector<float> val;
+         std::vector<std::vector<float> > resultat;
+         resultat.resize(8);
+         if(fichier.open(QIODevice::ReadOnly | QIODevice::Text)) // Si on peut ouvrir le fichier
+         {
+             QTextStream flux(&fichier);
+             while(!flux.atEnd())
+             {
+                 ligne = flux.readLine(); // Lecture ligne par ligne du fichier
+
+                 valString = ligne.split(" ");
+                 val.clear();
+                 for(auto &a : valString) val.push_back(a.toFloat()); // récupération des valeurs d'une ligne en float
+                 if (val[0] < 2 ) // on ne lit pas les lignes de titre
+                 {
+                     min = std::min(val.size(), diff_rir[i].size());
+                     for (j = 0; j<min; j++)
+                     {
+                         resultat[i].push_back(std::abs(diff_rir[i][j] - val[j]));
+                     }
+                     i++;
+                 }
+             }
+         }
+         fichier.close();
+
+         std::vector<float> x;
+         std::vector<float> SIx = m_sourceImage.getX();
+         for (j = 0; j<min; j++)
+             x.push_back(SIx[j]);
+
+        plotWindow *plot = new plotWindow;
+         plot->XY(x, resultat, m_seuilAttenuation);
+         plot->makePlot();
+         plot->show();
+     }
+     else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
+
+
+}

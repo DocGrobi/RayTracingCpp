@@ -94,6 +94,10 @@ private slots:
 
     void on_bouton_faisceau_clicked();
 
+    void on_bouton_saveRir_clicked();
+
+    void on_bouton_diffRir_clicked();
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;

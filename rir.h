@@ -24,7 +24,7 @@ class SourceImage
         std::vector<float> &getSI_Tps();
         std::vector<float> &getX();
         std::vector<std::vector<float> > &getY();
-        void addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, const std::vector<float> &absAir);
+        bool addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, const std::vector<float> &absAir, float seuil);
         bool calculerRIR(int f_ech);
         void partitionnage(int taille);
         std::vector< std::vector<float> >&getFIR();

@@ -626,8 +626,8 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                 //m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face[j]+l+1]) * pow(10,(-absair[l]*m_long[j]/10));
                 m_nrg[j*8 + l] *= (1-indiceMat[3*face[j]+l+1]); // l'attenuation de l'air se fait dans les sources images
 
-                if (m_nrg[j*8 + l] < seuil) compteur++; // comptage des energies < seuil
-
+                //if (m_nrg[j*8 + l] < seuil) compteur++; // comptage des energies < seuil
+                if (m_nrg[j*8 + l] <= 0) compteur++;// Les rayons qui ont une énérgie non nul peuvent continuer de générer des sources images.
             }
             // si l'énergie sur les 8 bandes est inférieure au seuil le rayons est déclaré mort
             if (compteur == 8)

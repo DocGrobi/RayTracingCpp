@@ -787,7 +787,7 @@
            <number>10</number>
           </property>
           <property name="value">
-           <number>50</number>
+           <number>30</number>
           </property>
          </widget>
         </item>
@@ -1215,7 +1215,7 @@ p, li { white-space: pre-wrap; }
         <x>350</x>
         <y>280</y>
         <width>271</width>
-        <height>371</height>
+        <height>401</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -1236,10 +1236,35 @@ p, li { white-space: pre-wrap; }
          <x>10</x>
          <y>20</y>
          <width>251</width>
-         <height>347</height>
+         <height>371</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_6">
+        <item row="3" column="0" colspan="3">
+         <widget class="QLabel" name="label_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Exports au format .obj :</string>
+          </property>
+         </widget>
+        </item>
+        <item row="15" column="0">
+         <widget class="QLabel" name="label">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Regrouper en (m) :</string>
+          </property>
+         </widget>
+        </item>
         <item row="5" column="0" colspan="3">
          <widget class="QPushButton" name="bouton_normales">
           <property name="sizePolicy">
@@ -1250,32 +1275,6 @@ p, li { white-space: pre-wrap; }
           </property>
           <property name="text">
            <string>Exporter Normales</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_source">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Mettre à jour la &quot;Source&quot;</string>
-          </property>
-         </widget>
-        </item>
-        <item row="16" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_RIR">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Afficher RIR</string>
           </property>
          </widget>
         </item>
@@ -1292,16 +1291,32 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </item>
-        <item row="8" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_sourcesImages">
+        <item row="6" column="0" colspan="3">
+         <widget class="QPushButton" name="bouton_rayons">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>Exporter Sources Images</string>
+           <string>Exporter Rayons</string>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0" colspan="3">
+         <widget class="QPushButton" name="bouton_faisceau">
+          <property name="text">
+           <string>Exporter Faisceau</string>
           </property>
          </widget>
         </item>
@@ -1328,16 +1343,30 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </item>
-        <item row="3" column="0" colspan="3">
-         <widget class="QLabel" name="label_2">
+        <item row="1" column="0" colspan="3">
+         <widget class="QPushButton" name="bouton_source">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Exports au format .obj :</string>
+           <string>Mettre à jour la &quot;Source&quot;</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="3">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Imports :</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="0" colspan="3">
+         <widget class="QPushButton" name="bouton_projection">
+          <property name="text">
+           <string>Exporter Projection SI</string>
           </property>
          </widget>
         </item>
@@ -1356,58 +1385,43 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </item>
-        <item row="6" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_rayons">
+        <item row="16" column="0" colspan="3">
+         <widget class="QPushButton" name="bouton_RIR">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
           <property name="text">
-           <string>Exporter Rayons</string>
-          </property>
-          <property name="autoDefault">
-           <bool>false</bool>
-          </property>
-          <property name="flat">
-           <bool>false</bool>
+           <string>Afficher RIR</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="0" colspan="3">
-         <widget class="QLabel" name="label_4">
+        <item row="8" column="0" colspan="3">
+         <widget class="QPushButton" name="bouton_sourcesImages">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
-           <string>Imports :</string>
+           <string>Exporter Sources Images</string>
           </property>
          </widget>
         </item>
-        <item row="10" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_projection">
+        <item row="17" column="0">
+         <widget class="QPushButton" name="bouton_saveRir">
           <property name="text">
-           <string>Exporter Projection SI</string>
+           <string>SaveRIR</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_faisceau">
+        <item row="17" column="1" colspan="2">
+         <widget class="QPushButton" name="bouton_diffRir">
           <property name="text">
-           <string>Exporter Faisceau</string>
-          </property>
-         </widget>
-        </item>
-        <item row="15" column="0">
-         <widget class="QLabel" name="label">
-          <property name="font">
-           <font>
-            <pointsize>9</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Regrouper en (m) :</string>
+           <string>Difference RIR</string>
           </property>
          </widget>
         </item>

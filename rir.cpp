@@ -151,7 +151,7 @@ std::vector< std::vector<float> >&SourceImage::getFirPart(){
     return m_firPart;
 }
 
-void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, const std::vector<float>& absAir)
+bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, const std::vector<float>& absAir, float seuil)
 {
     //std::vector<bool> touche = toucheListener(rayon,listener);
     std::vector<float> touche = toucheListener2(rayon,listener);
@@ -167,6 +167,10 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
 
     int i, k, j;
     bool SI_trouvee = false;
+
+    bool SI_supSeuil = false;
+
+    if(!m_nrgSI.empty()) seuil*= *std::max_element(m_nrgSI.begin(), m_nrgSI.end()); // Normalisation du seuil
 
     int ray_mort(0);
     for (i = 0 ; i< touche.size() ; i++) // rayon par rayon
@@ -191,9 +195,12 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                    {
                        for (k = 0 ; k<8 ; k ++) // On ajoute les énérgies
                        {
-                           m_nrgSI[8*j+k]+=nrg[8*i+k];
+                           //m_nrgSI[8*j+k]+=nrg[8*i+k];
                            //m_nrgSI[8*j+k]+=(nrg[8*i+k] * pow(10,-absAir[k]*longueurRayonTot[i]/10));
+                           m_nrgSI[8*j+k]+=(nrg[8*i+k] * exp(-absAir[k]*longueurRayonTot[i]));
+                           if (m_nrgSI[8*j+k]>seuil) SI_supSeuil = true; // NEW !
                        }
+
                        SI_trouvee = true; // on a trouvé une SI en doublons
                        break; // et on sort de la boucle
                    }
@@ -207,8 +214,10 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                     // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
                     for (k = 0 ; k<8 ; k ++)
                     {
-                        m_nrgSI.push_back(nrg[8*i+k]);
+                        //m_nrgSI.push_back(nrg[8*i+k]);
                         //m_nrgSI.push_back(nrg[8*i+k] * pow(10,-absAir[k]*longueurRayonTot[i]/10));
+                        m_nrgSI.push_back(nrg[8*i+k] * exp(-absAir[k]*longueurRayonTot[i]));
+                        if (*m_nrgSI.end()>seuil) SI_supSeuil = true; // NEW !
                     }
 
                     temps = 1000 * longueurRayonTot[i] / VITESSE_SON; // en ms //  A FAIRE : utiliser longueurRayonTot
@@ -222,6 +231,7 @@ void SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
             }
         }
     }
+    return SI_supSeuil;
      //qDebug() << "rayons tués" << ray_mort;
 
 }
