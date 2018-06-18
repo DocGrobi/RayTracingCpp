@@ -30,7 +30,8 @@ SOURCES  += main.cpp\
     XFir.cpp \
     XHRir.cpp \
     XUtils.cpp \
-    XSpatFir.cpp
+    XSpatFir.cpp \
+    data.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -51,11 +52,13 @@ HEADERS  += mainwindow.h \
     XHRir.hpp \
     XUtils.hpp \
     XSpatFir.hpp \
+    data.h
 
 
 
 FORMS    += mainwindow.ui \
-            plotwindow.ui
+            plotwindow.ui \
+    data.ui
 
 
 

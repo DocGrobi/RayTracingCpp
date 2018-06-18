@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
    on_checkBox_rayAuto_toggled(false);
    m_nbRebond = ui->spinBox_nbRebond->value();
    m_seuilAttenuation = pow(10,(-(ui->spinBox_attenuation->value()/10)));
+   m_gain = ui->spinBox_gain->value();
    m_temperature = ui->spinBox_temperature->value();
    m_humidite = ui->spinBox_humidite->value();
    m_freq = ui->spinBox_freqEchan->value();
@@ -111,6 +112,8 @@ void MainWindow::suppFichier()
 }
 
 ////// LES BOUTONS
+
+/*
 void MainWindow::on_bouton_normales_clicked()
 {
     suppFichier(); // Suppression des fichiers d'export existant
@@ -119,6 +122,7 @@ void MainWindow::on_bouton_normales_clicked()
 
     monObjWriter.display_normales(m_meshObj.getVert());
 }
+*/
 
 void MainWindow::on_bouton_source_clicked()
 {
@@ -557,12 +561,20 @@ void MainWindow::on_bouton_RIR_clicked()
 {
     // ouvre une nouvelle fenetre
     plotWindow *plot = new plotWindow;
-    if (m_sourceImage.calculerRIR(m_freq))
+    plotWindow *plotcumsum = new plotWindow;
+    std::vector<float> absR = absair(m_temperature, m_humidite);
+    if (m_sourceImage.calculerRIR(m_freq, absR, m_gain))
     {
         plot->XY(m_sourceImage.getX(), m_sourceImage.getY(), m_seuilAttenuation);
         plot->makePlot();
+        plotcumsum->setYLabel("SPL (dB)");
         plot->show();
         //plot.exec();
+        plotcumsum->XY(m_sourceImage.getX(), m_sourceImage.getCurve(), m_seuilAttenuation);
+        plotcumsum->makePlot();
+        plotcumsum->setYLabel("Curve decay (dB)");
+        plotcumsum->show();
+
     }
     else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
 }
@@ -718,7 +730,8 @@ void MainWindow::on_bouton_convolution_clicked()
 
     if(wav.open(m_fichierAudio))
     {
-        if (m_sourceImage.calculerRIR(wav.fileFormat().sampleRate()))
+        std::vector<float> absR = absair(m_temperature, m_humidite);
+        if (m_sourceImage.calculerRIR(wav.fileFormat().sampleRate(), absR, m_gain))
         {
 
             // Ouvrir fenetre de progress bar
@@ -1243,7 +1256,8 @@ void MainWindow::test3()
 
 void MainWindow::on_bouton_test_clicked()
 {
-    tests();
+    //tests();
+
 
     // play streaming
 /*    WavFile wav;
@@ -1383,4 +1397,135 @@ void MainWindow::on_bouton_diffRir_clicked()
      else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
 
 
+}
+
+void MainWindow::on_bouton_data_clicked()
+{
+    std::vector<std::vector<float> > rir = m_sourceImage.getY();
+    std::vector<std::vector<float> > curve = m_sourceImage.getCurve();
+    std::vector<CoordVector> si = m_sourceImage.getSourcesImages();
+    std::vector<float> nrgSi = m_sourceImage.getNrgSI();
+    CoordVector vect1 = vecteur(m_listener.getCentre(),m_source.getCentre());
+    // vecteur normal dans le plan xy.
+    float buf=  vect1.x;
+    vect1.x = -vect1.z;
+    vect1.z= buf;
+    vect1=vect1/norme(vect1);
+
+    float cosBeta, nor;
+    CoordVector vect2;
+
+    std::vector<float> maxY;
+    for(auto &a : curve) maxY.push_back(*std::max_element(a.begin(), a.end()));
+
+    if(!rir.empty())
+    {
+        std::vector<float> rirX = m_sourceImage.getX();
+        int i, j;
+        std::vector<float> Tr60, Tr30, Tr30_buf, C80, D50, Ts, EDT, SPL, LF;
+        float C80_0, C80_1, D50_0, D50_1, Ts_buf, LF_buf, LF_tot, Tr60_buf, EDT_buf;
+        // determination du son direct
+        int sonDirect; // numéro de l'échantilllon
+        for (j=0; j<rirX.size(); j++)
+        {
+            if (rir[0][j]>0)
+            {
+                sonDirect = j;
+                break;
+            }
+        }
+        qDebug() << "son direct" << sonDirect;
+        //QString text;
+        for (i=0; i<8; i++) // pour chaque bande
+        {
+            for (j=0; j<rirX.size(); j++) // Pour chaque échantillon à partir du son direct
+            {
+                if(curve[i][j] >= maxY[i]*1e-6) Tr60_buf = rirX[j]; // on conserve le dernier terme
+
+                if (curve[i][j] <= maxY[i]*pow(10,-0.5) && curve[i][j] >= maxY[i]*pow(10,-3.5)) Tr30_buf.push_back(rirX[j]);
+
+                if(curve[i][j] >= maxY[i]*0.1) EDT_buf = rirX[j];
+
+                if (j >= sonDirect)
+                {
+                    if(j <= 80*m_freq/1000 + sonDirect) C80_0 += rir[i][j];
+                    else C80_1 += rir[i][j];
+
+                    if(j <= 50*m_freq/1000 + sonDirect) D50_0 += rir[i][j];
+                    D50_1 += rir[i][j];
+
+                    Ts_buf += rirX[j]*rir[i][j];
+                }
+            }
+
+            //RT 60
+            Tr60.push_back(Tr60_buf - rirX[sonDirect]);
+
+            // temps pour passer de -5dB à -35dB
+            Tr30.push_back(2*(*std::max_element(Tr30_buf.begin(), Tr30_buf.end())-*std::min_element(Tr30_buf.begin(), Tr30_buf.end())));
+            Tr30_buf.clear();
+
+            // temps où l'énergie descend sous 10dB
+            EDT.push_back(EDT_buf*6);
+
+            // ratio avant et après 80ms
+            C80.push_back(10*log10(C80_0/C80_1));
+            C80_0=0;
+            C80_1=0;
+
+            // ratio avant 50ms sur total
+            D50.push_back(D50_0/D50_1);
+            D50_0=0;
+
+            // ratio temps central
+            Ts.push_back(Ts_buf/D50_1);
+            Ts_buf = 0;
+
+            // spl
+            SPL.push_back(10*log10(D50_1)-m_gain);
+            D50_1=0;
+
+            // LF somme des energie multiplié par l'angle
+            for (j=0; j<si.size(); j++)
+            {
+                vect2 = vecteur(m_listener.getCentre(), si[j]);
+                nor = norme(vect2);
+                if (1000*nor/VITESSE_SON < (80 + 1000*sonDirect/m_freq) && nor/VITESSE_SON > sonDirect/m_freq)
+                {
+                    LF_tot += nrgSi[8*j+i];
+                    if (1000*nor/VITESSE_SON > (5 + 1000*sonDirect/m_freq) && nor/VITESSE_SON > sonDirect/m_freq)
+                    {
+                        cosBeta = produitScalaire(vect1, vect2)/nor;
+                        LF_buf += nrgSi[8*j+i]*pow(cosBeta,2);
+                    }
+                }
+            }
+            LF.push_back(LF_buf/LF_tot);
+            LF_buf=0;
+            LF_tot=0;
+        }
+
+        // Affiher valeur
+        fenetre = new Data;
+        for (int i=0; i<8; i++)
+        {
+            fenetre->addValue(QString::number(Tr60[i])  +"ms",  1, i+1);
+            fenetre->addValue(QString::number(Tr30[i])  +"ms",  2, i+1);
+            fenetre->addValue(QString::number(EDT[i])   +"ms",  3, i+1);
+            fenetre->addValue(QString::number(C80[i])   +"dB",  4, i+1);
+            fenetre->addValue(QString::number(D50[i])   +"%",   5, i+1);
+            fenetre->addValue(QString::number(Ts[i])    +"ms",  6, i+1);
+            fenetre->addValue(QString::number(SPL[i])   +"dB",  7, i+1);
+            fenetre->addValue(QString::number(LF[i])    +"dB",  8, i+1);
+        }
+        fenetre->show();
+
+        // Exporter tableau
+    }
+    else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
+}
+
+void MainWindow::on_spinBox_gain_editingFinished()
+{
+    m_gain = ui->spinBox_gain->value();
 }

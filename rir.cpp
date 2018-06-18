@@ -143,6 +143,11 @@ std::vector<std::vector<float> > &SourceImage::getY()
     return m_y;
 }
 
+std::vector<std::vector<float> > &SourceImage::getCurve()
+{
+    return m_curve;
+}
+
 std::vector< std::vector<float> >&SourceImage::getFIR(){
     return m_FIR;
 }
@@ -238,7 +243,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
 
 
 
-bool SourceImage::calculerRIR(int f_ech)
+bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain)
 {
     float freq = (float)f_ech/1000; // car on a des temps en ms (convertion en float)
 
@@ -262,6 +267,8 @@ bool SourceImage::calculerRIR(int f_ech)
         // Ordonnées
         m_FIR.resize(7);
 
+
+
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
         {
             m_y[k].resize(nb_ech);
@@ -273,13 +280,34 @@ bool SourceImage::calculerRIR(int f_ech)
             if(max<maxbuf) max = maxbuf; // recuperation du max
         }
 
+        // mise à l'échelle du son direct
+        float sondirect = *std::min_element(m_sourcesImages_Tps.begin(), m_sourcesImages_Tps.end())*VITESSE_SON/1000; // en m
+
+        //std::vector<float> attair;
+
+        m_curve.clear();
+        m_curve.resize(m_y.size());
+
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
         {
             for(float& a : m_y[k])
             {
                 a/=max;// normalisation
+                if (sondirect>0) // -31dB à 10m
+                {
+                    a*= pow(10,(gain-31)/10)*100*exp(-absR[k]*sondirect)/pow(sondirect,2); // on retire l'offset du son direct (ok si le premier son n'a pas touché de paroi)
+                }
+
                 if (k>0) m_FIR[k-1].push_back(sqrt(a)); // passage en puissance
             }
+            // creation des decay curve
+
+            m_curve[k] = m_y[k];
+            for (int i = m_curve[k].size()-2; i >= 0 ; i--)
+            {
+                m_curve[k][i] += m_curve[k][i+1];
+            }
+
         }
         return true;
     }

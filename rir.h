@@ -24,8 +24,9 @@ class SourceImage
         std::vector<float> &getSI_Tps();
         std::vector<float> &getX();
         std::vector<std::vector<float> > &getY();
+        std::vector<std::vector<float> > &getCurve();
         bool addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, const std::vector<float> &absAir, float seuil);
-        bool calculerRIR(int f_ech);
+        bool calculerRIR(int f_ech, std::vector<float> &absR, float gain);
         void partitionnage(int taille);
         std::vector< std::vector<float> >&getFIR();
         std::vector< std::vector<float> >&getFirPart();
@@ -38,6 +39,7 @@ class SourceImage
         std::vector<float> m_nrgSI_Filtrees;
         std::vector<float> m_x;
         std::vector<std::vector<float> > m_y;
+        std::vector<std::vector<float> > m_curve;
         std::vector<float> m_sourcesImages_Tps;
         float m_xMax;
         std::vector< std::vector<float> > m_FIR;

@@ -8,6 +8,7 @@
 #include <QElapsedTimer>
 #include <QMediaPlayer>
 #include "plotwindow.h"
+#include "data.h"
 
 #include <QBuffer>
 #include <QAudioDeviceInfo>
@@ -32,7 +33,7 @@ public:
 
 
 private slots:
-    void on_bouton_normales_clicked();
+    //void on_bouton_normales_clicked();
 
     void on_bouton_rayons_clicked();
 
@@ -98,6 +99,10 @@ private slots:
 
     void on_bouton_diffRir_clicked();
 
+    void on_bouton_data_clicked();
+
+    void on_spinBox_gain_editingFinished();
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
@@ -107,13 +112,14 @@ private:
     Octree m_octree;
     QElapsedTimer m_timer; 
     QString m_fichierExport, m_fichierAudio;
-    float m_seuilAttenuation, m_longueurRayMax;
+    float m_seuilAttenuation, m_gain, m_longueurRayMax;
     int m_temperature, m_humidite, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille;
     bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe;
     QMediaPlayer *player;
 
 
-    plotWindow *plot, *audioPlot, *audioPlot2, *firPlot, *filtrePlot;
+    plotWindow *plot, *audioPlot, *audioPlot2, *firPlot, *filtrePlot, *plotcumsum;
+    Data *fenetre;
 
     QBuffer *buffer;
     QByteArray *arr;

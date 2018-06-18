@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>665</width>
-    <height>919</height>
+    <width>683</width>
+    <height>884</height>
    </rect>
   </property>
   <property name="palette">
@@ -440,8 +440,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>641</width>
-      <height>831</height>
+      <width>671</width>
+      <height>801</height>
      </rect>
     </property>
     <property name="verticalScrollBarPolicy">
@@ -458,8 +458,8 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>625</width>
-       <height>829</height>
+       <width>655</width>
+       <height>799</height>
       </rect>
      </property>
      <property name="autoFillBackground">
@@ -469,7 +469,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>310</y>
+        <y>280</y>
         <width>331</width>
         <height>81</height>
        </rect>
@@ -542,7 +542,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>570</y>
+        <y>550</y>
         <width>331</width>
         <height>51</height>
        </rect>
@@ -605,7 +605,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>390</y>
+        <y>370</y>
         <width>331</width>
         <height>171</height>
        </rect>
@@ -755,7 +755,7 @@
            <bool>false</bool>
           </property>
           <property name="maximum">
-           <number>120</number>
+           <number>100</number>
           </property>
           <property name="value">
            <number>60</number>
@@ -798,8 +798,8 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>670</y>
-        <width>611</width>
+        <y>640</y>
+        <width>631</width>
         <height>151</height>
        </rect>
       </property>
@@ -814,7 +814,7 @@
         <rect>
          <x>0</x>
          <y>20</y>
-         <width>601</width>
+         <width>621</width>
          <height>111</height>
         </rect>
        </property>
@@ -924,7 +924,7 @@
        <rect>
         <x>10</x>
         <y>150</y>
-        <width>611</width>
+        <width>631</width>
         <height>121</height>
        </rect>
       </property>
@@ -945,7 +945,7 @@
         <rect>
          <x>9</x>
          <y>20</y>
-         <width>591</width>
+         <width>611</width>
          <height>91</height>
         </rect>
        </property>
@@ -1039,7 +1039,7 @@ p, li { white-space: pre-wrap; }
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>611</width>
+        <width>631</width>
         <height>141</height>
        </rect>
       </property>
@@ -1054,7 +1054,7 @@ p, li { white-space: pre-wrap; }
         <rect>
          <x>0</x>
          <y>20</y>
-         <width>605</width>
+         <width>621</width>
          <height>116</height>
         </rect>
        </property>
@@ -1214,8 +1214,8 @@ p, li { white-space: pre-wrap; }
        <rect>
         <x>350</x>
         <y>280</y>
-        <width>271</width>
-        <height>401</height>
+        <width>291</width>
+        <height>341</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -1228,45 +1228,42 @@ p, li { white-space: pre-wrap; }
        <bool>true</bool>
       </property>
       <property name="title">
-       <string>Boutons</string>
+       <string/>
       </property>
       <widget class="QWidget" name="gridLayoutWidget_7">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>20</y>
-         <width>251</width>
-         <height>371</height>
+         <y>1</y>
+         <width>271</width>
+         <height>331</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_6">
-        <item row="3" column="0" colspan="3">
-         <widget class="QLabel" name="label_2">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Exports au format .obj :</string>
-          </property>
-         </widget>
-        </item>
-        <item row="15" column="0">
-         <widget class="QLabel" name="label">
+        <item row="15" column="3">
+         <widget class="QCheckBox" name="checkBox_projeter">
           <property name="font">
            <font>
             <pointsize>9</pointsize>
            </font>
           </property>
           <property name="text">
-           <string>Regrouper en (m) :</string>
+           <string>Projeter</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="5" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_normales">
+        <item row="7" column="0" colspan="4">
+         <widget class="QPushButton" name="bouton_faisceau">
+          <property name="text">
+           <string>Exporter Faisceau</string>
+          </property>
+         </widget>
+        </item>
+        <item row="16" column="0" colspan="4">
+         <widget class="QPushButton" name="bouton_RIR">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -1274,24 +1271,11 @@ p, li { white-space: pre-wrap; }
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Exporter Normales</string>
+           <string>Afficher RIR</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_listener">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Mettre à jour le &quot;Listener&quot;</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0" colspan="3">
+        <item row="6" column="0" colspan="4">
          <widget class="QPushButton" name="bouton_rayons">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
@@ -1313,92 +1297,24 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </item>
-        <item row="7" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_faisceau">
+        <item row="18" column="0" colspan="4">
+         <widget class="QPushButton" name="bouton_data">
           <property name="text">
-           <string>Exporter Faisceau</string>
+           <string>Afficher données acoustiques</string>
           </property>
          </widget>
         </item>
-        <item row="15" column="1">
-         <widget class="QSpinBox" name="spinBox_regrouperSI">
-          <property name="maximum">
-           <number>10000</number>
-          </property>
-          <property name="value">
-           <number>10</number>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_octree">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Exporter Octree</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_source">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Mettre à jour la &quot;Source&quot;</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="3">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Imports :</string>
-          </property>
-         </widget>
-        </item>
-        <item row="10" column="0" colspan="3">
+        <item row="10" column="0" colspan="4">
          <widget class="QPushButton" name="bouton_projection">
           <property name="text">
            <string>Exporter Projection SI</string>
           </property>
          </widget>
         </item>
-        <item row="15" column="2">
-         <widget class="QCheckBox" name="checkBox_projeter">
-          <property name="font">
-           <font>
-            <pointsize>9</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Projeter</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
+        <item row="2" column="2">
+         <widget class="QSpinBox" name="spinBox_gain"/>
         </item>
-        <item row="16" column="0" colspan="3">
-         <widget class="QPushButton" name="bouton_RIR">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Afficher RIR</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="0" colspan="3">
+        <item row="8" column="0" colspan="4">
          <widget class="QPushButton" name="bouton_sourcesImages">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
@@ -1411,17 +1327,110 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </item>
-        <item row="17" column="0">
+        <item row="15" column="2">
+         <widget class="QSpinBox" name="spinBox_regrouperSI">
+          <property name="maximum">
+           <number>10000</number>
+          </property>
+          <property name="value">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="2" colspan="2">
+         <widget class="QPushButton" name="bouton_diffRir">
+          <property name="text">
+           <string>Difference RIR</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QPushButton" name="bouton_listener">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Listener</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="4">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Mettre à jour :</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="4">
+         <widget class="QPushButton" name="bouton_octree">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Exporter Octree</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0" colspan="4">
+         <widget class="QLabel" name="label_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Exports au format .obj :</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="bouton_source">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Source</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="label_3">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Gain (dB)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="0" colspan="2">
          <widget class="QPushButton" name="bouton_saveRir">
           <property name="text">
            <string>SaveRIR</string>
           </property>
          </widget>
         </item>
-        <item row="17" column="1" colspan="2">
-         <widget class="QPushButton" name="bouton_diffRir">
+        <item row="15" column="0" colspan="2">
+         <widget class="QLabel" name="label">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+           </font>
+          </property>
           <property name="text">
-           <string>Difference RIR</string>
+           <string>Regrouper en (m) :</string>
           </property>
          </widget>
         </item>
@@ -1445,7 +1454,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>665</width>
+     <width>683</width>
      <height>22</height>
     </rect>
    </property>
