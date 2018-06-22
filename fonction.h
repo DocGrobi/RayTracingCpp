@@ -91,6 +91,7 @@ CoordVector inverse(CoordVector const& a);
 float coordMax(const CoordVector &a);
 float coordMin(const CoordVector &a);
 QString CoordVector2QString(const CoordVector &coord);
+QString CoordVector2QString2(const CoordVector &coord);
 
 
 inline CoordDouble operator+(CoordDouble const&a,CoordDouble const&b){CoordDouble c(a);c+=b;return c;}

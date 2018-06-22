@@ -49,7 +49,7 @@ std::vector<float>& Source::getVert() {
 }
 
 QString Source::afficher() const {
-    return "Source\nCentre : " + CoordVector2QString(m_centreSource);
+    return "Source\nCentre : " + CoordVector2QString2(m_centreSource);
 }
 
 Source MeshObj::getSource() const {
@@ -94,7 +94,7 @@ QString Listener::afficher()
 {    
     QString ray;
     ray.setNum(m_rayon);
-    QString info = "Listener\nCentre : "+ CoordVector2QString(m_centreListener) +"\n"
+    QString info = "Listener\nCentre : "+ CoordVector2QString2(m_centreListener) +"\n"
             + "Rayon : " + ray + "m";
     return info;
 }

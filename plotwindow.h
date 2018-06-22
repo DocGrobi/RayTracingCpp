@@ -22,6 +22,7 @@ public:
     void XY(std::vector<float> &x, std::vector<float> &y); // courbe quelconque
     void XY(std::vector<float> &x, std::vector<int> &y);
     void setYLabel(QString nom);
+    void setTitle(QString nom);
     void hideLegend();
     void setX(int min, int max);
 
@@ -39,6 +40,7 @@ private slots:
 
 private:
     Ui::plotWindow *ui;
+    QCPItemText *textLabel;
     bool m_echelleLog;
     QVector<double> vectX, vectY;
     double xMin, xMax, yMax, yMin;

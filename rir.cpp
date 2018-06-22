@@ -201,7 +201,6 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                        for (k = 0 ; k<8 ; k ++) // On ajoute les énérgies
                        {
                            //m_nrgSI[8*j+k]+=nrg[8*i+k];
-                           //m_nrgSI[8*j+k]+=(nrg[8*i+k] * pow(10,-absAir[k]*longueurRayonTot[i]/10));
                            m_nrgSI[8*j+k]+=(nrg[8*i+k] * exp(-absAir[k]*longueurRayonTot[i]));
                            if (m_nrgSI[8*j+k]>seuil) SI_supSeuil = true; // NEW !
                        }
@@ -220,7 +219,6 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                     for (k = 0 ; k<8 ; k ++)
                     {
                         //m_nrgSI.push_back(nrg[8*i+k]);
-                        //m_nrgSI.push_back(nrg[8*i+k] * pow(10,-absAir[k]*longueurRayonTot[i]/10));
                         m_nrgSI.push_back(nrg[8*i+k] * exp(-absAir[k]*longueurRayonTot[i]));
                         if (*m_nrgSI.end()>seuil) SI_supSeuil = true; // NEW !
                     }
@@ -243,7 +241,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
 
 
 
-bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain)
+bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, bool curve)
 {
     float freq = (float)f_ech/1000; // car on a des temps en ms (convertion en float)
 
@@ -269,6 +267,7 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain)
 
 
 
+
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
         {
             m_y[k].resize(nb_ech);
@@ -288,18 +287,38 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain)
         m_curve.clear();
         m_curve.resize(m_y.size());
 
+        /*
+        ///// REGRESSION LINEAIRE
+        float xmoy, coeffA, coeffB;
+        std::vector<float> ymoy;
+        xmoy = std::accumulate(m_x.begin(), m_x.end(), 0)/m_x.size();
+        */
+        //float buf;
+
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
         {
             for(float& a : m_y[k])
             {
                 a/=max;// normalisation
+
+               /* // lissage de courbe
+                if(a < 0.1) // à partir de -10dB
+                {
+                    if(a > 0) buf = a;
+                    else a = buf;
+                }
+                */
+
                 if (sondirect>0) // -31dB à 10m
                 {
+
                     a*= pow(10,(gain-31)/10)*100*exp(-absR[k]*sondirect)/pow(sondirect,2); // on retire l'offset du son direct (ok si le premier son n'a pas touché de paroi)
+
                 }
 
                 if (k>0) m_FIR[k-1].push_back(sqrt(a)); // passage en puissance
             }
+
             // creation des decay curve
 
             m_curve[k] = m_y[k];
@@ -307,6 +326,20 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain)
             {
                 m_curve[k][i] += m_curve[k][i+1];
             }
+            if (curve) m_y.push_back(m_curve[k]);
+            /*
+            ///// REGRESSION LINEAIRE
+            ymoy.push_back(std::accumulate(m_y[i].begin(), m_y[i].end(), 0)/m_y[i].size();
+
+
+            for (int i = 0; i< m_x.size(); i++)
+            {
+                coeffA += (m_x[i]-xmoy)*(m_y[k][i]-ymoy[k]);
+                coeffB += pow((m_x[i]-xmoy),2);
+            }
+            coeffA /=;
+            */
+
 
         }
         return true;

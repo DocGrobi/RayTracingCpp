@@ -25,9 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
    // CHARGEMENT PARAMETRES
    on_checkBox__rebFixe_toggled(false);
    //on_checkBox__rebFixe_toggled(true);
-
    on_radioButton_Fibonacci_toggled(true);
-   on_checkBox_rayAuto_toggled(false);
    m_nbRebond = ui->spinBox_nbRebond->value();
    m_seuilAttenuation = pow(10,(-(ui->spinBox_attenuation->value()/10)));
    m_gain = ui->spinBox_gain->value();
@@ -39,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
    m_nbFaceFeuille = ui->spinBox_nbFaceFeuille->value();
    m_fichierExport = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
    m_longueurRayMax = 9999999;
+   on_checkBox_rayAuto_toggled(true);
 
    // OCTREE
    int nbvert = m_meshObj.getVert().size();
@@ -417,6 +416,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                                     break; // arrete la boucle
                         monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation);
                     }
+                    qDebug() << "calcul source image";
                 }
             }
            // maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir); // On le refait une fois à la sortie de boucle pour les dernier rayon
@@ -563,17 +563,28 @@ void MainWindow::on_bouton_RIR_clicked()
     plotWindow *plot = new plotWindow;
     plotWindow *plotcumsum = new plotWindow;
     std::vector<float> absR = absair(m_temperature, m_humidite);
-    if (m_sourceImage.calculerRIR(m_freq, absR, m_gain))
+    if (m_sourceImage.calculerRIR(m_freq, absR, m_gain, ui->checkBox_decaycurve->isChecked()))
     {
         plot->XY(m_sourceImage.getX(), m_sourceImage.getY(), m_seuilAttenuation);
         plot->makePlot();
-        plotcumsum->setYLabel("SPL (dB)");
+        plot->setYLabel("SPL (dB)");
+        //plot->setWindowTitle("Source position : " + CoordVector2QString(m_source.getCentre())+
+        //                     "\nListener position : " + CoordVector2QString(m_listener.getCentre()));
+        plot->setTitle("Source position : " + CoordVector2QString2(m_source.getCentre())+
+                                            "\nListener position : " + CoordVector2QString2(m_listener.getCentre()));
+        QPoint position = QApplication::desktop()->screenGeometry().topLeft();// + QApplication::desktop()->screenGeometry().center()/2;
+        plot->move(position);
         plot->show();
         //plot.exec();
+        /*
         plotcumsum->XY(m_sourceImage.getX(), m_sourceImage.getCurve(), m_seuilAttenuation);
         plotcumsum->makePlot();
         plotcumsum->setYLabel("Curve decay (dB)");
-        plotcumsum->show();
+        plotcumsum->setWindowTitle("Source position : " + CoordVector2QString2(m_source.getCentre())+
+                                   "\nListener position : " + CoordVector2QString2(m_listener.getCentre()));
+        position = QApplication::desktop()->screenGeometry().topRight();
+        plotcumsum->move(position);
+        plotcumsum->show();*/
 
     }
     else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
@@ -589,10 +600,11 @@ void MainWindow::on_checkBox_rayAuto_toggled(bool checked) {
        */
        //m_longueurRayMax =  sqrt(m_listener.getRayon()/2*sqrt(m_nbRayon/m_seuilArret));
        m_longueurRayMax =  m_nbRayon*m_listener.getRayon()/(2*m_seuilArret*sqrt(m_nbRayon/m_seuilArret-1));
-       QMessageBox msgBox;
+       ui->lcdTempsmax->display(m_longueurRayMax/VITESSE_SON);
+       /*QMessageBox msgBox;
        msgBox.setText("Temps maximum pour mesure statistique : " + QString::number(m_longueurRayMax/VITESSE_SON)+ "s");
        msgBox.setIcon(QMessageBox::Information);
-       msgBox.exec();
+       msgBox.exec();*/
    }
    else m_longueurRayMax = 9999999;
 }
@@ -731,7 +743,7 @@ void MainWindow::on_bouton_convolution_clicked()
     if(wav.open(m_fichierAudio))
     {
         std::vector<float> absR = absair(m_temperature, m_humidite);
-        if (m_sourceImage.calculerRIR(wav.fileFormat().sampleRate(), absR, m_gain))
+        if (m_sourceImage.calculerRIR(wav.fileFormat().sampleRate(), absR, m_gain, ui->checkBox_decaycurve->isChecked()))
         {
 
             // Ouvrir fenetre de progress bar
@@ -1406,6 +1418,7 @@ void MainWindow::on_bouton_data_clicked()
     std::vector<CoordVector> si = m_sourceImage.getSourcesImages();
     std::vector<float> nrgSi = m_sourceImage.getNrgSI();
     CoordVector vect1 = vecteur(m_listener.getCentre(),m_source.getCentre());
+    //std::vector<float> absR = absair(m_temperature, m_humidite);
     // vecteur normal dans le plan xy.
     float buf=  vect1.x;
     vect1.x = -vect1.z;
@@ -1418,15 +1431,18 @@ void MainWindow::on_bouton_data_clicked()
     std::vector<float> maxY;
     for(auto &a : curve) maxY.push_back(*std::max_element(a.begin(), a.end()));
 
+    std::vector<float> maxY2;
+    for(auto &a : rir) maxY2.push_back(*std::max_element(a.begin(), a.end()));
+
     if(!rir.empty())
     {
-        std::vector<float> rirX = m_sourceImage.getX();
-        int i, j;
-        std::vector<float> Tr60, Tr30, Tr30_buf, C80, D50, Ts, EDT, SPL, LF;
-        float C80_0, C80_1, D50_0, D50_1, Ts_buf, LF_buf, LF_tot, Tr60_buf, EDT_buf;
+        //std::vector<float> rirX = m_sourceImage.getX();
+        float i, j;
+        std::vector<float> Tr60, Tr30, Tr30_buf, C80, D50, Ts, EDT, SPL, LF, G;
+        float C80_0, C80_1, D50_0, Ts_buf, LF_buf, LF_tot, Tr60_buf, EDT_buf;
         // determination du son direct
         int sonDirect; // numéro de l'échantilllon
-        for (j=0; j<rirX.size(); j++)
+        for (j=0; j<rir[0].size(); j++)
         {
             if (rir[0][j]>0)
             {
@@ -1438,28 +1454,32 @@ void MainWindow::on_bouton_data_clicked()
         //QString text;
         for (i=0; i<8; i++) // pour chaque bande
         {
-            for (j=0; j<rirX.size(); j++) // Pour chaque échantillon à partir du son direct
+            for (j=sonDirect; j<rir[0].size(); j++) // Pour chaque échantillon à partir du son direct
             {
-                if(curve[i][j] >= maxY[i]*1e-6) Tr60_buf = rirX[j]; // on conserve le dernier terme
+                if(curve[i][j] >= maxY[i]*1e-6) Tr60_buf = (j-sonDirect)/m_freq*1000;//rirX[j]; // on conserve le dernier terme
 
-                if (curve[i][j] <= maxY[i]*pow(10,-0.5) && curve[i][j] >= maxY[i]*pow(10,-3.5)) Tr30_buf.push_back(rirX[j]);
+                if (curve[i][j] <= maxY[i]*pow(10,-0.5) && curve[i][j] >= maxY[i]*pow(10,-3.5)) Tr30_buf.push_back((j-sonDirect)/m_freq*1000);//Tr30_buf.push_back(rirX[j]);
 
-                if(curve[i][j] >= maxY[i]*0.1) EDT_buf = rirX[j];
+                if(curve[i][j] >= maxY[i]*0.1) EDT_buf = (j-sonDirect)/m_freq*1000;//rirX[j];
 
-                if (j >= sonDirect)
+                //if (j >= sonDirect)
                 {
                     if(j <= 80*m_freq/1000 + sonDirect) C80_0 += rir[i][j];
                     else C80_1 += rir[i][j];
 
                     if(j <= 50*m_freq/1000 + sonDirect) D50_0 += rir[i][j];
-                    D50_1 += rir[i][j];
+                    //D50_1 += rir[i][j];
 
-                    Ts_buf += rirX[j]*rir[i][j];
+                    //Ts_buf += rirX[j]*rir[i][j];
+                    if (j>=sonDirect)
+                    Ts_buf += ((j-sonDirect)/m_freq*1000)*rir[i][j];
                 }
             }
 
+            //qDebug() << 62.5*pow(2,i);
+
             //RT 60
-            Tr60.push_back(Tr60_buf - rirX[sonDirect]);
+            Tr60.push_back(Tr60_buf);
 
             // temps pour passer de -5dB à -35dB
             Tr30.push_back(2*(*std::max_element(Tr30_buf.begin(), Tr30_buf.end())-*std::min_element(Tr30_buf.begin(), Tr30_buf.end())));
@@ -1468,22 +1488,28 @@ void MainWindow::on_bouton_data_clicked()
             // temps où l'énergie descend sous 10dB
             EDT.push_back(EDT_buf*6);
 
+
             // ratio avant et après 80ms
             C80.push_back(10*log10(C80_0/C80_1));
+            //qDebug() << "C80_0 = " << C80_0 << "C80_1 = " << C80_1;
             C80_0=0;
             C80_1=0;
 
             // ratio avant 50ms sur total
-            D50.push_back(D50_0/D50_1);
+            D50.push_back(100*D50_0/maxY[i]);
+            //qDebug() << "D50_0 = " << D50_0 << "maxY[i] = " << maxY[i];
             D50_0=0;
 
             // ratio temps central
-            Ts.push_back(Ts_buf/D50_1);
+            Ts.push_back(Ts_buf/maxY[i]);
             Ts_buf = 0;
 
             // spl
-            SPL.push_back(10*log10(D50_1)-m_gain);
-            D50_1=0;
+            SPL.push_back(10*log10(maxY[i])-m_gain);
+
+            // Gain
+            G.push_back(10*log10(maxY[i]/maxY2[i]));
+            //D50_1=0;
 
             // LF somme des energie multiplié par l'angle
             for (j=0; j<si.size(); j++)
@@ -1503,24 +1529,108 @@ void MainWindow::on_bouton_data_clicked()
             LF.push_back(LF_buf/LF_tot);
             LF_buf=0;
             LF_tot=0;
+
+
         }
 
         // Affiher valeur
         fenetre = new Data;
-        for (int i=0; i<8; i++)
+        for ( i=0; i<8; i++)
         {
-            fenetre->addValue(QString::number(Tr60[i])  +"ms",  1, i+1);
+            fenetre->addValue(QString::number(EDT[i])   +"ms",  1, i+1);
             fenetre->addValue(QString::number(Tr30[i])  +"ms",  2, i+1);
-            fenetre->addValue(QString::number(EDT[i])   +"ms",  3, i+1);
-            fenetre->addValue(QString::number(C80[i])   +"dB",  4, i+1);
-            fenetre->addValue(QString::number(D50[i])   +"%",   5, i+1);
-            fenetre->addValue(QString::number(Ts[i])    +"ms",  6, i+1);
-            fenetre->addValue(QString::number(SPL[i])   +"dB",  7, i+1);
-            fenetre->addValue(QString::number(LF[i])    +"dB",  8, i+1);
+            fenetre->addValue(QString::number(Tr60[i])  +"ms",  3, i+1);
+            fenetre->addValue(QString::number(SPL[i])   +"dB",  4, i+1);
+            fenetre->addValue(QString::number(G[i])     +"dB",  5, i+1);
+            fenetre->addValue(QString::number(C80[i])   +"dB",  6, i+1);
+            fenetre->addValue(QString::number(D50[i])   +"%",   7, i+1);
+            fenetre->addValue(QString::number(Ts[i])    +"ms",  8, i+1);
+            fenetre->addValue(QString::number(LF[i])    +"dB",  9, i+1);
         }
+        fenetre->move((QApplication::desktop()->screenGeometry().bottomLeft()+QApplication::desktop()->screenGeometry().bottomRight())/2);
         fenetre->show();
 
         // Exporter tableau
+        QString newName(QCoreApplication::applicationDirPath() + "/data4latex.txt");
+        QFile fichier(QCoreApplication::applicationDirPath() + "/data4latex.txt");
+         i=0;
+        while(fichier.exists()) // incrementation de version de fichier s'il existe deja
+        {
+            //qDebug() << fichier.fileName() << "existe !";
+            QStringList nom = fichier.fileName().split(".txt");
+            if (nom[0].contains("data4latex_"))
+            {
+                QStringList nom2 = nom[0].split("data4latex_");
+                newName = nom2[0] + "data4latex_" + QString::number(i) + ".txt" ;
+            }
+            else
+            {
+                newName = nom[0] + "_" + QString::number(i) + ".txt" ;
+            }
+
+            i++;
+            fichier.setFileName(newName);
+            //qDebug() << "newname" << newName ;
+        }
+
+
+        fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
+        QString text;
+        text = "\\begin{tableth} \n \\begin{tabular}{| *{9}{c|}} \n \\hline \n Facteur & 62,5Hz & 125Hz & 250Hz & 500Hz & 1kHz & 2kHz & 4kHz & 8kHz \\\\ \n \\hline \n \\hline \n";
+        fichier.write(text.toLatin1());
+
+        text = "\\gls{EDT} (ms)";
+        for (i=0; i<8; i++) text+= "& " + QString::number(round(EDT[i]));
+        text+= " \\\\ \n \\hline \n";
+        fichier.write(text.toLatin1());
+        text = "\\gls{T30} (ms)";
+        for (i=0; i<8; i++) text+= "& " + QString::number(round(Tr30[i]));
+        text+= " \\\\ \n \\hline \n";
+        fichier.write(text.toLatin1());
+        text = "\\gls{RT60} (ms)";
+        for (i=0; i<8; i++) text+= "& " + QString::number(round(Tr60[i]));
+        text+= " \\\\ \n \\hline \n";
+        fichier.write(text.toLatin1());
+        text = "\\gls{spl} (dB)";
+        for (i=0; i<8; i++) text+= "& " + QString::number(round(SPL[i]));
+        text+= " \\\\ \n \\hline \n";
+        fichier.write(text.toLatin1());
+        text = "\\gls{G} (dB)";
+        for (i=0; i<8; i++) text+= "& " + QString::number(round(G[i]*10)/10);
+        text+= " \\\\ \n \\hline \n";
+        fichier.write(text.toLatin1());
+        text = "\\gls{C80} (dB)";
+        for (i=0; i<8; i++) text+= "& " + QString::number(round(C80[i]*100)/100);
+        text+= " \\\\ \n \\hline \n";
+        fichier.write(text.toLatin1());
+        text = "\\gls{D50} (\\%)";
+        for (i=0; i<8; i++) text+= "& " + QString::number(round(D50[i]*100)/100);
+        text+= " \\\\ \n \\hline \n";
+        fichier.write(text.toLatin1());
+        text = "\\gls{Ts} (ms)";
+        for (i=0; i<8; i++) text+= "& " + QString::number(round(Ts[i]));
+        text+= " \\\\ \n \\hline \n";
+        fichier.write(text.toLatin1());
+        text = "\\gls{LF80} (dB)";
+        for (i=0; i<8; i++) text+= "& " + QString::number(round(LF[i]*1000)/1000);
+        text+= " \\\\ \n \\hline \n";
+        fichier.write(text.toLatin1());
+
+        CoordVector s(m_source.getCentre()), r(m_listener.getCentre());
+        arrondir(s);
+        arrondir(r);
+
+
+       text = "\\end{tabular} \n \\caption{Facteurs perceptifs pour une source en [";
+       text+=QString::number(s.x) + " ; " + QString::number(-s.z) + " ; " + QString::number(s.y);
+       text+="] et un auditeur en [";
+       text+=QString::number(r.x) + " ; " + QString::number(-r.z) + " ; " + QString::number(r.y);
+       text+="] et ";
+       text+= QString::number(m_nbRayon);
+       text+= " de rayons.} \n \\label{tab_fact} \n \\end{tableth}";
+
+         fichier.write(text.toLatin1());
+
     }
     else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
 }

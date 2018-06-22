@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>683</width>
+    <width>687</width>
     <height>884</height>
    </rect>
   </property>
@@ -1052,45 +1052,13 @@ p, li { white-space: pre-wrap; }
       <widget class="QWidget" name="gridLayoutWidget_3">
        <property name="geometry">
         <rect>
-         <x>0</x>
+         <x>10</x>
          <y>20</y>
-         <width>621</width>
-         <height>116</height>
+         <width>611</width>
+         <height>119</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="5" column="2">
-         <widget class="QLabel" name="label_nbRay">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Nombre de rayons :</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QRadioButton" name="radioButton_Fibonacci">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Utiliser une sphère de Fibonacci</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
         <item row="3" column="2" rowspan="2">
          <widget class="QLabel" name="label_seuilArret">
           <property name="sizePolicy">
@@ -1107,35 +1075,7 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </item>
-        <item row="5" column="3">
-         <widget class="QSpinBox" name="spinBox_nbRay">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="prefix">
-           <string/>
-          </property>
-          <property name="minimum">
-           <number>2</number>
-          </property>
-          <property name="maximum">
-           <number>1000000000</number>
-          </property>
-          <property name="value">
-           <number>100000</number>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="3" rowspan="2">
+        <item row="3" column="4" rowspan="2">
          <widget class="QSpinBox" name="spinBox_seuilArret">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
@@ -1150,7 +1090,7 @@ p, li { white-space: pre-wrap; }
            <number>1000</number>
           </property>
           <property name="value">
-           <number>100</number>
+           <number>1</number>
           </property>
          </widget>
         </item>
@@ -1183,10 +1123,33 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </item>
-        <item row="3" column="0" rowspan="3" colspan="2">
+        <item row="1" column="4">
+         <widget class="QPushButton" name="bouton_test">
+          <property name="text">
+           <string>test</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QRadioButton" name="radioButton_Fibonacci">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Utiliser une sphère de Fibonacci</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3" rowspan="2">
          <widget class="QCheckBox" name="checkBox_rayAuto">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -1195,14 +1158,74 @@ p, li { white-space: pre-wrap; }
            <enum>Qt::RightToLeft</enum>
           </property>
           <property name="text">
-           <string>Nombre rayons déterminé selon la taille du listener</string>
+           <string/>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="1" column="3">
-         <widget class="QPushButton" name="bouton_test">
+        <item row="5" column="2">
+         <widget class="QLabel" name="label_tpsmax">
           <property name="text">
-           <string>test</string>
+           <string>Temps maximum (s):</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0" rowspan="2">
+         <widget class="QLabel" name="label_nbRay">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Nombre de rayons :</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1" rowspan="2">
+         <widget class="QSpinBox" name="spinBox_nbRay">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="prefix">
+           <string/>
+          </property>
+          <property name="minimum">
+           <number>2</number>
+          </property>
+          <property name="maximum">
+           <number>1000000000</number>
+          </property>
+          <property name="value">
+           <number>1000000</number>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="3" colspan="2">
+         <widget class="QLCDNumber" name="lcdTempsmax">
+          <property name="autoFillBackground">
+           <bool>true</bool>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="segmentStyle">
+           <enum>QLCDNumber::Flat</enum>
           </property>
          </widget>
         </item>
@@ -1215,7 +1238,7 @@ p, li { white-space: pre-wrap; }
         <x>350</x>
         <y>280</y>
         <width>291</width>
-        <height>341</height>
+        <height>351</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -1236,7 +1259,7 @@ p, li { white-space: pre-wrap; }
          <x>10</x>
          <y>1</y>
          <width>271</width>
-         <height>331</height>
+         <height>342</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_6">
@@ -1259,19 +1282,6 @@ p, li { white-space: pre-wrap; }
          <widget class="QPushButton" name="bouton_faisceau">
           <property name="text">
            <string>Exporter Faisceau</string>
-          </property>
-         </widget>
-        </item>
-        <item row="16" column="0" colspan="4">
-         <widget class="QPushButton" name="bouton_RIR">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Afficher RIR</string>
           </property>
          </widget>
         </item>
@@ -1434,6 +1444,26 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </item>
+        <item row="16" column="0" colspan="2">
+         <widget class="QPushButton" name="bouton_RIR">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Afficher RIR</string>
+          </property>
+         </widget>
+        </item>
+        <item row="16" column="2" colspan="2">
+         <widget class="QCheckBox" name="checkBox_decaycurve">
+          <property name="text">
+           <string>Decay Curves</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </widget>
@@ -1454,7 +1484,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>683</width>
+     <width>687</width>
      <height>22</height>
     </rect>
    </property>

@@ -522,7 +522,7 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                 m_vDir[j] = vect_ref/nor;
             }
     }
-        qDebug() << "m_raymorts" << m_nbRayMort;
+        //qDebug() << "m_raymorts" << m_nbRayMort;
 
     return rayonsExistent;
 }

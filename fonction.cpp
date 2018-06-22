@@ -401,6 +401,12 @@ QString CoordVector2QString(const CoordVector &coord)
      return text;
 }
 
+QString CoordVector2QString2(const CoordVector &coord)
+{
+    QString text = "x = " + QString::number(round(coord.x*100)/100) + " ; y = " + QString::number(round(coord.y*100)/100) + " ; z = " + QString::number(round(coord.z*100)/100);
+     return text;
+}
+
 CoordDouble CoordVector::CoordVector2CoordDouble()
 {
     return CoordDouble((double)x,(double)y,(double)z);

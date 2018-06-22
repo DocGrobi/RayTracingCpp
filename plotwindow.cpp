@@ -38,6 +38,19 @@ void plotWindow::setYLabel(QString nom)
     ui->customPlot->yAxis->setLabel(nom);
 }
 
+void plotWindow::setTitle(QString nom)
+{
+    // add the text label at the top:
+    QCPItemText *textLabel = new QCPItemText(ui->customPlot);// = new QCPItemText(plotWindow);
+    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
+    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
+    textLabel->position->setCoords(0.5, 0); // place position at center/top of axis rect
+    textLabel->setText(nom);
+    textLabel->setFont(QFont(font().family(), 16)); // make font a bit larger
+    textLabel->setPen(QPen(Qt::black)); // show black border around text
+
+}
+
 void plotWindow::hideLegend()
 {
     ui->customPlot->legend->setVisible(false);
@@ -65,16 +78,29 @@ void plotWindow::makePlot()
         }
     }
 */
+    int buf=0;
     // Création graphique des courbes
     for (int k = 0 ; k < courbe.size() ; k++) // pour chaque bande
     {
         ui->customPlot->addGraph();
-        ui->customPlot->graph(k)->setData(vectX, courbe[k]);
+        ui->customPlot->graph(k+buf)->setData(vectX, courbe[k]);
         QString nom = QString::number(62.5*pow(2,k)) + "Hz";
         //QString nom = QString::number(-10+k*10) + "°C";
-        ui->customPlot->graph(k)->setName(nom);
-        ui->customPlot->graph(k)->setPen(QPen(QColor::fromHsv(360/courbe.size()*k,255,255)));
+        ui->customPlot->graph(k+buf)->setName(nom);
+        ui->customPlot->graph(k+buf)->setPen(QPen(QColor::fromHsv(360/courbe.size()*(k+buf),255,255)));
+
+        if (courbe.size() == 16) // dacay curve
+        {
+            buf++;
+            ui->customPlot->addGraph();
+            ui->customPlot->graph(k+buf)->setData(vectX, courbe[k+8]);
+            QString nom = QString::number(62.5*pow(2,k)) + "Hz - Integrated";
+            ui->customPlot->graph(k+buf)->setName(nom);
+            ui->customPlot->graph(k+buf)->setPen(QPen(QColor::fromHsv(360/courbe.size()*(k+buf),255,255)));
+            if (k==7) break;
+        }
     }
+
 
     // Noms des axes
     ui->customPlot->xAxis->setLabel("Temps (ms)");
