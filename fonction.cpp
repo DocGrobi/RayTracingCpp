@@ -403,7 +403,7 @@ QString CoordVector2QString(const CoordVector &coord)
 
 QString CoordVector2QString2(const CoordVector &coord)
 {
-    QString text = "x = " + QString::number(round(coord.x*100)/100) + " ; y = " + QString::number(round(coord.y*100)/100) + " ; z = " + QString::number(round(coord.z*100)/100);
+    QString text = "x = " + QString::number(round(coord.x*100)/100) + " ; y = " + QString::number(round(-coord.z*100)/100) + " ; z = " + QString::number(round(coord.y*100)/100);
      return text;
 }
 

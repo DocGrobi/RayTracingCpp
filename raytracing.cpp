@@ -220,6 +220,7 @@ Ray::Ray(int Nray, Source S, int nSrc, bool fibonacci)
     m_nbRayMort = 0;
     m_rayVivant.resize(m_Nray, true); // Tous les rayons sont vivant
     m_rayVivantBackup.resize(m_Nray, true);
+    qDebug() << "nb ray" << m_ray.size();
 
 }
 
@@ -326,8 +327,6 @@ void Ray::stockage(){
 bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 {
     // chargement du mesh
-    //std::vector<float> normales(mesh.getNormals());
-    //std::vector<float> vertex(mesh.getVertex());
     std::vector<float> indiceMat(mesh.getIndMat());
 
     std::vector<CoordVector> normales(mesh.getNorm());
@@ -341,7 +340,6 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
     int compteur(0),face(0);
     bool rayonsExistent = false;
     int j(0), k(0), l(0);
-   // int nbVertex = vertex.size();
 
     *std::transform(m_dist.begin(), m_dist.end(), m_long.begin(), m_dist.begin(), std::plus<float>()); // ajout de la dernière longueur de rayon à la distance totale
 
@@ -361,18 +359,6 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 
                 for (k=0; k < vertex.size(); k+=3) // pour chaque face
                 {
-                    /*
-                    A.x = vertex[k];
-                    A.y = vertex[k+1];
-                    A.z = vertex[k+2];
-                    B.x = vertex[k+3];
-                    B.y = vertex[k+4];
-                    B.z = vertex[k+5];
-                    C.x = vertex[k+6];
-                    C.y = vertex[k+7];
-                    C.z = vertex[k+8];
-                    */
-
                     A=vertex[k];
                     B=vertex[k+1];
                     C=vertex[k+2];
@@ -380,96 +366,12 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
                     // longueur du rayon depuis point de depart dans le sens du vecteur directeur et intersectant avec la face ABC
                     longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
 
-
                     if (longueur_inst > 0 && longueur_inst < m_long[j]) // Rayon dans le sens du vecteur directeur et le plus petit trouvé
                     {
                         m_long[j] = longueur_inst; // On sauvegrade la plus petite longueur
                         face = k;                  //on sauvegarde la dernière face testée
                     }
-
-                    /*
-                    // ANCIENNE VERSION
-                    vect_norm.x = normales[k];
-                    vect_norm.y = normales[k+1];
-                    vect_norm.z = normales[k+2];
-
-                    if (produitScalaire(vect_dir,vect_norm)<0) // test non-parralelisme des vecteurs et sens opposé
-                    //if (produitScalaire(m_vDir,j,normales,k)<0)
-                    {
-                        //calcul de la constante de l'équation du plan
-                        cons = 0;
-                        for (ind=0;ind<3; ind++)
-                        {
-                            cons = cons - (vertex[k+ind]*normales[k+ind]);
-                            // matrice de face
-                        }
-
-                        // point d'intersection de la droite portée par vect-dir et du plan de normale vect_norm
-                        intersec = intersection(point, vect_dir, vect_norm, cons);
-                        //intersec = intersection(m_ray, m_vDir, j, normales, k, cons);
-
-                        // les trois points de la face k
-                        A.x = vertex[k];
-                        A.y = vertex[k+1];
-                        A.z = vertex[k+2];
-                        B.x = vertex[k+3];
-                        B.y = vertex[k+4];
-                        B.z = vertex[k+5];
-                        C.x = vertex[k+6];
-                        C.y = vertex[k+7];
-                        C.z = vertex[k+8];
-
-//                        tps2 = tps2 + timer2.nsecsElapsed();
-//                        timer3.restart();
-
-                        // si le point d'intersection appartient à la face
-                        //if (appartient_face(intersec, mat_coordFace))
-                        if (appartient_face(intersec, A,B,C))
-                        //if (appartient_face(intersec, 0, vertex, k))
-                        {
-                            // s'il s'agit du plus petit rayon et qu'il est dans le sens du vecteur directeur
-                            //longueur_inst = norme(vecteur(m_ray, j,intersec, 0));
-                            longueur_inst = norme(vecteur(point,intersec));
-
-//                            tps3 = tps3 + timer3.nsecsElapsed();
-//                            timer4.restart();
-
-                            if(longueur_inst<m_long[j] )
-                            //if(longueur_inst<longueur_ray && produitScalaire(m_vDir,j,vecteur(m_ray, j,intersec, 0))>0)
-                            {
-                                if (produitScalaire(vect_dir,vecteur(point,intersec))>0)
-                                {
-                                    // on garde la longueur min
-                                    //longueur_ray = norme(vecteur(point,intersec));
-                                    m_long[j] = longueur_inst;
-                                    // On sauvegarde la longueur du rayon actuel
-                                    //m_long[j] = longueur_ray;
-
-                                    // on remplace le bout du rayon par le point d'intersection
-                                    m_ray[3*j] = intersec.x;
-                                    m_ray[3*j+1] = intersec.y;
-                                    m_ray[3*j+2] = intersec.z;
-
-                                    // étage suivant : ecriture du prochain point pour création d'un nouveau vecteur directeur
-                                    vect_ref = vecteur_reflechi(vect_dir,vect_norm);
-
-                                    m_ray[3*j+m_Nray] = vect_ref.x + intersec.x;
-                                    m_ray[3*j+m_Nray+1] = vect_ref.y + intersec.y;
-                                    m_ray[3*j+m_Nray+2] = vect_ref.z + intersec.z;
-
-                                    m_vDir[3*j] = vect_ref.x;
-                                    m_vDir[3*j+1] = vect_ref.y;
-                                    m_vDir[3*j+2] = vect_ref.z;
-
-                                    //on sauvegarde la dernière face testée
-                                    face = k;
-                                }
-                            }
-                        }
-                    }
-                    */
                 }
-
 
                 // POUR CHAQUE NOUVEAU RAYON
 
@@ -481,9 +383,6 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 
                     return false;
                 }
-
-                // On ajoute la longueur du nouveau rayon à la longueur totale
-               // m_dist[j] += m_long[j];
 
                 //On met à jour l'énergie du nouveau rayon pour chaque bande
                 compteur = 0;
@@ -608,22 +507,10 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
                 return false;
             }
 
-/*
-            // Mise à jour vecteur directeur
-            m_vDir[j]  = vecteur_reflechi(m_dir[j], norm[face[j]]);
-
-            // Mise à jour point d'origine
-            m_ray[j]+= m_dir[j]*(m_long[j] - 1e-6); // On eloigne la point de la face de 1um pour éviter les rayons coincés dans des coins
-*/
-
-            // On ajoute à la longueur des nouveaux rayons à la longueur totale
-            //m_dist[j] += m_long[j];
-
             //Mise à jour de l'énergie des rayons pour chaque bande
             compteur = 0;
             for (l=0; l<8; l++)
             {
-                //m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face[j]+l+1]) * pow(10,(-absair[l]*m_long[j]/10));
                 m_nrg[j*8 + l] *= (1-indiceMat[3*face[j]+l+1]); // l'attenuation de l'air se fait dans les sources images
 
                 //if (m_nrg[j*8 + l] < seuil) compteur++; // comptage des energies < seuil

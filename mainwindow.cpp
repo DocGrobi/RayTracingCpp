@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
    // OCTREE
    int nbvert = m_meshObj.getVert().size();
-   qDebug() << nbvert;
+   qDebug() << "nb vertices : " << nbvert;
    // On limite le nombre de faces par feuille au nombre de face total
    ui->spinBox_nbFaceFeuille->setMaximum(nbvert/3);
    // active l'octree selon le nombre d'éléments
@@ -136,15 +136,13 @@ void MainWindow::on_bouton_source_clicked()
 void MainWindow::on_bouton_listener_clicked()
 {
     // IMPORT
-    QString fichierObj = QCoreApplication::applicationDirPath() + "/listenerForRayTracing.obj";
-    MeshObj monMeshObj(fichierObj);
+   QString fichierObj = QCoreApplication::applicationDirPath() + "/listenerForRayTracing.obj";
+     MeshObj monMeshObj(fichierObj);
     m_listener = monMeshObj.getListener();
 
     ui->label_listener->setText(m_listener.afficher());
 
-    if(m_rayAuto) {
-        on_checkBox_rayAuto_toggled(true);
-    }
+    if(m_rayAuto) { on_checkBox_rayAuto_toggled(true); }
 }
 
 void MainWindow::on_bouton_rayons_clicked()
@@ -152,9 +150,6 @@ void MainWindow::on_bouton_rayons_clicked()
     suppFichier(); // Suppression des fichiers d'export existant
 
     //std::vector<float> absAir = absair(m_temperature, m_humidite);
-
-    // OCTREE
-    if (m_methodeRapide) m_octree.chargerRayonRacine(m_nbRayon);
 
     // Ouvrir fenetre de progress bar
     QProgressDialog progress(this);
@@ -176,6 +171,7 @@ void MainWindow::on_bouton_rayons_clicked()
         // RAYONS
         Ray monRay(m_nbRayon, m_source, nSrc, m_fibonacci);
         if(!m_fibonacci) m_nbRayon = monRay.getNbRay(); // Au cas où on prend la source blender
+        if (m_methodeRapide) m_octree.chargerRayonRacine(m_nbRayon);
 
         if (m_nbRebondFixe)
         {
@@ -198,7 +194,7 @@ void MainWindow::on_bouton_rayons_clicked()
                     if(!monRay.rebondSansMemoire(m_meshObj, -1)) // calcul des points d'intersection entre rayons et faces
                             i=m_nbRebond; // arrete la boucle
                 }
-                monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, -1); // ecriture des vertex
+                monObjWriter.rec_Vert(m_source,nSrc,monRay, i, -1); // ecriture des vertex
 
             }
             monObjWriter.rec_Line(m_nbRayon,m_nbRebond); // ecriture des edges entre les vertex
@@ -220,7 +216,7 @@ void MainWindow::on_bouton_rayons_clicked()
                     progress.setValue(monRay.getRayMorts());
                     if (progress.wasCanceled()) break; // arrete la boucle
 
-                    monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
+                    monObjWriter.rec_Vert(m_source,nSrc,monRay,  i, m_seuilAttenuation); // ecriture des vertex
                     i++;
                     m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                 }
@@ -234,12 +230,12 @@ void MainWindow::on_bouton_rayons_clicked()
                     progress.setValue(monRay.getRayMorts());
                     if (progress.wasCanceled()) break; // arrete la boucle
 
-                    monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture des vertex
+                    monObjWriter.rec_Vert(m_source,nSrc,monRay, i, m_seuilAttenuation); // ecriture des vertex
                     i++;
                 }
             }
 
-            monObjWriter.rec_Vert(m_source,nSrc,monRay, m_nbRayon, i, m_seuilAttenuation); // ecriture du dernier vertex
+            monObjWriter.rec_Vert(m_source,nSrc,monRay, i, m_seuilAttenuation); // ecriture du dernier vertex
             monObjWriter.rec_Line(m_nbRayon,0); // ecriture des edges entre les vertex
 
             progress.setValue(m_nbRayon);

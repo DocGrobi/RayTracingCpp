@@ -17,13 +17,21 @@ void Source::chargerSource()
 {
     // Remise à 0 du centre
     m_centreSource = CoordVector();
+    CoordVector max(m_vert[m_nbDataSource], m_vert[m_nbDataSource+1], m_vert[m_nbDataSource+2]) , min(m_vert[m_nbDataSource], m_vert[m_nbDataSource+1], m_vert[m_nbDataSource+2]);
 
     // Moyenne des vertex sur chaque coordonnée
    for (int i = m_nbDataSource ; i < m_vert.size() ; i++)
    {
+
        m_centreSource[i] += m_vert[i]; // l'operateur [] a un modulo 3
+       if (m_vert[i] > max[i]) max[i] = m_vert[i];
+       if (m_vert[i] < min[i]) min[i] = m_vert[i];
+
    }
-   if (!m_vert.empty()) m_centreSource = m_centreSource/((m_vert.size()-m_nbDataSource)/3); // S'il y a une source dans le fichier
+  // barycentre
+   //if (!m_vert.empty()) m_centreSource = m_centreSource/((m_vert.size()-m_nbDataSource)/3); // S'il y a une source dans le fichier
+   // centre
+   if (!m_vert.empty()) m_centreSource = (max+min)/2;
 
    // Ajout au vecteur de centres
    m_centresSources.push_back(m_centreSource);
@@ -200,6 +208,7 @@ void MeshObj::charger_obj(QString file_obj)
                         if(lecture_listener) nb_norListener++;
                     }
                 }
+                //qDebug()<< nb_verListener;
 
             }
 
@@ -282,7 +291,8 @@ void MeshObj::charger_obj(QString file_obj)
                 }
                 else lecture_source = false;
 
-                if(ligne.contains("listener")) lecture_listener = true; // on est en mode lecture de listener
+                if(ligne.contains("listener")) lecture_listener = true;
+ // on est en mode lecture de listener
                 else lecture_listener = false;
             }
         }
@@ -291,7 +301,7 @@ void MeshObj::charger_obj(QString file_obj)
     }
 
 
-    //if (!m_source.getVert().empty())
+    if (!m_source.getVert().empty())
     m_source.chargerSource(); // On charge la source 0 ou la dernière source trouvée et pas encore chargée
     if (!m_listener.getVert().empty()) m_listener.chargerListener(); // Dans le cas où on a trouvé un listener
 

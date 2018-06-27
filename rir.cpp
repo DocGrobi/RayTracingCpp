@@ -428,7 +428,7 @@ void unite(std::vector< CoordVector> &si_in, std::vector< CoordVector> &si_out, 
                 srcCommune = true;
                 for (j=0 ; j<8 ; j++)
                 {
-                    nrg_out[k] += nrg_in[i];
+                    nrg_out[8*k+j] += nrg_in[8*i+j];
                 }
             }
         }
@@ -437,7 +437,7 @@ void unite(std::vector< CoordVector> &si_in, std::vector< CoordVector> &si_out, 
             si_out.push_back(si_in[i]);
             for (j=0 ; j<8 ; j++)
             {
-                nrg_out.push_back(nrg_in[i+j]);
+                nrg_out.push_back(nrg_in[8*i+j]);
             }
         }
         else srcCommune = false;

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>687</width>
+    <width>731</width>
     <height>884</height>
    </rect>
   </property>
@@ -440,7 +440,7 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>671</width>
+      <width>701</width>
       <height>801</height>
      </rect>
     </property>
@@ -458,7 +458,7 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>655</width>
+       <width>685</width>
        <height>799</height>
       </rect>
      </property>
@@ -1237,7 +1237,7 @@ p, li { white-space: pre-wrap; }
        <rect>
         <x>350</x>
         <y>280</y>
-        <width>291</width>
+        <width>311</width>
         <height>351</height>
        </rect>
       </property>
@@ -1258,8 +1258,8 @@ p, li { white-space: pre-wrap; }
         <rect>
          <x>10</x>
          <y>1</y>
-         <width>271</width>
-         <height>342</height>
+         <width>292</width>
+         <height>348</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_6">
@@ -1351,19 +1351,6 @@ p, li { white-space: pre-wrap; }
          <widget class="QPushButton" name="bouton_diffRir">
           <property name="text">
            <string>Difference RIR</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="3">
-         <widget class="QPushButton" name="bouton_listener">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Listener</string>
           </property>
          </widget>
         </item>
@@ -1464,6 +1451,19 @@ p, li { white-space: pre-wrap; }
           </property>
          </widget>
         </item>
+        <item row="2" column="3">
+         <widget class="QPushButton" name="bouton_listener">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Listener</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </widget>
@@ -1484,7 +1484,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>687</width>
+     <width>731</width>
      <height>22</height>
     </rect>
    </property>

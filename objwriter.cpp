@@ -217,11 +217,13 @@ void ObjWriter::display_ray(Source &source, std::vector<float> &ray, int nbRay, 
 
 
 
-void ObjWriter::rec_Vert(Source &source, int nSrc, Ray &monRay, int nbRay, int num_rebond, float seuil)
+void ObjWriter::rec_Vert(Source &source, int nSrc, Ray &monRay, int num_rebond, float seuil)
 {
     QFile fichier(m_chemin);
     std::vector<CoordVector> ray = monRay.getRay();
     std::vector<float> nrg = monRay.getNRG();
+
+    int nbRay = ray.size();
 
     if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier
     {
