@@ -83,6 +83,7 @@ void Listener::chargerVert(float coord){
 
 void Listener::chargerListener()
 {
+   qDebug() << m_vert.size();
    // float min, max;
    for (int i = 0 ; i < m_vert.size() ; i++)
    {
@@ -95,14 +96,15 @@ void Listener::chargerListener()
    //m_rayon = (max-min)/2;
    m_rayon = norme(vecteur(m_centreListener, point));
    if (m_rayon < 0.001) QMessageBox::warning(NULL,"Attention","Le rayon du Listener est inférieur à 1mm. Veuillez recharger un Listener", "OK");
-
+    qDebug() << m_rayon;
+    point.debug();
 }
 
 QString Listener::afficher()
 {    
     QString ray;
     ray.setNum(m_rayon);
-    QString info = "Listener\nCentre : "+ CoordVector2QString2(m_centreListener) +"\n"
+    QString info = "Centre : "+ CoordVector2QString2(m_centreListener) +"\n"
             + "Rayon : " + ray + "m";
     return info;
 }
@@ -119,11 +121,12 @@ std::vector<float>& Listener::getVert() {
     return m_vert;
 }
 
-Listener MeshObj::getListener() const {
+std::vector<Listener> MeshObj::getListener() {
     return m_listener;
 }
 
 MeshObj::MeshObj(QString s) {
+    m_listener.clear();
     charger_obj(s);
 }
 
@@ -197,7 +200,8 @@ void MeshObj::charger_obj(QString file_obj)
                         }
                         if(lecture_listener) {
                             for(i=0; i<3;i++) {
-                                m_listener.chargerVert(coord[i+1].toFloat());
+                                //m_listener.chargerVert(coord[i+1].toFloat());
+                                m_listener[m_listener.size()-1].chargerVert(coord[i+1].toFloat());
                             }
                             nb_verListener++;
                         }
@@ -291,8 +295,12 @@ void MeshObj::charger_obj(QString file_obj)
                 }
                 else lecture_source = false;
 
-                if(ligne.contains("listener")) lecture_listener = true;
- // on est en mode lecture de listener
+                if(ligne.contains("listener")) { // on est en mode lecture de listener
+                    lecture_listener = true;
+                    Listener l;
+                    m_listener.push_back(l);}
+                    //if (!m_listener.getVert().empty()) m_listener.chargerListener();}
+
                 else lecture_listener = false;
             }
         }
@@ -301,9 +309,18 @@ void MeshObj::charger_obj(QString file_obj)
     }
 
 
-    if (!m_source.getVert().empty())
-    m_source.chargerSource(); // On charge la source 0 ou la dernière source trouvée et pas encore chargée
-    if (!m_listener.getVert().empty()) m_listener.chargerListener(); // Dans le cas où on a trouvé un listener
+    if (!m_source.getVert().empty()) m_source.chargerSource(); // On charge la source 0 ou la dernière source trouvée et pas encore chargée
+    //if (!m_listener.getVert().empty()) m_listener.chargerListener(); // Dans le cas où on a trouvé un listener
+    if (m_listener.empty()) { // si le fichier n'a pas de listener on ajoute un listener par defaut
+        Listener l;
+        m_listener.push_back(l);
+    }
+    else {
+        for(Listener &a : m_listener) a.chargerListener(); // sinon on calcul le centre et le rayons pour tous les listener
+    }
+    qDebug()<< "m_listerner.size : " << m_listener.size();
+    if (!m_listener.empty()) qDebug()<< "listener 1 : " << m_listener[0].afficher();
+
 
     // Initialisation des min et max
     if (!ver.empty())

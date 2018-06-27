@@ -53,7 +53,7 @@ private slots:
 
     void on_radioButton_Fibonacci_toggled(bool checked);
 
-    void on_spinBox_nbRay_valueChanged(int arg1);
+    //void on_spinBox_nbRay_valueChanged(int arg1);
 
     void on_bouton_RIR_clicked();
 
@@ -103,20 +103,27 @@ private slots:
 
     void on_spinBox_gain_editingFinished();
 
+    void on_spinBox_numListener_editingFinished();
+
+    void on_spinBox_nbRay_editingFinished();
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
     Source m_source;
-    Listener m_listener;
-    SourceImage m_sourceImage;
+    //Listener m_listener;
+    std::vector<Listener> m_listener;
+    //SourceImage m_sourceImage;
+    std::vector<SourceImage> m_sourceImage;
     Octree m_octree;
     QElapsedTimer m_timer; 
     QString m_fichierExport, m_fichierAudio;
-    float m_seuilAttenuation, m_gain, m_longueurRayMax;
-    int m_temperature, m_humidite, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille;
+    float m_seuilAttenuation, m_gain;
+    //, m_longueurRayMax;
+    int m_temperature, m_humidite, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille, m_numListener;
     bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe;
     QMediaPlayer *player;
-
+    std::vector<float> m_longueurRayMax;
 
     plotWindow *plot, *audioPlot, *audioPlot2, *firPlot, *filtrePlot, *plotcumsum;
     Data *fenetre;
@@ -127,6 +134,10 @@ private:
 
     QFile raw;
     QBuffer *raw_buf;
+
+    QLabel *text;
+
+    //QScrollArea scrollArea ;
 };
 
 #endif // MAINWINDOW_H

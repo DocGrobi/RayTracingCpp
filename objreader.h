@@ -61,7 +61,7 @@ class MeshObj
         void charger_obj(QString file_obj);
 
         Source getSource() const; //accesseur aux parametres de source
-        Listener getListener()const; //accesseur aux parametres du listener
+        std::vector<Listener> getListener(); //accesseur aux parametres du listener
         //std::vector<float>& getVertex() ; //accesseur aux vertex
         //std::vector<float>& getNormals() ;
         std::vector<float>& getIndMat() ;
@@ -88,7 +88,7 @@ class MeshObj
 
         //int m_nbData;
         Source m_source;
-        Listener m_listener;
+        std::vector<Listener> m_listener;
         QVector<QString> m_materiaux;
 
 };
