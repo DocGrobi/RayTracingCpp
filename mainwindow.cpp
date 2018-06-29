@@ -615,11 +615,11 @@ void MainWindow::on_bouton_RIR_clicked()
     plotWindow *plot = new plotWindow;
     //plotWindow *plotcumsum = new plotWindow;
     std::vector<float> absR = absair(m_temperature, m_humidite);
-    if (m_sourceImage[m_numListener].calculerRIR(m_freq, absR, m_gain, ui->checkBox_decaycurve->isChecked()))
+    if (m_sourceImage[m_numListener].calculerRIR(m_freq, absR, m_gain, ui->checkBox_decaycurve->isChecked(), m_seuilAttenuation))
     {
         // recupération du min
-        std::vector<float> y = m_sourceImage[m_numListener].getY()[0];
-        float max = *std::max_element(y.begin(), y.end());
+        std::vector<double> y = m_sourceImage[m_numListener].getY()[0];
+        double max = *std::max_element(y.begin(), y.end());
         //for(auto &a : y) if(a < min && a > 0) min=a;
 
         plot->XY(m_sourceImage[m_numListener].getX(), m_sourceImage[m_numListener].getY(), max*m_seuilAttenuation);
@@ -808,7 +808,7 @@ void MainWindow::on_bouton_convolution_clicked()
     if(wav.open(m_fichierAudio))
     {
         std::vector<float> absR = absair(m_temperature, m_humidite);
-        if (m_sourceImage[m_numListener].calculerRIR(wav.fileFormat().sampleRate(), absR, m_gain, ui->checkBox_decaycurve->isChecked()))
+        if (m_sourceImage[m_numListener].calculerRIR(wav.fileFormat().sampleRate(), absR, m_gain, ui->checkBox_decaycurve->isChecked(), m_seuilAttenuation))
         {
 
             // Ouvrir fenetre de progress bar
@@ -1209,7 +1209,7 @@ void MainWindow::tests()
 
 
     std::vector<float> x;
-    std::vector<std::vector<float> > y;
+    std::vector<std::vector<double> > y;
     y.resize(8);
     std::vector<float> nrgExp = m_sourceImage[m_numListener].getNrgSI();
     std::vector<CoordVector> src_im_exp = m_sourceImage[m_numListener].getSourcesImages();
@@ -1243,7 +1243,7 @@ void MainWindow::tests()
 
                 for (l=0 ; l < 8 ; l++)
                 {
-                    y[l].push_back((nrgbis[8*i+l]-nrgExp[8*j+l])/nrgbis[8*i+l]);
+                    y[l].push_back((double)(nrgbis[8*i+l]-nrgExp[8*j+l])/nrgbis[8*i+l]);
                     //y[l].push_back((nrgbis[8*i+l]-nrgExp[8*j+l])/max1);
                 }
 
@@ -1293,7 +1293,7 @@ void MainWindow::tests()
 
 void MainWindow::test2() //fonction 1/d^2
 {
-    std::vector<std::vector<float> > y_rir = m_sourceImage[m_numListener].getY();
+    std::vector<std::vector<double> > y_rir = m_sourceImage[m_numListener].getY();
 
    float freq = (float)ui->spinBox_freqEchan->value()/1000; // car on a des temps en ms (convertion en float)
    int nb_ech = y_rir[0].size();
@@ -1301,7 +1301,7 @@ void MainWindow::test2() //fonction 1/d^2
    if (nb_ech > 0)
    {
        std::vector<float> x;
-       std::vector<std::vector<float> > y;
+       std::vector<std::vector<double> > y;
        x.resize(nb_ech, 0);
        y.resize(2);
 
@@ -1391,7 +1391,7 @@ void MainWindow::handleStateChanged(QAudio::State newState)
 void MainWindow::on_bouton_saveRir_clicked()
 {
 
-    std::vector<std::vector<float> > rir = m_sourceImage[m_numListener].getY();
+    std::vector<std::vector<double> > rir = m_sourceImage[m_numListener].getY();
     if(!rir.empty())
     {
         QString chemin = QCoreApplication::applicationDirPath() + "/rirSauvegardee.txt";
@@ -1425,7 +1425,7 @@ void MainWindow::on_bouton_saveRir_clicked()
 void MainWindow::on_bouton_diffRir_clicked()
 {
      // différence de rir
-     std::vector<std::vector<float> > diff_rir = m_sourceImage[m_numListener].getY();
+     std::vector<std::vector<double> > diff_rir = m_sourceImage[m_numListener].getY();
      if(!diff_rir.empty())
      {
          QString chemin = QCoreApplication::applicationDirPath() + "/rirSauvegardee.txt";
@@ -1436,7 +1436,7 @@ void MainWindow::on_bouton_diffRir_clicked()
          QStringList valString;
          QString ligne;
          std::vector<float> val;
-         std::vector<std::vector<float> > resultat;
+         std::vector<std::vector<double> > resultat;
          resultat.resize(8);
          if(fichier.open(QIODevice::ReadOnly | QIODevice::Text)) // Si on peut ouvrir le fichier
          {
@@ -1486,9 +1486,9 @@ void MainWindow::on_bouton_data_clicked()
     std::vector<float> absR = absair(m_temperature, m_humidite);
     for(int l=0; l < m_listener.size() ; l++)
     {
-        if(m_sourceImage[l].getY().empty()) m_sourceImage[l].calculerRIR(m_freq, absR, m_gain, ui->checkBox_decaycurve->isChecked());
-        std::vector<std::vector<float> > rir = m_sourceImage[l].getY();
-        std::vector<std::vector<float> > curve = m_sourceImage[l].getCurve();
+        if(m_sourceImage[l].getY().empty()) m_sourceImage[l].calculerRIR(m_freq, absR, m_gain, ui->checkBox_decaycurve->isChecked(), m_seuilAttenuation);
+        std::vector<std::vector<double> > rir = m_sourceImage[l].getY();
+        std::vector<std::vector<double> > curve = m_sourceImage[l].getCurve();
         std::vector<CoordVector> si = m_sourceImage[l].getSourcesImages();
         std::vector<float> nrgSi = m_sourceImage[l].getNrgSI();
 

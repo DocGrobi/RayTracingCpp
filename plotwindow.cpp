@@ -116,7 +116,7 @@ void plotWindow::makePlot()
     ui->customPlot->replot();
 }
 
-void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<float> > &y, float seuil)
+void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<double> > &y, float seuil)
 {
     // Conversion en double
     std::vector<double> vX(x.begin(),x.end());
@@ -144,7 +144,7 @@ void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<float> > &y, 
     m_echelleLog = true;
 }
 
-void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<float> > &y)
+void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<double> > &y)
 {
     // Conversion en double
     std::vector<double> vX(x.begin(),x.end());

@@ -17,8 +17,8 @@ public:
     ~plotWindow();
 
     void makePlot();
-    void XY(std::vector<float> &x, std::vector<std::vector<float> > &y, float seuil);
-    void XY(std::vector<float> &x, std::vector<std::vector<float> > &y);
+    void XY(std::vector<float> &x, std::vector<std::vector<double> > &y, float seuil);
+    void XY(std::vector<float> &x, std::vector<std::vector<double> > &y);
     void XY(std::vector<float> &x, std::vector<float> &y); // courbe quelconque
     void XY(std::vector<float> &x, std::vector<int> &y);
     void setYLabel(QString nom);

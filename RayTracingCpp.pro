@@ -31,7 +31,8 @@ SOURCES  += main.cpp\
     XHRir.cpp \
     XUtils.cpp \
     XSpatFir.cpp \
-    data.cpp
+    data.cpp \
+    reglin.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -52,7 +53,8 @@ HEADERS  += mainwindow.h \
     XHRir.hpp \
     XUtils.hpp \
     XSpatFir.hpp \
-    data.h
+    data.h \
+    reglin.h
 
 
 

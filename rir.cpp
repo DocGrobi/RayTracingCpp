@@ -2,6 +2,7 @@
 #include "math.h"
 #include <QMessageBox>
 #include "QDebug"
+#include "reglin.h"
 
 // les méthodes
 std::vector<float> toucheListener(Ray &rayon, Listener &listener) // par equ parametrique
@@ -138,12 +139,12 @@ std::vector<float> &SourceImage::getX()
 {
     return m_x;
 }
-std::vector<std::vector<float> > &SourceImage::getY()
+std::vector<std::vector<double> > &SourceImage::getY()
 {
     return m_y;
 }
 
-std::vector<std::vector<float> > &SourceImage::getCurve()
+std::vector<std::vector<double> > &SourceImage::getCurve()
 {
     return m_curve;
 }
@@ -237,7 +238,6 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
             }
         }
     }
-    qDebug() << m_sourcesImages.size();
     // suppression des si inférieurs au seuil
     if (longueurMax<1e6) // dans le cas ou on n'est pas en mode rebond fixe.
     {
@@ -254,9 +254,6 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
             }
         }
     }
-    qDebug() << "si size" << m_sourcesImages.size();
-    qDebug() << "si temps" << m_sourcesImages_Tps.size();
-
     // On garde le temps max
     m_xMax = *std::max_element(m_sourcesImages_Tps.begin(), m_sourcesImages_Tps.end());
 
@@ -268,13 +265,14 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
 
 
 
-bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, bool curve)
+bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, bool curve, float seuil)
 {
     float freq = (float)f_ech/1000; // car on a des temps en ms (convertion en float)
 
     int nb_ech = ceil(m_xMax*freq);
+    //std::vector<double> x;
 
-    float max(0), maxbuf(0);
+    double max(0), maxbuf(0);
     if (nb_ech > 0)
     {
         m_x.clear();
@@ -287,12 +285,11 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
         for (float i = 0 ; i <nb_ech ; i++)
        {
            m_x[i] = i/freq; // valeurs en ms
+           //x.push_back((double)i/freq);
        }
 
         // Ordonnées
         m_FIR.resize(7);
-
-
 
 
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
@@ -300,7 +297,7 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
             m_y[k].resize(nb_ech);
             for (int i=0 ; i< m_sourcesImages_Tps.size(); i++) // pour chaque source image
             {
-                m_y[k][floor(m_sourcesImages_Tps[i]*freq)] += m_nrgSI[i*8 + k];
+                m_y[k][floor(m_sourcesImages_Tps[i]*freq)] += (double)m_nrgSI[i*8 + k];
             }
             maxbuf = *std::max_element(m_y[k].begin(), m_y[k].end());
             if(max<maxbuf) max = maxbuf; // recuperation du max
@@ -314,27 +311,28 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
         m_curve.clear();
         m_curve.resize(m_y.size());
 
-        /*
-        ///// REGRESSION LINEAIRE
-        float xmoy, coeffA, coeffB;
-        std::vector<float> ymoy;
-        xmoy = std::accumulate(m_x.begin(), m_x.end(), 0)/m_x.size();
-        */
-        //float buf;
+        double aa, bb;
+        std::vector<double> y_buf;
+        std::vector<double> x_buf;
+        //double new_y, new_x;
+        int size_max(0);
 
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
         {
-            for(float& a : m_y[k])
+            y_buf.clear();
+            x_buf.clear();
+            for(int i=0; i<m_y[k].size() ; i++)
             {
-                a/=max;// normalisation
+                m_y[k][i]/=max;// normalisation
 
                 if (sondirect>0) // -31dB à 10m
                 {
-                    a*= pow(10,(gain-31)/10)*100*exp(-absR[k]*sondirect)/pow(sondirect,2); // on retire l'offset du son direct (ok si le premier son n'a pas touché de paroi)
+                    m_y[k][i]*= pow(10,(gain-31)/10)*100*exp(-absR[k]*sondirect)/pow(sondirect,2); // on retire l'offset du son direct (ok si le premier son n'a pas touché de paroi)
                 }
 
-                if (k>0) m_FIR[k-1].push_back(sqrt(a)); // passage en puissance
+                if (k>0) m_FIR[k-1].push_back(sqrt(m_y[k][i])); // passage en puissance
             }
+
 
             // creation des decay curve
 
@@ -343,22 +341,63 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
             {
                 m_curve[k][i] += m_curve[k][i+1];
             }
-            if (curve) m_y.push_back(m_curve[k]);
-            /*
+
+
             ///// REGRESSION LINEAIRE
-            ymoy.push_back(std::accumulate(m_y[i].begin(), m_y[i].end(), 0)/m_y[i].size();
-
-
-            for (int i = 0; i< m_x.size(); i++)
+            for(int i=0; i<m_curve[k].size() ; i++)
             {
-                coeffA += (m_x[i]-xmoy)*(m_y[k][i]-ymoy[k]);
-                coeffB += pow((m_x[i]-xmoy),2);
+                if(m_curve[k][i]>0)
+                {
+                    y_buf.push_back(10*log10(m_curve[k][i]));// passage en log
+                    x_buf.push_back(i);
+                }
             }
-            coeffA /=;
-            */
 
+            aa=pente(x_buf, y_buf, y_buf.size());
+            bb=ordonnee(x_buf, y_buf, y_buf.size());
 
+            //qDebug() << "pente" << aa;
+            //qDebug() << "ordonnée" << bb;
+            double new_y(0), j(nb_ech);
+
+            maxbuf = *std::max_element(m_y[0].begin(), m_y[0].end());
+            qDebug() << "seuil" << 10*(log10(seuil)+log10(maxbuf));
+            while(new_y>10*(log10(seuil)+log10(maxbuf)))
+            {
+                new_y = aa*j + bb;
+                m_curve[k].push_back(pow(10,new_y/10));
+                j++;
+            }
+            if (m_curve[k].size() > size_max) size_max = m_curve[k].size();
         }
+
+        if (curve)
+        {
+            for (float i = m_x.size() ; i<size_max ; i++)
+            {
+                 m_x.push_back(i/freq);
+            }
+        }
+
+        for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+        {
+            for (int i = m_y[k].size() ; i<size_max ; i++)
+            {
+                 m_y[k].push_back(0);
+            }
+            for (int i = m_curve[k].size() ; i<size_max ; i++)
+            {
+                 m_curve[k].push_back(0);
+            }
+            if (curve) m_y.push_back(m_curve[k]);
+        }
+
+        /*
+        for (int k = 0 ; k < 8 ; k++) // pour chaque bande
+        {
+             if (curve) m_y.push_back(m_curve[k]);
+        }
+        */
         return true;
     }
     else return false;
