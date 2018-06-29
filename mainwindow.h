@@ -135,7 +135,7 @@ private:
     QFile raw;
     QBuffer *raw_buf;
 
-    QLabel *text;
+    QLabel *text, *text2;
 
     //QScrollArea scrollArea ;
 };

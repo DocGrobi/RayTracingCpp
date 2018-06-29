@@ -21,7 +21,7 @@ class ObjWriter
     void rec_Line(int nbRay, int nbRebond);
     void display_sourceImages(std::vector<CoordVector> &sourcesImages);
     void display_octree(const std::vector<Boite> &oct);
-    void display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal, const CoordVector &posSource);
+    void display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal, const CoordVector &posSource, float seuil);
 
     void display_Beam_init();
     void display_Beam_vert(Ray &rayon, Listener &listener);
@@ -37,7 +37,7 @@ private:
 
 std::vector<CoordVector> coordVertBoite(const Boite &boite);
 QString HSV2RGB(float h, float s, float v);
-void genererMTL();
+void genererMTL(float min);
 void RotateX(CoordVector &P, float ang);
 void RotateY(CoordVector &P, float ang);
 void Translate(CoordVector &P,CoordVector V);

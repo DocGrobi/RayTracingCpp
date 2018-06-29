@@ -180,6 +180,14 @@ void arrondir(CoordVector & a)
     a = a/10E4;
 }
 
+void arrondir(CoordVector & a, float nbDecimales)
+{
+    a = a*pow(10,nbDecimales);
+    a.x = round(a.x);
+    a.y = round(a.y);
+    a.z = round(a.z);
+    a = a/pow(10,nbDecimales);
+}
 
 std::vector<CoordVector> ranger(std::vector<CoordVector> a, std::vector<int> & indices)
 {

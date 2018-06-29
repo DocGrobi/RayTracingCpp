@@ -425,7 +425,7 @@ void ObjWriter::display_sourceImages(std::vector<CoordVector> &sourcesImages)
     fichier.close(); // ferme le fichier
 }
 
-void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal, const CoordVector &posSource)
+void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal, const CoordVector &posSource, float seuil)
 {
     QFile fichier(m_chemin);
 
@@ -512,17 +512,26 @@ void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::ve
     }
 
     float max = *std::max_element(nrgMoy.begin(), nrgMoy.end());
-    float min = *std::min_element(nrgMoy.begin(), nrgMoy.end());
 
-    float max2 = *std::max_element(nrg.begin(), nrg.end());
-    float min2 = *std::min_element(nrg.begin(), nrg.end());
+    //max = *std::max_element(nrg.begin(), nrg.end());
+    //for(auto &a : nrg) a/=max; // normalisation
+    for(auto &a : nrgMoy) a/=max; // normalisation
+    float min = *std::min_element(nrgMoy.begin(), nrgMoy.end());
+    //float min = *std::max_element(nrg.begin(), nrg.end())*seuil;
+    if (min > seuil) min = seuil;
+    genererMTL(min);
+
+    //float max2 = *std::max_element(nrg.begin(), nrg.end());
+    //float min2 = *std::min_element(nrg.begin(), nrg.end());
 
     for (int i = 0; i < nbpoint ; i++)
     {
         //text = "usemtl " + QString::number(round(99*(nrgMoy[i]-min)/(max-min))) + "\n"; // energie moyenne vaut 99 pour le max et 0 pour le min
         //text = "usemtl " + QString::number(round(240*log10(9*(nrgMoy[i]-min)/(max-min)+1))) + "\n";
         //text = "usemtl " + QString::number(round(6-log10(nrg[8*i]/max2)*40)) + "\n"; //energie basse frequence
-        text = "usemtl " + QString::number(round(log10(min/nrgMoy[i])*240/log10(min/max))) + "\n";
+        //text = "usemtl " + QString::number(round(log10(min/nrgMoy[i])*240/log10(min/max))) + "\n";
+        //text = "usemtl " + QString::number(round(10*log10(nrg[i+4]))) + "dB\n"; //A 1000Hz
+        text = "usemtl " + QString::number(round(10*log10(nrgMoy[i]))) + "dB\n";
         text += "s off\n";
         text += "f ";
         for (j=1 ; j< 5 ;j++)
@@ -577,7 +586,7 @@ void makeSplat(CoordVector &P, CoordVector pos,CoordVector nor)
     Translate(P,pos);
 }
 
-void genererMTL()
+void genererMTL(float min)
 {
     QFile fichier(QCoreApplication::applicationDirPath() + "/materiaux.mtl");
 
@@ -586,13 +595,17 @@ void genererMTL()
     // creation d'un entete
     QString text;
     fichier.write(text.toLatin1());
+    min = -10*log10(min);
 
     // ecriture des vertex représentant les posotions de sources images
-    for (float i = 0; i < 241 ; i++)
+    for (float i = 0; i <= min ; i++)
     {
-        text  = "newmtl " + QString::number(i) + "\n";  // nom du materiaux
+        //text  = "newmtl " + QString::number(i) + "\n";  // nom du materiaux
+        if (i==0) text  = "newmtl " + QString::number(i) + "dB\n";  // nom du materiaux
+        else text  = "newmtl -" + QString::number(i) + "dB\n";  // nom du materiaux
         text += "Ka 1 1 1\n"; // couleur ambiante
-        text += "Kd " + HSV2RGB(240-i, 1, 1) + "\n"; // couleur diffuse RGB (Hue de 240 à 0)
+        //text += "Kd " + HSV2RGB(240-i, 1, 1) + "\n"; // couleur diffuse RGB (Hue de 240 à 0)
+        text += "Kd " + HSV2RGB(round(240*i/min), 1, 1) + "\n"; // couleur diffuse RGB (Hue de 240 à 0)
         text += "Ks 0 0 0\n"; // specular
         text += "Ni 1\n"; // densité
         text += "d 0.5\n"; // transparence

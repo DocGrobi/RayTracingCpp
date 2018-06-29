@@ -26,10 +26,11 @@ MainWindow::MainWindow(QWidget *parent) :
    {
        //textListener += a.afficher() + "\n";
        text = new QLabel;
+       text2 = new QLabel;
        text->setText("Listener" + QString::number(i));
        ui->gridLayout_8->addWidget(text,i,0, Qt::AlignLeft);
-       text->setText(m_listener[i].afficher());
-       ui->gridLayout_8->addWidget(text,i,1, Qt::AlignLeft);
+       text2->setText(m_listener[i].afficher());
+       ui->gridLayout_8->addWidget(text2,i,1, Qt::AlignLeft);
    }
    //ui->label_listener->setText(m_listener.afficher());
    //ui->label_listener->setText(textListener);
@@ -43,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
    //on_checkBox__rebFixe_toggled(true);
    on_radioButton_Fibonacci_toggled(true);
    m_nbRebond = ui->spinBox_nbRebond->value();
-   m_seuilAttenuation = pow(10,(-(ui->spinBox_attenuation->value()/10)));
+   m_seuilAttenuation = pow(10,(-(float)(ui->spinBox_attenuation->value()/10)));
    m_gain = ui->spinBox_gain->value();
    m_temperature = ui->spinBox_temperature->value();
    m_humidite = ui->spinBox_humidite->value();
@@ -406,7 +407,7 @@ void MainWindow::on_bouton_sourcesImages_clicked()
                 }
                 for( j = 0; j < m_listener.size() ; j++)
                 {
-                   maSourceImage[j].addSourcesImages(monRay , m_listener[j], m_longueurRayMax[j], absAir,m_seuilAttenuation );
+                   maSourceImage[j].addSourcesImages(monRay , m_listener[j], 1e6, absAir,-1 );
                 }
                 //maSourceImage.addSourcesImages(monRay , m_listener, m_longueurRayMax, absAir,m_seuilAttenuation );
             }
@@ -537,10 +538,10 @@ void MainWindow::on_bouton_projection_clicked()
                 }
                 else monRay.rebondSansMemoire(m_meshObj,-1);
 
-                monObjWriter.display_coloredTriangle(monRay.getRay(),nrg2, m_listener[m_numListener].getCentre(), m_source.getCentre());
+                monObjWriter.display_coloredTriangle(monRay.getRay(),nrg2, m_listener[m_numListener].getCentre(), m_source.getCentre(), m_seuilAttenuation);
             }
             else
-                monObjWriter.display_coloredTriangle(SI2, nrg2, m_listener[m_numListener].getCentre(), m_source.getCentre());
+                monObjWriter.display_coloredTriangle(SI2, nrg2, m_listener[m_numListener].getCentre(), m_source.getCentre(), m_seuilAttenuation);
         }
     }
 }
@@ -563,7 +564,7 @@ void MainWindow::on_checkBox__rebFixe_toggled(bool checked)
 }
 
 void MainWindow::on_spinBox_attenuation_valueChanged(int arg1) {
-    m_seuilAttenuation = pow(10,(-arg1/10));
+    m_seuilAttenuation = pow(10,(-(float)arg1/10));
 }
 
 
@@ -616,7 +617,12 @@ void MainWindow::on_bouton_RIR_clicked()
     std::vector<float> absR = absair(m_temperature, m_humidite);
     if (m_sourceImage[m_numListener].calculerRIR(m_freq, absR, m_gain, ui->checkBox_decaycurve->isChecked()))
     {
-        plot->XY(m_sourceImage[m_numListener].getX(), m_sourceImage[m_numListener].getY(), m_seuilAttenuation);
+        // recupération du min
+        std::vector<float> y = m_sourceImage[m_numListener].getY()[0];
+        float max = *std::max_element(y.begin(), y.end());
+        //for(auto &a : y) if(a < min && a > 0) min=a;
+
+        plot->XY(m_sourceImage[m_numListener].getX(), m_sourceImage[m_numListener].getY(), max*m_seuilAttenuation);
         plot->makePlot();
         plot->setYLabel("SPL (dB)");
         //plot->setWindowTitle("Source position : " + CoordVector2QString(m_source.getCentre())+
@@ -643,7 +649,7 @@ void MainWindow::on_bouton_RIR_clicked()
 
 void MainWindow::on_checkBox_rayAuto_toggled(bool checked) {
    m_rayAuto = checked;
-   m_longueurRayMax.resize(m_listener.size(), 9999999);
+   m_longueurRayMax.resize(m_listener.size(), 1e6);
    if(m_rayAuto)
    {       
      //m_longueurRayMax =  m_nbRayon*m_listener.getRayon()/(2*m_seuilArret*sqrt(m_nbRayon/m_seuilArret-1));
@@ -1480,8 +1486,6 @@ void MainWindow::on_bouton_data_clicked()
     std::vector<float> absR = absair(m_temperature, m_humidite);
     for(int l=0; l < m_listener.size() ; l++)
     {
-        qDebug() << l;
-        qDebug() << m_listener.size();
         if(m_sourceImage[l].getY().empty()) m_sourceImage[l].calculerRIR(m_freq, absR, m_gain, ui->checkBox_decaycurve->isChecked());
         std::vector<std::vector<float> > rir = m_sourceImage[l].getY();
         std::vector<std::vector<float> > curve = m_sourceImage[l].getCurve();
@@ -1603,7 +1607,6 @@ void MainWindow::on_bouton_data_clicked()
 
 
             }
-qDebug() << l;
             if(m_listener.size()<2)
             {
                 // Affiher valeur
@@ -1647,7 +1650,6 @@ qDebug() << l;
                 //qDebug() << "newname" << newName ;
             }
 
-qDebug() << l;
             fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
             QString text;
             text = "\\begin{tableth} \n \\begin{tabular}{| *{9}{c|}} \n \\hline \n Facteur & 62,5Hz & 125Hz & 250Hz & 500Hz & 1kHz & 2kHz & 4kHz & 8kHz \\\\ \n \\hline \n \\hline \n";
@@ -1691,8 +1693,8 @@ qDebug() << l;
             fichier.write(text.toLatin1());
 
             CoordVector s(m_source.getCentre()), r(m_listener[l].getCentre());
-            arrondir(s);
-            arrondir(r);
+            arrondir(s,2);
+            arrondir(r,2);
 
 
            text = "\\end{tabular} \n \\caption{Facteurs perceptifs pour une source en [";
@@ -1701,10 +1703,9 @@ qDebug() << l;
            text+=QString::number(r.x) + " ; " + QString::number(-r.z) + " ; " + QString::number(r.y);
            text+="] et ";
            text+= QString::number(m_nbRayon);
-           text+= " de rayons.} \n \\label{tab_fact} \n \\end{tableth}";
+           text+= " rayons.} \n \\label{tab_fact} \n \\end{tableth}";
 
              fichier.write(text.toLatin1());
-qDebug() << l;
        // }
        // else QMessageBox::warning(NULL,"Attention","La durée de la RIR est de 0s");
     }

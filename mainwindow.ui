@@ -1143,7 +1143,7 @@ p, li { white-space: pre-wrap; }
          <x>10</x>
          <y>20</y>
          <width>311</width>
-         <height>321</height>
+         <height>343</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_6">
@@ -1321,7 +1321,7 @@ p, li { white-space: pre-wrap; }
            <number>10000</number>
           </property>
           <property name="value">
-           <number>10</number>
+           <number>0</number>
           </property>
          </widget>
         </item>

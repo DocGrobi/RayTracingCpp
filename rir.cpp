@@ -171,16 +171,19 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
     float temps;
 
     int i, k, j;
+    int tailleSI = m_sourcesImages.size();
     bool SI_trouvee = false;
 
-    bool SI_supSeuil = false;
+    //bool SI_supSeuil = false;
 
-    if(!m_nrgSI.empty()) seuil*= *std::max_element(m_nrgSI.begin(), m_nrgSI.end()); // Normalisation du seuil
+    //qDebug() << "seuil : " << seuil;
+    if(!m_nrgSI.empty() && seuil >0) seuil*= *std::max_element(m_nrgSI.begin(), m_nrgSI.end()); // Normalisation du seuil
+    //qDebug() << "seuil : " << seuil;
 
-    int ray_mort(0);
+
     for (i = 0 ; i< touche.size() ; i++) // rayon par rayon
     {
-        if ((longueurRayonTot[i]+touche[i])>longueurMax) {rayon.killRay(i); ray_mort++;}
+        if ((longueurRayonTot[i]+touche[i])>longueurMax) {rayon.killRay(i);}
         else
         {
             //if ((rayAuto && longueurRayonTot[i]<longueurMax && touche[i]) || (!rayAuto && touche[i]) ) // si le rayon touche le listener
@@ -202,7 +205,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                        {
                            //m_nrgSI[8*j+k]+=nrg[8*i+k];
                            m_nrgSI[8*j+k]+=(nrg[8*i+k] * exp(-absAir[k]*longueurRayonTot[i]));
-                           if (m_nrgSI[8*j+k]>seuil) SI_supSeuil = true; // NEW !
+                           //if (m_nrgSI[8*j+k]>seuil) SI_supSeuil = true; // NEW !
                        }
 
                        SI_trouvee = true; // on a trouvé une SI en doublons
@@ -220,7 +223,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                     {
                         //m_nrgSI.push_back(nrg[8*i+k]);
                         m_nrgSI.push_back(nrg[8*i+k] * exp(-absAir[k]*longueurRayonTot[i]));
-                        if (*m_nrgSI.end()>seuil) SI_supSeuil = true; // NEW !
+                        //if (*m_nrgSI.end()>seuil) SI_supSeuil = true; // NEW !
                     }
 
                     temps = 1000 * longueurRayonTot[i] / VITESSE_SON; // en ms //  A FAIRE : utiliser longueurRayonTot
@@ -229,14 +232,38 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                     m_sourcesImages_Tps.push_back(temps);
 
                     // On garde le temps max
-                    if (temps > m_xMax) m_xMax = temps;
+                    //if (temps > m_xMax) m_xMax = temps;
                 }
             }
         }
     }
-    return SI_supSeuil;
-     //qDebug() << "rayons tués" << ray_mort;
+    qDebug() << m_sourcesImages.size();
+    // suppression des si inférieurs au seuil
+    if (longueurMax<1e6) // dans le cas ou on n'est pas en mode rebond fixe.
+    {
+        bool b;
+        for(i= m_sourcesImages.size()-1; i>=0 ; i--)
+        {
+            b = true;
+            for(k=0 ; k<8 ; k++) if(m_nrgSI[8*i+k] > seuil) b =false; // s'il y a une energie au dessus du seuil
+            if(b)
+            {
+                m_sourcesImages.erase(m_sourcesImages.begin()+i);
+                m_sourcesImages_Tps.erase(m_sourcesImages_Tps.begin()+i);
+                for(k=7 ; k>=0 ; k--) m_nrgSI.erase(m_nrgSI.begin()+8*i+k);
+            }
+        }
+    }
+    qDebug() << "si size" << m_sourcesImages.size();
+    qDebug() << "si temps" << m_sourcesImages_Tps.size();
 
+    // On garde le temps max
+    m_xMax = *std::max_element(m_sourcesImages_Tps.begin(), m_sourcesImages_Tps.end());
+
+    if (m_sourcesImages.size()>tailleSI) return true;
+    else return false;
+
+   // return SI_supSeuil;
 }
 
 
@@ -301,19 +328,9 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
             {
                 a/=max;// normalisation
 
-               /* // lissage de courbe
-                if(a < 0.1) // à partir de -10dB
-                {
-                    if(a > 0) buf = a;
-                    else a = buf;
-                }
-                */
-
                 if (sondirect>0) // -31dB à 10m
                 {
-
                     a*= pow(10,(gain-31)/10)*100*exp(-absR[k]*sondirect)/pow(sondirect,2); // on retire l'offset du son direct (ok si le premier son n'a pas touché de paroi)
-
                 }
 
                 if (k>0) m_FIR[k-1].push_back(sqrt(a)); // passage en puissance

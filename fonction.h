@@ -77,6 +77,7 @@ bool proche(CoordVector a, CoordVector b, float seuil);
 //inline float normalize(ffloat max){return sqrt(a)/max;}
 std::vector<CoordVector> ranger(std::vector<CoordVector> a, std::vector<int> &indices);
 void arrondir(CoordVector & a);
+void arrondir(CoordVector & a, float nbDecimales);
 
 CoordVector operator+(const CoordVector &a, const CoordVector &b);
 CoordVector operator+(const CoordVector &a, float b);
