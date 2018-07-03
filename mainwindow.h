@@ -107,6 +107,12 @@ private slots:
 
     void on_spinBox_nbRay_editingFinished();
 
+
+
+    void on_radioButton_coordSI_toggled(bool checked);
+    void on_radioButton_tpsSI_toggled(bool checked);
+
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;

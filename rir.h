@@ -33,6 +33,7 @@ class SourceImage
         std::vector<CoordVector> &getRaySI();
         std::vector<CoordVector> &getRaySIvec();
         std::vector<float> &getRaySIlong();
+        std::vector<float> &getRaySITps();
 
     private:
         std::vector<CoordVector> m_sourcesImages;
@@ -50,6 +51,7 @@ class SourceImage
         std::vector<CoordVector> m_raySI;
         std::vector<CoordVector> m_raySIvec;
         std::vector<float> m_raySIlong;
+        std::vector<float> m_raySITps;
 };
 
 #endif // RIR_H

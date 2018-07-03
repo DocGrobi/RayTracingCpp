@@ -154,8 +154,19 @@ bool proche(float a, float b)
 {
     float seuil = 0.001;
 
-    // attention division par 0
-    if (a/b > 1-seuil && a/b < 1+seuil)
+    if (fabs(a-b) < seuil)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool proche(float a, float b, float seuil)
+{
+    if (fabs(a-b) < seuil)
     {
         return true;
     }
@@ -181,7 +192,7 @@ bool proche(CoordVector a, CoordVector b, float seuil)
     return true;
 }
 
-void arrondir(CoordVector & a)
+void arrondir(CoordVector &a)
 {
     a = a*10E4;
     a.x = round(a.x);
@@ -190,7 +201,7 @@ void arrondir(CoordVector & a)
     a = a/10E4;
 }
 
-void arrondir(CoordVector & a, float nbDecimales)
+void arrondir(CoordVector &a, float nbDecimales)
 {
     a = a*pow(10,nbDecimales);
     a.x = round(a.x);

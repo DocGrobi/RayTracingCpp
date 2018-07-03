@@ -166,6 +166,9 @@ std::vector<CoordVector> &SourceImage::getRaySIvec(){
 std::vector<float> &SourceImage::getRaySIlong(){
     return m_raySIlong;
 }
+std::vector<float> &SourceImage::getRaySITps(){
+    return m_raySITps;
+}
 
 bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, const std::vector<float>& absAir, float seuil)
 {
@@ -254,6 +257,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                     m_raySI.push_back(point2[i]);
                     m_raySIvec.push_back(-vec[i]);
                     m_raySIlong.push_back(longueurRayonTot[i]-touche[i]+longueurRayonLast[i]);
+                    m_raySITps.push_back(temps);
                 }
             }
         }
@@ -274,6 +278,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                 m_raySI.erase(m_raySI.begin()+i);
                 m_raySIvec.erase(m_raySIvec.begin()+i);
                 m_raySIlong.erase(m_raySIlong.begin()+i);
+                m_raySITps.erase(m_raySITps.begin()+i);
             }
         }
     }

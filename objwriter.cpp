@@ -279,15 +279,19 @@ void ObjWriter::rec_Vert(Source &source, int nSrc, Ray &monRay, int num_rebond, 
 void ObjWriter::rec_Vert_init(std::vector<CoordVector> &si)
 {
     QFile fichier(m_chemin);
-
+  /*  int debut;
+    if(si.size()>1)debut=1;
+    else debut=0;
+*/
     if(fichier.open(QIODevice::WriteOnly | QIODevice::Text)) // ouvre le fichier
     {
         // creation d'un entete
         QString text("o Rayons \n");
-        for(int i=1 ; i<si.size() ; i++)
+       for(int i=0 ; i<si.size() ; i++)
         {
             text+= "v " + CoordVector2QString(si[i]) + "\n";
         }
+
         fichier.write(text.toLatin1());
     }
     fichier.close();
@@ -297,8 +301,6 @@ void ObjWriter::rec_Vert(Ray &monRay, int ind, CoordVector source)
 {
     QFile fichier(m_chemin);
     std::vector<CoordVector> A = monRay.getPos();
-
-    std::vector<bool> vivant = monRay.getRayVivant();
     QString text;
 
     if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier

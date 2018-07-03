@@ -285,40 +285,116 @@ void MainWindow::on_bouton_rayons_clicked()
     }
     else // tracé des rayons depuis les sources images
     {
-        // EXPORT
-
-        //QFile fichier(m_fichierExport);
         std::vector<CoordVector> si = m_sourceImage[m_numListener].getSourcesImages();
-        ObjWriter monObjWriter(m_fichierExport, si.size());
+        std::vector<float> longueurRayon;
+        std::vector<float> SItps=m_sourceImage[m_numListener].getRaySITps();
+        std::vector<CoordVector> point;
+        std::vector<CoordVector> dir;
+        float tps;
+        // EXPORT
+        if (ui->radioButton_coordSI->isChecked())
+        {
+            CoordVector siUnique(ui->doubleSpinBox_x->value(),
+                                 ui->doubleSpinBox_z->value(),
+                                 -ui->doubleSpinBox_y->value());
 
-        monObjWriter.rec_Vert_init(si);
+            for(int i=0; i<si.size(); i++)
+            {
+                if(proche(siUnique, si[i], 0.01))
+                {
+                    point.push_back(m_sourceImage[m_numListener].getRaySI()[i]);
+                    dir.push_back(m_sourceImage[m_numListener].getRaySIvec()[i]);
+                    longueurRayon.push_back(m_sourceImage[m_numListener].getRaySIlong()[i]);
+                    tps = SItps[i];
+                    break;
+                }
+            }
+            if(point.empty())
+            {
+                QMessageBox::warning(NULL,"Attention","La source image n'a pas été trouvée");
+                return;
+            }
+            else QMessageBox::information(NULL,"Position temporelle de la source image",QString::number(tps)+"ms");
+        }
+        else
+        {
+            float sitps = ui->doubleSpinBox_siTps->value();
+            float sitpserror = ui->doubleSpinBox_siTps_erreur->value();
+            std::vector<int> indices;
+            for(int i=0; i<si.size(); i++)
+            {
+                if(proche(sitps, SItps[i], sitpserror))
+                {
+                    point.push_back(m_sourceImage[m_numListener].getRaySI()[i]);
+                    dir.push_back(m_sourceImage[m_numListener].getRaySIvec()[i]);
+                    longueurRayon.push_back(m_sourceImage[m_numListener].getRaySIlong()[i]);
+                    tps = m_sourceImage[m_numListener].getRaySITps()[i];
+                    indices.push_back(i);
+                    //break;
+                }
+            }
+            if(point.empty())
+            {
+                std::vector<float> ecart;
+                for(int i=0; i<si.size(); i++)
+                {
+                    ecart.push_back(fabs(sitps-SItps[i]));
+                }
+                int ind = std::distance(ecart.begin(), std::min_element(ecart.begin(), ecart.end()));
+                point.push_back(m_sourceImage[m_numListener].getRaySI()[ind]);
+                dir.push_back(m_sourceImage[m_numListener].getRaySIvec()[ind]);
+                longueurRayon.push_back(m_sourceImage[m_numListener].getRaySIlong()[ind]);
+                tps = m_sourceImage[m_numListener].getRaySITps()[ind];
+
+                QString txt = "Temps : " + QString::number(tps) + "\n";
+                txt+=CoordVector2QString2(si[ind])+"\n";
+                QMessageBox::information(NULL,"Source la plus proche trouvée",txt);
+            }
+            else
+            {
+                QString txt;
+                for (int i=0; i<indices.size(); i++)
+                {
+                    txt+=CoordVector2QString2(si[indices[i]])+"\n";
+                }
+                QMessageBox::information(NULL,"Coordonnées de la source image",txt);
+            }
+        }
 
 
-        Ray monRay(m_sourceImage[m_numListener].getRaySI(),m_sourceImage[m_numListener].getRaySIvec());
-        std::vector<float> longueurRayon = m_sourceImage[m_numListener].getRaySIlong();
+        ObjWriter monObjWriter(m_fichierExport, point.size());
+        Ray monRay(point,dir);
+
+        monObjWriter.rec_Vert_init(point);
+
         std::vector<float> dist, lg;
 
-        monRay.killRay(0);
         if (m_methodeRapide)
         {
-            m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
+            m_octree.chargerRayonRacine(monRay.getNbRay());
+            m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant2());
             // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
             while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
             {
+                qDebug() << "boucle";
                 // progress bar
                 progress.setValue(monRay.getRayMorts());
                 if (progress.wasCanceled()) break; // arrete la boucle
+
+                monObjWriter.rec_Vert(monRay);
+
                 dist = monRay.getDist();
                 lg = monRay.getLong();
-                for(int i = 1;i<longueurRayon.size(); i++)
+                for(int i = 0;i<longueurRayon.size(); i++)
                 {
                     if (dist[i]+lg[i]>longueurRayon[i])
                     {
                         monRay.killRay(i);
                         monObjWriter.rec_Vert(monRay, i, m_source.getCentre(0));
+                        qDebug() << "killray";
                     }
-                }
-                monObjWriter.rec_Vert(monRay);
+                }                
+                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant2());
             }
         }
         else
@@ -329,9 +405,11 @@ void MainWindow::on_bouton_rayons_clicked()
                 progress.setValue(monRay.getRayMorts());
                 if (progress.wasCanceled()) break; // arrete la boucle
 
+                monObjWriter.rec_Vert(monRay); // on inscrit les autres rayons
+
                 dist = monRay.getDist();
                 lg = monRay.getLong();
-                for(int i = 1;i<longueurRayon.size(); i++) // on incrit tous les rayons morts
+                for(int i = 0;i<longueurRayon.size(); i++) // on incrit tous les rayons morts
                 {
                     if (dist[i]+lg[i]>longueurRayon[i])
                     {
@@ -339,7 +417,7 @@ void MainWindow::on_bouton_rayons_clicked()
                         monObjWriter.rec_Vert(monRay, i, m_source.getCentre(0));
                     }
                 }
-                monObjWriter.rec_Vert(monRay); // on inscrit les autres rayons
+
                  //break;
             }
         }
@@ -1794,5 +1872,39 @@ void MainWindow::on_spinBox_nbRay_editingFinished()
     m_nbRayon = ui->spinBox_nbRay->value();
     if(m_rayAuto) {
         on_checkBox_rayAuto_toggled(true);
+    }
+}
+
+
+
+void MainWindow::on_radioButton_coordSI_toggled(bool checked)
+{
+    if(checked) {
+        if (ui->radioButton_tpsSI->isChecked())
+        {
+            on_radioButton_tpsSI_toggled(false);
+        }
+    }
+    else {
+        if (!ui->radioButton_tpsSI->isChecked())
+        {
+            on_radioButton_tpsSI_toggled(true);
+        }
+    }
+}
+
+void MainWindow::on_radioButton_tpsSI_toggled(bool checked)
+{
+    if(checked) {
+        if (ui->radioButton_coordSI->isChecked())
+        {
+            on_radioButton_coordSI_toggled(false);
+        }
+    }
+    else {
+        if (!ui->radioButton_coordSI->isChecked())
+        {
+            on_radioButton_coordSI_toggled(true);
+        }
     }
 }
