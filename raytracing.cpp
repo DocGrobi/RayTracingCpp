@@ -160,7 +160,7 @@ CoordVector vecteur_reflechi(const std::vector<float> &i, int ind, const CoordVe
 Ray::Ray(int Nray, Source S, int nSrc, bool fibonacci)
 {    
     m_src = S.getCentre(nSrc);
-    float theta(0), phi(0), nor(0), N(Nray-1);
+    double theta(0), phi(0), nor(0), N(Nray-1);
     CoordVector coord;
 
     if (fibonacci) // création des rayons sur une grille uniforme de fibonacci
@@ -173,7 +173,7 @@ Ray::Ray(int Nray, Source S, int nSrc, bool fibonacci)
             m_ray.push_back((m_src));
 
             // creation des vecteurs directeurs normalisés
-            theta = fmod((i*2*M_PI/OR) , (2*M_PI));
+            theta = fmod((i*2*M_PI/OR) , (2*M_PI)); // on ajoute 0.1 pour eviter d'avoir un rayons sur l'axe 0
             phi = asin(-1 + 2*i/(N));
 
             coord = sph2cart(1,theta,phi);
@@ -261,6 +261,32 @@ Ray::Ray(const CoordVector &point, const std::vector<CoordVector>& dir){
 m_rayVivantBackup = m_rayVivant;
 }
 
+Ray::Ray(const std::vector<CoordVector> &point, const std::vector<CoordVector>& dir){
+
+    for (int i=0 ; i< point.size() ; i++)
+    {
+        // creation des points initiaux
+        m_ray.push_back(point[i]);
+
+        // creation des vecteurs directeurs normalisés
+        m_vDir.push_back(dir[i]);
+    }
+
+    m_Nray = m_ray.size(); // nombre de rayon
+
+    // initialisation des attributs
+    m_dMax = 0;
+    m_dist.resize(m_Nray, 0); // longueur totale de chaque rayon
+    m_long.resize(m_Nray, 0); // longueur du dernier segment de rayon
+    m_nrg.resize(m_Nray*8, 1); // 8 bandes de fréquence par rayons
+
+    m_pos.resize(m_Nray, 0);
+    m_dir.resize(m_Nray, 0);
+    m_nbRayMort = 0;
+    m_rayVivant.resize(m_Nray, true); // Tous les rayons sont vivant
+m_rayVivantBackup = m_rayVivant;
+}
+
 // Destructeur
 Ray::~Ray()
 {
@@ -307,12 +333,17 @@ std::vector<bool> &Ray::getRayVivant(){
     return m_rayVivantBackup;
 }
 
+std::vector<bool> &Ray::getRayVivant2(){
+    return m_rayVivant;
+}
+
 int Ray::getRayMorts() const{
     return m_nbRayMort;
 }
 
 void Ray::killRay(int i){
     m_rayVivant[i] = false;
+    m_nbRayMort++;
 }
 
 void Ray::stockage(){
@@ -345,85 +376,76 @@ bool Ray::rebondSansMemoire(MeshObj mesh, float seuil)
 
     stockage();
 
-        for(j=0; j<m_Nray;j++) // pour chaque rayon
+    for(j=0; j<m_Nray;j++) // pour chaque rayon
+    {
+        //SI LE RAYON N'EST PAS MORT
+        if (m_rayVivant[j])
         {
-            //SI LE RAYON N'EST PAS MORT
-            if (m_rayVivant[j])
+            // recuperation d'un point et du vecteur directeur
+            point = m_ray[j];
+            vect_dir = m_vDir[j];
+
+            // Stockage de la longeur du nouveau rayon
+            m_long[j] = 1000000;
+
+            for (k=0; k < vertex.size(); k+=3) // pour chaque face
             {
-                // recuperation d'un point et du vecteur directeur
-                point = m_ray[j];
-                vect_dir = m_vDir[j];
+                A=vertex[k];
+                B=vertex[k+1];
+                C=vertex[k+2];
 
-                // Stockage de la longeur du nouveau rayon
-                m_long[j] = 1000000;
+                // longueur du rayon depuis point de depart dans le sens du vecteur directeur et intersectant avec la face ABC
+                longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
 
-                for (k=0; k < vertex.size(); k+=3) // pour chaque face
+                if (longueur_inst > 0 && longueur_inst < m_long[j]) // Rayon dans le sens du vecteur directeur et le plus petit trouvé
                 {
-                    A=vertex[k];
-                    B=vertex[k+1];
-                    C=vertex[k+2];
-
-                    // longueur du rayon depuis point de depart dans le sens du vecteur directeur et intersectant avec la face ABC
-                    longueur_inst = triangle_intersection(point,vect_dir,A,B,C);
-
-                    if (longueur_inst > 0 && longueur_inst < m_long[j]) // Rayon dans le sens du vecteur directeur et le plus petit trouvé
-                    {
-                        m_long[j] = longueur_inst; // On sauvegrade la plus petite longueur
-                        face = k;                  //on sauvegarde la dernière face testée
-                    }
+                    m_long[j] = longueur_inst; // On sauvegrade la plus petite longueur
+                    face = k;                  //on sauvegarde la dernière face testée
                 }
-
-                // POUR CHAQUE NOUVEAU RAYON
-
-                // Sécurité si problème d'intersection
-                if(m_long[j] == 1000000)
-                {
-                    qDebug() << "stop";
-                    QMessageBox::critical(NULL,"Erreur","Le " + QString::number(j) + "ème rayon n'a pas atteind de face", "Arreter le programme");
-
-                    return false;
-                }
-
-                //On met à jour l'énergie du nouveau rayon pour chaque bande
-                compteur = 0;
-                for (l=0; l<8; l++)
-                {
-                    //m_nrg[j*8 + l] = m_nrg[j*8+l] * (1-indiceMat[3*face+l+1]) * exp(-absAir[l]*m_long[j]);
-                    m_nrg[j*8 + l] *= (1-indiceMat[3*face+l+1]); // l'attenuation de l'air se fait dans les sources images
-
-                    //m_nrg[j/3*8 + l] = m_nrg[j/3*8+l] * (1-indiceMat[face+l+1]);
-                    // test si le rayon est mort
-                    if (m_nrg[j*8 + l] > seuil) // s'il existe au moins un rayon vivant
-                    {
-                        rayonsExistent = true;
-                    }
-                    else
-                    {
-                        compteur++;
-                    }
-                }
-                // si l'énergie sur les 8 bandes est inférieure au seuil le rayons est déclaré mort
-                if (compteur == 8)
-                {
-                    m_rayVivant[j] = false;
-                    //comptage des rayons morts pour la progress bar
-                    m_nbRayMort++;
-                }
-                compteur = 0;
             }
-            //Mise à jour des rayons vivant
-            if (m_rayVivant[j])
+
+            // POUR CHAQUE NOUVEAU RAYON
+
+            // Sécurité si problème d'intersection
+            if(m_long[j] == 1000000)
             {
-                // Mise à jour du point d'origine
-                m_ray[j]+= m_vDir[j]*(m_long[j] - 1e-6); // On eloigne la point de la face de 1um pour éviter les rayons coincés dans des coins
-                vect_ref = vecteur_reflechi(vect_dir,normales[face]);
-                nor = norme(vect_ref);
-                m_vDir[j] = vect_ref/nor;
-            }
-    }
-        //qDebug() << "m_raymorts" << m_nbRayMort;
+                qDebug() << "stop";
+                QMessageBox::critical(NULL,"Erreur","Le " + QString::number(j) + "ème rayon n'a pas atteind de face", "Arreter le programme");
 
-    return rayonsExistent;
+                return false;
+            }
+
+            //On met à jour l'énergie du nouveau rayon pour chaque bande
+            compteur = 0;
+            for (l=0; l<8; l++)
+            {
+                m_nrg[j*8 + l] *= (1-indiceMat[3*face+l+1]); // l'attenuation de l'air se fait dans les sources images
+                // test si le rayon est mort
+                if (m_nrg[j*8 + l] <= 0) compteur++;// Les rayons qui ont une énérgie non nul peuvent continuer de générer des sources images.
+            }
+            // si l'énergie sur les 8 bandes est à 0 le rayons est déclaré mort
+            if (compteur == 8)
+            {
+                m_rayVivant[j] = false;
+                //comptage des rayons morts pour la progress bar
+                m_nbRayMort++;
+            }
+        }
+        //Mise à jour des rayons vivant
+        if (m_rayVivant[j])
+        {
+            // Mise à jour du point d'origine
+            m_ray[j]+= m_vDir[j]*(m_long[j] - 1e-6); // On eloigne la point de la face de 1um pour éviter les rayons coincés dans des coins
+            vect_ref = vecteur_reflechi(vect_dir,normales[face]);
+            nor = norme(vect_ref);
+            m_vDir[j] = vect_ref/nor;
+        }
+   }
+
+    qDebug() <<  "nb ray mort" << m_nbRayMort;
+
+    if(m_nbRayMort<m_Nray) return true;
+    else return false;
 }
 
 
@@ -538,5 +560,6 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, float seuil, Octree &oct)
 
         }
     }
-    return rayonsExistent;
+    if(m_nbRayMort<m_Nray) return true;
+    else return false;
 }

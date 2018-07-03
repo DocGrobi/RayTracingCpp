@@ -230,6 +230,15 @@ class impRayTracing(bpy.types.Operator):
 
         except AttributeError:
             print("OUPS !")
+            
+        obs = bpy.data.objects
+        bpy.ops.object.select_all(action='DESELECT')
+        for ob in obs:
+            if "SI_Projected" in ob.name:
+                print (ob.name)
+                ob.select = True 
+                bpy.context.scene.objects.active = ob   
+            
         return {"FINISHED"}
 
 class sphericalSI(bpy.types.Operator):
@@ -242,10 +251,10 @@ class sphericalSI(bpy.types.Operator):
         try:            
             bpy.ops.object.editmode_toggle()
             bpy.context.space_data.pivot_point = 'INDIVIDUAL_ORIGINS'
-            bpy.ops.transform.resize(value=(4, 4, 4), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=2.14359)
+            bpy.ops.transform.resize(value=(2,2,2), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=2.14359)
             bpy.ops.object.editmode_toggle()
             bpy.ops.object.modifier_add(type='SOLIDIFY')
-            bpy.context.object.modifiers["Solidify"].thickness = 2
+            bpy.context.object.modifiers["Solidify"].thickness = 1
             bpy.context.object.modifiers["Solidify"].offset = 0
             bpy.ops.object.modifier_add(type='SUBSURF')
             bpy.context.object.modifiers["Subsurf"].levels = 2

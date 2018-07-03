@@ -23,6 +23,7 @@ class Ray
 public:
     Ray(int Nray, Source S, int nSrc, bool fibonacci);   //Constructeur
     Ray(const CoordVector &point, const std::vector<CoordVector>& dir); // Constructeur surchargé
+    Ray(const std::vector<CoordVector> &point, const std::vector<CoordVector>& dir);
     ~Ray();                               //Destructeur
     std::vector<CoordVector>& getRay() ;
     std::vector<float>& getNRG() ;
@@ -33,6 +34,7 @@ public:
     std::vector<float>& getDist() ;
     std::vector<float>& getLong() ;
     std::vector<bool>& getRayVivant() ;
+    std::vector<bool>& getRayVivant2() ;
     void killRay(int i);
 
     int getNbRay() const;

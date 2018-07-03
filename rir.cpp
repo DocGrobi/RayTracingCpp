@@ -157,6 +157,16 @@ std::vector< std::vector<float> >&SourceImage::getFirPart(){
     return m_firPart;
 }
 
+std::vector<CoordVector> &SourceImage::getRaySI(){
+    return m_raySI;
+}
+std::vector<CoordVector> &SourceImage::getRaySIvec(){
+    return m_raySIvec;
+}
+std::vector<float> &SourceImage::getRaySIlong(){
+    return m_raySIlong;
+}
+
 bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, const std::vector<float>& absAir, float seuil)
 {
     //std::vector<bool> touche = toucheListener(rayon,listener);
@@ -166,6 +176,8 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
     std::vector<float> longueurRayonTot = rayon.getDist(); // Distance parcourue avant le dernier rebond
     //std::vector<float> longueurRayonFin = rayon.getLong();
     std::vector<CoordVector> point = rayon.getPos();
+    std::vector<CoordVector> point2 = rayon.getRay();
+    std::vector<float> longueurRayonLast = rayon.getLong();
     std::vector<CoordVector> vec = rayon.getDir();
     std::vector<float> nrg = rayon.getNRGbackup();
     CoordVector A, vect;
@@ -174,6 +186,9 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
     int i, k, j;
     int tailleSI = m_sourcesImages.size();
     bool SI_trouvee = false;
+
+    std::vector<float> nbRaySI;
+    nbRaySI.resize(m_sourcesImages.size(), 1);
 
     //bool SI_supSeuil = false;
 
@@ -208,7 +223,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                            m_nrgSI[8*j+k]+=(nrg[8*i+k] * exp(-absAir[k]*longueurRayonTot[i]));
                            //if (m_nrgSI[8*j+k]>seuil) SI_supSeuil = true; // NEW !
                        }
-
+                       nbRaySI[j]++;
                        SI_trouvee = true; // on a trouvé une SI en doublons
                        break; // et on sort de la boucle
                    }
@@ -232,8 +247,13 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                     // On créé le vecteur des valeurs en temps
                     m_sourcesImages_Tps.push_back(temps);
 
-                    // On garde le temps max
-                    //if (temps > m_xMax) m_xMax = temps;
+                    //On ajoute une case à nbRaySi
+                    nbRaySI.push_back(0);
+
+                    //Recupération trajectoire rayon
+                    m_raySI.push_back(point2[i]);
+                    m_raySIvec.push_back(-vec[i]);
+                    m_raySIlong.push_back(longueurRayonTot[i]-touche[i]+longueurRayonLast[i]);
                 }
             }
         }
@@ -246,18 +266,22 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
         {
             b = true;
             for(k=0 ; k<8 ; k++) if(m_nrgSI[8*i+k] > seuil) b =false; // s'il y a une energie au dessus du seuil
-            if(b)
+            if(b)// || nbRaySI[i]<1) // ou si la source image n'est générée que par un rayon
             {
                 m_sourcesImages.erase(m_sourcesImages.begin()+i);
                 m_sourcesImages_Tps.erase(m_sourcesImages_Tps.begin()+i);
                 for(k=7 ; k>=0 ; k--) m_nrgSI.erase(m_nrgSI.begin()+8*i+k);
+                m_raySI.erase(m_raySI.begin()+i);
+                m_raySIvec.erase(m_raySIvec.begin()+i);
+                m_raySIlong.erase(m_raySIlong.begin()+i);
             }
         }
     }
     // On garde le temps max
     m_xMax = *std::max_element(m_sourcesImages_Tps.begin(), m_sourcesImages_Tps.end());
 
-    if (m_sourcesImages.size()>tailleSI) return true;
+    //if (m_sourcesImages.size()>tailleSI) return true;
+    if(rayon.getRayMorts()<rayon.getNbRay()) return true;// on arrete la boucle en fonction de la longueur des rayons
     else return false;
 
    // return SI_supSeuil;
@@ -369,6 +393,7 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
                 j++;
             }
             if (m_curve[k].size() > size_max) size_max = m_curve[k].size();
+
         }
 
         if (curve)

@@ -32,6 +32,16 @@ CoordVector sph2cart(float ro, float theta, float phi)
     return CoordVector(x,y,z);
 }
 
+CoordVector sph2cart(double ro, double theta, double phi)
+{
+    float x,y,z;
+    x = ro*cos(phi)*cos(theta);
+    y = ro*cos(phi)*sin(theta);
+    z = ro*sin(phi);
+
+    return CoordVector(x,y,z);
+}
+
 CoordVector vecteur(const CoordVector &a,const CoordVector &b)
 {
     return CoordVector(b.x-a.x,b.y-a.y,b.z-a.z);
@@ -343,6 +353,7 @@ CoordVector operator+(const CoordVector &a, float b) {
 CoordVector operator-(const CoordVector &a, float b){
     return a+(-b);
 }
+
 
 CoordVector operator*(const CoordVector &a, const CoordVector &b) {
     return CoordVector (a.x*b.x, a.y*b.y, a.z*b.z);

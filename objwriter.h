@@ -27,11 +27,17 @@ class ObjWriter
     void display_Beam_vert(Ray &rayon, Listener &listener);
     void display_Beam_line();
 
+    void rec_Vert(Ray &monRay);
+    void rec_Vert(Ray &monRay, int ind, CoordVector source);
+    void rec_Vert_init(std::vector<CoordVector> &si);
+
+
 private:
     QString m_chemin;
     std::vector<int> m_rayMort;
     std::vector<int> m_buff_rayMort;
     int m_nbligne;
+    int m_nblignefin;
 
 };
 

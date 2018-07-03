@@ -16,6 +16,7 @@ ObjWriter::ObjWriter(QString chemin, int nbRay) // recupere en attribue le nom d
 
     QString newName(chemin);
     m_buff_rayMort.resize(nbRay, 0); // 0 = rayon vivant
+    qDebug() << "nombre de ray dans obj writer" << nbRay;
 
     // A CONSERVER : INCREMENTATION DES FICHIERS
 
@@ -275,6 +276,91 @@ void ObjWriter::rec_Vert(Source &source, int nSrc, Ray &monRay, int num_rebond, 
     fichier.close(); // ferme le fichier
 }
 
+void ObjWriter::rec_Vert_init(std::vector<CoordVector> &si)
+{
+    QFile fichier(m_chemin);
+
+    if(fichier.open(QIODevice::WriteOnly | QIODevice::Text)) // ouvre le fichier
+    {
+        // creation d'un entete
+        QString text("o Rayons \n");
+        for(int i=1 ; i<si.size() ; i++)
+        {
+            text+= "v " + CoordVector2QString(si[i]) + "\n";
+        }
+        fichier.write(text.toLatin1());
+    }
+    fichier.close();
+}
+
+void ObjWriter::rec_Vert(Ray &monRay, int ind, CoordVector source)
+{
+    QFile fichier(m_chemin);
+    std::vector<CoordVector> A = monRay.getPos();
+
+    std::vector<bool> vivant = monRay.getRayVivant();
+    QString text;
+
+    if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier
+    {
+        text = "v " + CoordVector2QString(A[ind]) + "\n";
+        text += "v " + CoordVector2QString(source) + "\n";
+        qDebug() << "rayon mort :" << text;
+        fichier.write(text.toLatin1());
+        text = "l "+ QString::number(m_nblignefin+1) + " " + QString::number(m_nblignefin+2) + "\n";
+        fichier.write(text.toLatin1());
+        m_nbligne+=2;
+        m_nblignefin+=2;
+        qDebug() << "rayon mort :" << text;
+    }
+    fichier.close();
+}
+
+
+void ObjWriter::rec_Vert(Ray &monRay)
+{
+    QFile fichier(m_chemin);
+    std::vector<CoordVector> A = monRay.getPos();
+
+    std::vector<bool> vivant = monRay.getRayVivant2();
+    QString text;
+    int nbNouvelleVert(0);
+
+    float nb_mort(0);
+
+    if(fichier.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) // ouvre le fichier
+    {
+        for (int i=0 ; i<A.size() ; i++)
+        {
+            if (vivant[i])
+            {
+                text += "v " + CoordVector2QString(A[i]) + "\n";
+                m_nbligne++;
+                m_buff_rayMort[i] =m_nbligne;
+                nbNouvelleVert++;
+                qDebug() << "rayon vivant :" << CoordVector2QString(A[i]);
+            }
+            else nb_mort++;
+        }
+        fichier.write(text.toLatin1());
+        text="";
+
+        for (int i=0 ; i<A.size() ; i++)
+        {
+            if (vivant[i])
+            {
+                text += "l "+ QString::number(m_buff_rayMort[i]-nb_mort) + " " + QString::number(m_buff_rayMort[i]+nbNouvelleVert) + "\n";
+                m_buff_rayMort[i]+=m_nbligne; // passer à la prochaine série
+                qDebug() << "rayon vivant :" << "l "+ QString::number(m_buff_rayMort[i]-nb_mort) + " " + QString::number(m_buff_rayMort[i]+nbNouvelleVert);
+            }
+            else nb_mort--;
+        }
+        fichier.write(text.toLatin1());
+        m_nblignefin = m_nbligne+nbNouvelleVert;
+    }
+    fichier.close();
+}
+
 
 void ObjWriter::rec_Line(int nbRay, int nbRebond)
 {
@@ -336,6 +422,8 @@ void ObjWriter::rec_Line(int nbRay, int nbRebond)
     }
     fichier.close(); // ferme le fichier
 }
+
+
 
 // pour un faisceau
 void ObjWriter::display_Beam_init()
@@ -456,7 +544,11 @@ void ObjWriter::display_coloredTriangle(std::vector<CoordVector> &point, std::ve
     //ECRITURE SOURCE
     vect    = vecteur(posSource,dirNormal);
     normVec = norme(vect);
-    vect    = vect/normVec;
+    if(normVec==0) // source et recepteur confonduq
+    {
+        vect.x=1;
+    }
+    else vect    = vect/normVec;
     //point[i]+= vect*0.1;// on reduit la distance au listener
     CoordVector A(a),B(b),C(c),D(d); // initialisation
     makeSplat(A,posSource,vect);

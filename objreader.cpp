@@ -310,16 +310,25 @@ void MeshObj::charger_obj(QString file_obj)
 
 
     if (!m_source.getVert().empty()) m_source.chargerSource(); // On charge la source 0 ou la dernière source trouvée et pas encore chargée
+    else {// on met une source en 0
+        for(i=0; i<3;i++)
+        {
+            m_source.chargerVert(0);
+        }
+        m_source.chargerSource();
+    }
     //if (!m_listener.getVert().empty()) m_listener.chargerListener(); // Dans le cas où on a trouvé un listener
     if (m_listener.empty()) { // si le fichier n'a pas de listener on ajoute un listener par defaut
         Listener l;
         m_listener.push_back(l);
     }
     else {
-        for(Listener &a : m_listener) a.chargerListener(); // sinon on calcul le centre et le rayons pour tous les listener
+        qDebug()<< "m_listerner.size : " << m_listener.size();
+        //for(Listener &a : m_listener) a.chargerListener(); // sinon on calcul le centre et le rayons pour tous les listener
+       for (i=0; i<m_listener.size(); i++) m_listener[i].chargerListener();
     }
-    qDebug()<< "m_listerner.size : " << m_listener.size();
-    if (!m_listener.empty()) qDebug()<< "listener 1 : " << m_listener[0].afficher();
+
+   // if (!m_listener.empty()) qDebug()<< "listener 1 : " << m_listener[0].afficher();
 
 
     // Initialisation des min et max

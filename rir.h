@@ -30,6 +30,9 @@ class SourceImage
         void partitionnage(int taille);
         std::vector< std::vector<float> >&getFIR();
         std::vector< std::vector<float> >&getFirPart();
+        std::vector<CoordVector> &getRaySI();
+        std::vector<CoordVector> &getRaySIvec();
+        std::vector<float> &getRaySIlong();
 
     private:
         std::vector<CoordVector> m_sourcesImages;
@@ -44,6 +47,9 @@ class SourceImage
         float m_xMax;
         std::vector< std::vector<float> > m_FIR;
         std::vector< std::vector<float> > m_firPart;
+        std::vector<CoordVector> m_raySI;
+        std::vector<CoordVector> m_raySIvec;
+        std::vector<float> m_raySIlong;
 };
 
 #endif // RIR_H

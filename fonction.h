@@ -55,6 +55,7 @@ class CoordVector
 
 // Méthodes
 CoordVector sph2cart(float ro, float theta, float phi); // convertion coordonnée spherique à cartesiens
+CoordVector sph2cart(double ro, double theta, double phi);
 CoordVector vecteur(const CoordVector &a,const CoordVector &b);
 CoordVector vecteur(std::vector<float>& a, int indA, std::vector<float>& b, int indB);
 CoordVector vecteur(std::vector<float>& a, int indA, const CoordVector &b);

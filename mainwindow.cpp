@@ -202,82 +202,148 @@ void MainWindow::on_bouton_rayons_clicked()
     timer2.start();
     m_timer.start();
 
-    for (int nSrc = 0; nSrc < m_source.getNbSource() ; nSrc++)
+
+    if (m_sourceImage.empty())
     {
-        // EXPORT
-        ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
-        // RAYONS
-        Ray monRay(m_nbRayon, m_source, nSrc, m_fibonacci);
-        if(!m_fibonacci) m_nbRayon = monRay.getNbRay(); // Au cas où on prend la source blender
-        if (m_methodeRapide) m_octree.chargerRayonRacine(m_nbRayon);
-
-        if (m_nbRebondFixe)
+        for (int nSrc = 0; nSrc < m_source.getNbSource() ; nSrc++)
         {
-            progress.setRange(0,m_nbRebond);
+            // RAYONS
+            Ray monRay(m_nbRayon, m_source, nSrc, m_fibonacci);
+            if(!m_fibonacci) m_nbRayon = monRay.getNbRay(); // Au cas où on prend la source blender
+            // EXPORT
+            ObjWriter monObjWriter(m_fichierExport, m_nbRayon);
+            if (m_methodeRapide) m_octree.chargerRayonRacine(m_nbRayon);
 
-            //Méthode d'affichage incrémentale
-            for (int i =0; i<m_nbRebond ; i++)
+            if (m_nbRebondFixe)
             {
-                // progress bar
-                progress.setValue(i);
-                if (progress.wasCanceled()) i=m_nbRebond;
-                if (m_methodeRapide)
-                {
-                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
-                    if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) // calcul des points d'intersection entre rayons et faces
-                            i=m_nbRebond; // arrete la boucle
-                }
-                else
-                {
-                    if(!monRay.rebondSansMemoire(m_meshObj, -1)) // calcul des points d'intersection entre rayons et faces
-                            i=m_nbRebond; // arrete la boucle
-                }
-                monObjWriter.rec_Vert(m_source,nSrc,monRay, i, -1); // ecriture des vertex
+                progress.setRange(0,m_nbRebond);
 
-            }
-            monObjWriter.rec_Line(m_nbRayon,m_nbRebond); // ecriture des edges entre les vertex
-            progress.setValue(m_nbRebond);
-        }
-        else
-        {
-            progress.setRange(0,m_nbRayon);
-            progress.setValue(1);
-
-            int i(0);
-            if (m_methodeRapide)
-            {
-                m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
-                // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+                //Méthode d'affichage incrémentale
+                for (int i =0; i<m_nbRebond ; i++)
                 {
                     // progress bar
-                    progress.setValue(monRay.getRayMorts());
-                    if (progress.wasCanceled()) break; // arrete la boucle
+                    progress.setValue(i);
+                    if (progress.wasCanceled()) i=m_nbRebond;
+                    if (m_methodeRapide)
+                    {
+                        m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
+                        if(!monRay.rebondSansMemoire(m_meshObj, -1, m_octree)) // calcul des points d'intersection entre rayons et faces
+                                i=m_nbRebond; // arrete la boucle
+                    }
+                    else
+                    {
+                        if(!monRay.rebondSansMemoire(m_meshObj, -1)) // calcul des points d'intersection entre rayons et faces
+                                i=m_nbRebond; // arrete la boucle
+                    }
+                    monObjWriter.rec_Vert(m_source,nSrc,monRay, i, -1); // ecriture des vertex
 
-                    monObjWriter.rec_Vert(m_source,nSrc,monRay,  i, m_seuilAttenuation); // ecriture des vertex
-                    i++;
-                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
                 }
+                monObjWriter.rec_Line(m_nbRayon,m_nbRebond); // ecriture des edges entre les vertex
+                progress.setValue(m_nbRebond);
             }
             else
             {
-                // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
-                while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
+                progress.setRange(0,m_nbRayon);
+                progress.setValue(1);
+
+                int i(0);
+                if (m_methodeRapide)
                 {
-                    // progress bar
-                    progress.setValue(monRay.getRayMorts());
-                    if (progress.wasCanceled()) break; // arrete la boucle
+                    m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
+                    // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
+                    while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+                    {
+                        // progress bar
+                        progress.setValue(monRay.getRayMorts());
+                        if (progress.wasCanceled()) break; // arrete la boucle
 
-                    monObjWriter.rec_Vert(m_source,nSrc,monRay, i, m_seuilAttenuation); // ecriture des vertex
-                    i++;
+                        monObjWriter.rec_Vert(m_source,nSrc,monRay,  i, m_seuilAttenuation); // ecriture des vertex
+                        i++;
+                        m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
+                    }
                 }
+                else
+                {
+                    // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
+                    while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
+                    {
+                        // progress bar
+                        progress.setValue(monRay.getRayMorts());
+                        if (progress.wasCanceled()) break; // arrete la boucle
+
+                        monObjWriter.rec_Vert(m_source,nSrc,monRay, i, m_seuilAttenuation); // ecriture des vertex
+                        i++;
+                    }
+                }
+
+                monObjWriter.rec_Vert(m_source,nSrc,monRay, i, m_seuilAttenuation); // ecriture du dernier vertex
+                monObjWriter.rec_Line(m_nbRayon,0); // ecriture des edges entre les vertex
+
+                progress.setValue(m_nbRayon);
             }
-
-            monObjWriter.rec_Vert(m_source,nSrc,monRay, i, m_seuilAttenuation); // ecriture du dernier vertex
-            monObjWriter.rec_Line(m_nbRayon,0); // ecriture des edges entre les vertex
-
-            progress.setValue(m_nbRayon);
         }
+    }
+    else // tracé des rayons depuis les sources images
+    {
+        // EXPORT
+
+        //QFile fichier(m_fichierExport);
+        std::vector<CoordVector> si = m_sourceImage[m_numListener].getSourcesImages();
+        ObjWriter monObjWriter(m_fichierExport, si.size());
+
+        monObjWriter.rec_Vert_init(si);
+
+
+        Ray monRay(m_sourceImage[m_numListener].getRaySI(),m_sourceImage[m_numListener].getRaySIvec());
+        std::vector<float> longueurRayon = m_sourceImage[m_numListener].getRaySIlong();
+        std::vector<float> dist, lg;
+
+        monRay.killRay(0);
+        if (m_methodeRapide)
+        {
+            m_octree.chargerRayon(monRay.getRay(), monRay.getvDir(), monRay.getRayVivant());
+            // TANT QUE TOUS LES RAYONS NE SONT PAS MORT
+            while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation, m_octree))
+            {
+                // progress bar
+                progress.setValue(monRay.getRayMorts());
+                if (progress.wasCanceled()) break; // arrete la boucle
+                dist = monRay.getDist();
+                lg = monRay.getLong();
+                for(int i = 1;i<longueurRayon.size(); i++)
+                {
+                    if (dist[i]+lg[i]>longueurRayon[i])
+                    {
+                        monRay.killRay(i);
+                        monObjWriter.rec_Vert(monRay, i, m_source.getCentre(0));
+                    }
+                }
+                monObjWriter.rec_Vert(monRay);
+            }
+        }
+        else
+        {
+            while(monRay.rebondSansMemoire(m_meshObj, m_seuilAttenuation))
+            {
+                // progress bar
+                progress.setValue(monRay.getRayMorts());
+                if (progress.wasCanceled()) break; // arrete la boucle
+
+                dist = monRay.getDist();
+                lg = monRay.getLong();
+                for(int i = 1;i<longueurRayon.size(); i++) // on incrit tous les rayons morts
+                {
+                    if (dist[i]+lg[i]>longueurRayon[i])
+                    {
+                        monRay.killRay(i);
+                        monObjWriter.rec_Vert(monRay, i, m_source.getCentre(0));
+                    }
+                }
+                monObjWriter.rec_Vert(monRay); // on inscrit les autres rayons
+                 //break;
+            }
+        }
+
     }
 
     double temps = timer2.elapsed();
@@ -543,6 +609,7 @@ void MainWindow::on_bouton_projection_clicked()
             else
                 monObjWriter.display_coloredTriangle(SI2, nrg2, m_listener[m_numListener].getCentre(), m_source.getCentre(), m_seuilAttenuation);
         }
+        for(auto &a : SI2) a.debug();
     }
 }
 
