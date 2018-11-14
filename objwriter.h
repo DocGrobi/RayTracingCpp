@@ -14,11 +14,8 @@ class ObjWriter
     public:
     ObjWriter(QString chemin, int nbRay); //recupere en attribue le nom de chemin de fichier specifié
     ~ObjWriter(); //destructeur
-    void display_normales(std::vector<float> &vertex, std::vector<float> &normals, int nData); //methode créant un fichier obj comprant des edge représentant toutes les normales du MeshObj stipulé
-    void display_normales(std::vector<CoordVector> &vertex); //methode créant un fichier obj comprant des edge représentant toutes les normales du MeshObj stipulé
-    void display_ray(Source &source, std::vector<float> &ray, int nbRay, int nb_rebond);
-    void rec_Vert(Source &source, int nSrc, Ray &monRay, int num_rebond, float seuil);
-    void rec_Line(int nbRay, int nbRebond);
+    void rec_Vert(Source &source, int nSrc, Ray &monRay, int num_rebond);
+    void rec_Line(int nbRay);
     void display_sourceImages(std::vector<CoordVector> &sourcesImages);
     void display_octree(const std::vector<Boite> &oct);
     void display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal, const CoordVector &posSource, float seuil);
@@ -34,7 +31,7 @@ class ObjWriter
 
 private:
     QString m_chemin;
-    std::vector<int> m_rayMort;
+    std::vector<bool> m_rayMort;
     std::vector<int> m_buff_rayMort;
     int m_nbligne;
     int m_nblignefin;

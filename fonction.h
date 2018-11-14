@@ -1,10 +1,9 @@
 #ifndef FONCTION_H
 #define FONCTION_H
 
-//#include "objreader.h"
 #include <vector>
 #include <QVector>
-#include <stdio.h>
+#include <stdio.h> 
 
 
 // Les classes
@@ -80,6 +79,7 @@ bool proche(CoordVector a, CoordVector b, float seuil);
 std::vector<CoordVector> ranger(std::vector<CoordVector> a, std::vector<int> &indices);
 void arrondir(CoordVector &a);
 void arrondir(CoordVector &a, float nbDecimales);
+bool colineaire(CoordVector &a, CoordVector &b);
 
 CoordVector operator+(const CoordVector &a, const CoordVector &b);
 CoordVector operator+(const CoordVector &a, float b);
@@ -122,7 +122,6 @@ inline CoordDouble operator^(CoordDouble const& a,CoordDouble const& b){
 inline CoordDouble doubleproduit(CoordDouble const& a,CoordDouble const& b,CoordDouble const& c){
     return (a*c)*b-(a*b)*c;
 }
-
 
 
 

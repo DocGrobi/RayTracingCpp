@@ -16,7 +16,6 @@ ObjWriter::ObjWriter(QString chemin, int nbRay) // recupere en attribue le nom d
 
     QString newName(chemin);
     m_buff_rayMort.resize(nbRay, 0); // 0 = rayon vivant
-    qDebug() << "nombre de ray dans obj writer" << nbRay;
 
     // A CONSERVER : INCREMENTATION DES FICHIERS
 
@@ -49,180 +48,13 @@ ObjWriter::~ObjWriter()
 {
 }
 
-void ObjWriter::display_normales(std::vector<float> &vertex, std::vector<float> &normals, int nData)
-{
-    QFile fichier(m_chemin);
 
-    fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
-
-    // creation d'un entete
-    QString text("o Normales \n");
-    fichier.write(text.toLatin1());
-
-    std::vector<float> difference; // vérification calcul de normales
-
-    // ecriture des coordonnées de vertex représentant les normales :
-    for(int i=0; i<nData ; i=i+9) // incrementation par face
-    {
-        QString vertices("v");
-        for (int j = 0; j <3 ; j++) // incrementation par coordonnée du centre de la face
-        {
-            float moy((vertex[i+j]+vertex[i+j+3]+vertex[i+j+6])/3); // moyenne des x, des y et des z
-            vertices = vertices + " " + QString::number(moy);
-
-        }
-        vertices = vertices + "\n"; // retour la la ligne
-        fichier.write(vertices.toLatin1()); // ecriture d'une ligne : v x1 y1 z1
-
-        vertices= "v";
-
-
-        // OPTION 1 - Utilisation des normales dans le fichier .obj
-        /*
-        for (int j = 0; j <3 ; j++) // incrementation par coordonnée du bout de la normale
-        {
-            float moy((vertex[i+j]+vertex[i+j+3]+vertex[i+j+6])/3); // moyenne des x, des y et des z  
-            float nor(moy + normals[i+j]); // ajout de la valeur de normale
-
-            vertices = vertices + " " + QString::number(nor);
-        }
-        */
-
-
-        // OPTION 2 - Utilisation de l'ordre des vertices pour créer les normales
-        // /*
-        std::vector<float> nor(3, 0);
-
-        nor[0] = (vertex[i+4]-vertex[i+1])*(vertex[i+8]-vertex[i+2]) - (vertex[i+5]-vertex[i+2])*(vertex[i+7]-vertex[i+1])  ;
-        nor[1] = (vertex[i+5]-vertex[i+2])*(vertex[i+6]-vertex[i]) - (vertex[i+3]-vertex[i])*(vertex[i+8]-vertex[i+2]) ;
-        nor[2] = (vertex[i+3]-vertex[i])*(vertex[i+7]-vertex[i+1]) - (vertex[i+4]-vertex[i+1])*(vertex[i+6]-vertex[i]) ;
-        float norme = sqrt(pow(nor[0], 2) + pow(nor[1], 2) + pow(nor[2], 2));
-
-        for (int j = 0; j <3 ; j++) // incrementation par coordonnée du bout de la normale
-        {
-            float moy((vertex[i+j]+vertex[i+j+3]+vertex[i+j+6])/3); // moyenne des x, des y et des z
-            nor[j] = (nor[j] / norme) + moy;
-
-            vertices = vertices + " " + QString::number(nor[j]);
-
-
-            difference.push_back(nor[j]-(moy + normals[i+j])); // vérification sens des normales
-        }
-        // */
-
-        vertices = vertices + "\n"; // retour la la ligne
-        fichier.write(vertices.toLatin1()); // ecriture d'une ligne : v x1 y1 z1
-    }
-
-
-    // ecriture des lignes commençant par l pour relier les vertex
-    QString ligne("");
-    for(int i=0 ; i < 2*nData/9 ; i=i+2)
-    {
-        ligne = "l " + QString::number(i+1) + " " + QString::number(i+2) + "\n";
-        fichier.write(ligne.toLatin1());
-    }
-
-    fichier.close(); // ferme le fichier
-
-
-    //pour le debug
-    if (*std::max_element(difference.begin(),difference.end()) < 0,000001)
-    {
-        qDebug() << "Les normales sont dans le bon sens";
-    }
-    else
-    {
-        qDebug() << "Erreur calcul de normales";
-    }
-
-    difference.clear();
-}
-
-void ObjWriter::display_normales(std::vector<CoordVector> &vertex)
-{
-    QFile fichier(m_chemin);
-
-    fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
-
-    // creation d'un entete
-    QString text("o Normales \n");
-    fichier.write(text.toLatin1());
-
-    QString vertices;
-
-    CoordVector centre;
-
-    // ecriture des coordonnées de vertex représentant les normales :
-    for(int i=0; i<vertex.size() ; i+=3) // incrementation par face
-    {
-        centre = (vertex[i]+vertex[i+1]+vertex[i+2])/3;
-        vertices += "v " + CoordVector2QString(centre)+ "\n"; // retour la la ligne
-
-        CoordVector nor = produitVectoriel(vecteur(vertex[i],vertex[i+1]), vecteur(vertex[i],vertex[i+2])); // normale à la face
-        nor = nor/norme(nor);
-
-        vertices += "v " + CoordVector2QString(centre+nor)+ "\n"; // retour la la ligne
-
-    }
-
-    fichier.write(vertices.toLatin1()); // ecriture d'une ligne : v x1 y1 z1
-
-    // ecriture des lignes commençant par l pour relier les vertex
-    QString ligne("");
-    for(int i=0 ; i < 2*vertex.size()/3 ; i+=2)
-    {
-        ligne = "l " + QString::number(i+1) + " " + QString::number(i+2) + "\n";
-        fichier.write(ligne.toLatin1());
-    }
-
-    fichier.close(); // ferme le fichier
-}
-
-void ObjWriter::display_ray(Source &source, std::vector<float> &ray, int nbRay, int nb_rebond)
-{
-    QFile fichier(m_chemin);
-
-    fichier.open(QIODevice::WriteOnly | QIODevice::Text); // ouvre le fichier
-
-    // creation d'un entete
-    QString text("o Rayons \n");
-    fichier.write(text.toLatin1());
-
-    int nbCoord = nbRay; // nombre de données pour un ordre (ordre 0, ordre 1, etc)
-    int ordre = nb_rebond + 1;
-
-    // ecriture des vertex par "étage" : source, puis rebond 1, etc
-    for (int i = 0; i < nbCoord*ordre ; i++)
-    {
-        //CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
-
-        text = "v "+ CoordVector2QString(ray[i]) + "\n";
-        fichier.write(text.toLatin1());
-    }
-
-    // ecriture des lignes commençant par l pour relier les vertex
-    QString ligne("");
-
-    for(int j = 0 ; j < nb_rebond ; j++) // on décale du nb rayon pour executer la boucle suivante à l'ordre +1
-    {
-        for(int i = 1; i<= nbRay ; i++) // on lit les ligne de vertex dans l'ordre pour chaque rayon
-        {
-            ligne = "l " + QString::number(nbRay*j+i) + " " + QString::number(nbRay*(j+1)+i) + "\n";
-            fichier.write(ligne.toLatin1());
-        }
-    }
-
-    fichier.close(); // ferme le fichier
-}
-
-
-
-void ObjWriter::rec_Vert(Source &source, int nSrc, Ray &monRay, int num_rebond, float seuil)
+void ObjWriter::rec_Vert(Source &source, int nSrc, Ray &monRay, int num_rebond)
 {
     QFile fichier(m_chemin);
     std::vector<CoordVector> ray = monRay.getRay();
-    std::vector<float> nrg = monRay.getNRG();
+    std::vector<bool> vivant = monRay.getRayVivant2();
+
 
     int nbRay = ray.size();
 
@@ -238,40 +70,20 @@ void ObjWriter::rec_Vert(Source &source, int nSrc, Ray &monRay, int num_rebond, 
             fichier.write(text.toLatin1());
         }
 
-        // ecriture des vertex pour tous les rayons
-        for (int i = 0; i < nbRay ; i++) // on n'ecrit que le premier point
+        // ecriture des vertex
+        for (int i = 0; i < nbRay ; i++)
         {
-            if (m_buff_rayMort[i] == 0) // si le rayon est toujours vivant
+            if(vivant[i])
             {
-                // si l'énergie sur au moins une bande est au dessus du seuil le rayon reste vivant
-                bool rayVivant = false;
-                for (int l=0; l<8; l++)
-                {
-                    if (nrg[i*8+l] > seuil)
-                    {
-                        rayVivant = true;
-                    }
-                }
-                //CoordVector vertCoord(ray[i], ray[i+1], ray[i+2]);
                 text = "v "+ CoordVector2QString(ray[i]) + "\n";
                 fichier.write(text.toLatin1());
-
-                if (rayVivant) // S'il reste vivant
-                {
-                    m_rayMort.push_back(0);
-                }
-                else // S'il meurt
-                {
-                    m_rayMort.push_back(1);
-                    m_buff_rayMort[i] = 1;
-                }
+                m_rayMort.push_back(false);
             }
             else // S'il était deja mort
             {
-                m_rayMort.push_back(1);
+                m_rayMort.push_back(true);
             }
         }
-
     }
     fichier.close(); // ferme le fichier
 }
@@ -279,10 +91,6 @@ void ObjWriter::rec_Vert(Source &source, int nSrc, Ray &monRay, int num_rebond, 
 void ObjWriter::rec_Vert_init(std::vector<CoordVector> &si)
 {
     QFile fichier(m_chemin);
-  /*  int debut;
-    if(si.size()>1)debut=1;
-    else debut=0;
-*/
     if(fichier.open(QIODevice::WriteOnly | QIODevice::Text)) // ouvre le fichier
     {
         // creation d'un entete
@@ -307,13 +115,11 @@ void ObjWriter::rec_Vert(Ray &monRay, int ind, CoordVector source)
     {
         text = "v " + CoordVector2QString(A[ind]) + "\n";
         text += "v " + CoordVector2QString(source) + "\n";
-        qDebug() << "rayon mort :" << text;
         fichier.write(text.toLatin1());
         text = "l "+ QString::number(m_nblignefin+1) + " " + QString::number(m_nblignefin+2) + "\n";
         fichier.write(text.toLatin1());
         m_nbligne+=2;
         m_nblignefin+=2;
-        qDebug() << "rayon mort :" << text;
     }
     fichier.close();
 }
@@ -340,7 +146,6 @@ void ObjWriter::rec_Vert(Ray &monRay)
                 m_nbligne++;
                 m_buff_rayMort[i] =m_nbligne;
                 nbNouvelleVert++;
-                qDebug() << "rayon vivant :" << CoordVector2QString(A[i]);
             }
             else nb_mort++;
         }
@@ -353,7 +158,6 @@ void ObjWriter::rec_Vert(Ray &monRay)
             {
                 text += "l "+ QString::number(m_buff_rayMort[i]-nb_mort) + " " + QString::number(m_buff_rayMort[i]+nbNouvelleVert) + "\n";
                 m_buff_rayMort[i]+=m_nbligne; // passer à la prochaine série
-                qDebug() << "rayon vivant :" << "l "+ QString::number(m_buff_rayMort[i]-nb_mort) + " " + QString::number(m_buff_rayMort[i]+nbNouvelleVert);
             }
             else nb_mort--;
         }
@@ -364,7 +168,7 @@ void ObjWriter::rec_Vert(Ray &monRay)
 }
 
 
-void ObjWriter::rec_Line(int nbRay, int nbRebond)
+void ObjWriter::rec_Line(int nbRay)
 {
     QFile fichier(m_chemin);
     QString ligne;
@@ -375,50 +179,28 @@ void ObjWriter::rec_Line(int nbRay, int nbRebond)
         std::vector<int> dernierVertex;
         dernierVertex.resize(nbRay,0); // numero de ligne du dernier vertex du rayon
 
-      // relier les premier point à la source
+        int indiceRay(2);
+      // relier les premiers points à la source
         for (int i = 0 ; i<nbRay ; i++)
         {
-            ligne = "l 1 " + QString::number(i+2) + "\n";
+            if(!m_rayMort[i]){
+            ligne = "l 1 " + QString::number(indiceRay) + "\n";
             fichier.write(ligne.toLatin1());
-
-            dernierVertex[i] = i+2;
-        }
-
-        // relier les points suivent deux par deux
-
-        if (nbRebond >= 1) // MODE NOMBRE DE REBONDS FIXE
-        {
-            for (int i = 0 ; i < nbRay*(nbRebond-1) ; i++)
-            {
-                ligne = "l " + QString::number(i+2) + " " + QString::number(nbRay+i+2) + "\n";
-                fichier.write(ligne.toLatin1());
+            dernierVertex[i] = indiceRay;
+            indiceRay++;
             }
         }
-        else // MODE ATTENUATION
+        float nbIt = m_rayMort.size()/nbRay;
+        for (int j = 1; j<nbIt; j++)
         {
-            int raymort = m_rayMort[0];
-            int j (0), k(0);
-
-            while (raymort < nbRay) // tant que tous les rayons ne sont pas morts
+            for(int i=0; i<nbRay ; i++)
             {
-                raymort = 0;
-                for (int i = 0; i<nbRay ; i++) // pour chaque rayon
-                {
-                    raymort = raymort + m_rayMort[j*nbRay +i]; // on ajoute 1 si le i-eme rayon meurt
-
-                    if (m_rayMort[j*nbRay +i] == 0) // Si le i-eme rayon n'est pas mort
-                    {
-                        // On l'ecrit
-                        ligne = "l " + QString::number(dernierVertex[i]) + " " + QString::number(nbRay+2+k) + "\n";
-                        fichier.write(ligne.toLatin1());
-
-                        // on remplace le numero du dernier vertex (que si le rayon n'est pas mort)
-                        dernierVertex[i] = nbRay+2+k;
-
-                        k++; // on n'augmente l'increment (que si le rayon n'est pas mort)
-                    }
+                if(!m_rayMort[i+j*nbRay]){
+                ligne = "l " + QString::number(dernierVertex[i]) +" "+ QString::number(indiceRay) + "\n";
+                fichier.write(ligne.toLatin1());
+                dernierVertex[i] = indiceRay;
+                indiceRay++;
                 }
-                j++; // compteur general de rebond
             }
         }
     }
@@ -713,6 +495,8 @@ void genererMTL(float min)
 
 }
 
+/// Pour afficher l'octree
+/*
 void ObjWriter::display_octree(const std::vector<Boite> &oct)
 {
     QFile fichier(m_chemin);
@@ -771,6 +555,7 @@ void ObjWriter::display_octree(const std::vector<Boite> &oct)
     fichier.close(); // ferme le fichier
 
 }
+*/
 
 // Méthodes
 

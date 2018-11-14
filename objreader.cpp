@@ -22,14 +22,11 @@ void Source::chargerSource()
     // Moyenne des vertex sur chaque coordonnée
    for (int i = m_nbDataSource ; i < m_vert.size() ; i++)
    {
-
        m_centreSource[i] += m_vert[i]; // l'operateur [] a un modulo 3
        if (m_vert[i] > max[i]) max[i] = m_vert[i];
        if (m_vert[i] < min[i]) min[i] = m_vert[i];
-
    }
-  // barycentre
-   //if (!m_vert.empty()) m_centreSource = m_centreSource/((m_vert.size()-m_nbDataSource)/3); // S'il y a une source dans le fichier
+
    // centre
    if (!m_vert.empty()) m_centreSource = (max+min)/2;
 
@@ -57,7 +54,7 @@ std::vector<float>& Source::getVert() {
 }
 
 QString Source::afficher() const {
-    return "Source\nCentre : " + CoordVector2QString2(m_centreSource);
+    return "Source\nCenter (m) : " + CoordVector2QString2(m_centreSource);
 }
 
 Source MeshObj::getSource() const {
@@ -70,7 +67,6 @@ int Source::getNbSource(){
 
 Listener::Listener()
 {
-    //m_centreListener = (0,0,0);
     m_rayon = 1;
 }
 
@@ -83,29 +79,22 @@ void Listener::chargerVert(float coord){
 
 void Listener::chargerListener()
 {
-   qDebug() << m_vert.size();
-   // float min, max;
    for (int i = 0 ; i < m_vert.size() ; i++)
    {
        m_centreListener[i] += m_vert[i]; // l'operateur [] a un modulo 3
-       /*if (min > m_vert[i]) min = m_vert[i];
-       if (max < m_vert[i]) max = m_vert[i];*/
    }
    m_centreListener = m_centreListener/(m_vert.size()/3);
    CoordVector point(m_vert[0], m_vert[1], m_vert[2]);
-   //m_rayon = (max-min)/2;
    m_rayon = norme(vecteur(m_centreListener, point));
    if (m_rayon < 0.001) QMessageBox::warning(NULL,"Attention","Le rayon du Listener est inférieur à 1mm. Veuillez recharger un Listener", "OK");
-    qDebug() << m_rayon;
-    point.debug();
 }
 
 QString Listener::afficher()
 {    
     QString ray;
     ray.setNum(m_rayon);
-    QString info = "Centre : "+ CoordVector2QString2(m_centreListener) +"\n"
-            + "Rayon : " + ray + "m";
+    QString info = "Center (m) : "+ CoordVector2QString2(m_centreListener) +"\n"
+            + "Radius (m) : " + ray;
     return info;
 }
 
@@ -162,7 +151,6 @@ void MeshObj::charger_obj(QString file_obj)
     std::vector<CoordVector> ver, nor; // vecteurs de coordonnees
     std::vector<unsigned int> iv, in; // indice des points à assembler
     std::vector<float> imat;
-    //float indiceMat = 0, indiceMat_Curr = 0; // Indice du materiaux
     bool lecture_source = false, lecture_listener = false;
     int nb_verSource = 0, nb_verListener = 0, nb_norSource = 0, nb_norListener = 0, i, j;
     unsigned int v,n;
@@ -200,7 +188,6 @@ void MeshObj::charger_obj(QString file_obj)
                         }
                         if(lecture_listener) {
                             for(i=0; i<3;i++) {
-                                //m_listener.chargerVert(coord[i+1].toFloat());
                                 m_listener[m_listener.size()-1].chargerVert(coord[i+1].toFloat());
                             }
                             nb_verListener++;
@@ -212,8 +199,6 @@ void MeshObj::charger_obj(QString file_obj)
                         if(lecture_listener) nb_norListener++;
                     }
                 }
-                //qDebug()<< nb_verListener;
-
             }
 
             else // mode chargement du mesh normal
@@ -284,10 +269,6 @@ void MeshObj::charger_obj(QString file_obj)
             }
             if (ligne[0]=='o') // Debut d'un objet
             {
-                /*
-                nb_verSource = m_source.getVert().size();
-                nb_verListener = m_listener.getVert().size();
-                */
                 // condition qui se place apres les actions de ligne pour que l'activation du mode agisse à partir de la ligne suivante
                 if(ligne.contains("source")) {
                     lecture_source = true; // on est en mode lecture de source
@@ -298,13 +279,11 @@ void MeshObj::charger_obj(QString file_obj)
                 if(ligne.contains("listener")) { // on est en mode lecture de listener
                     lecture_listener = true;
                     Listener l;
-                    m_listener.push_back(l);}
-                    //if (!m_listener.getVert().empty()) m_listener.chargerListener();}
-
+                    m_listener.push_back(l);
+                }
                 else lecture_listener = false;
             }
         }
-
         fichier.close();
     }
 
@@ -317,19 +296,13 @@ void MeshObj::charger_obj(QString file_obj)
         }
         m_source.chargerSource();
     }
-    //if (!m_listener.getVert().empty()) m_listener.chargerListener(); // Dans le cas où on a trouvé un listener
     if (m_listener.empty()) { // si le fichier n'a pas de listener on ajoute un listener par defaut
         Listener l;
         m_listener.push_back(l);
     }
     else {
-        qDebug()<< "m_listerner.size : " << m_listener.size();
-        //for(Listener &a : m_listener) a.chargerListener(); // sinon on calcul le centre et le rayons pour tous les listener
        for (i=0; i<m_listener.size(); i++) m_listener[i].chargerListener();
     }
-
-   // if (!m_listener.empty()) qDebug()<< "listener 1 : " << m_listener[0].afficher();
-
 
     // Initialisation des min et max
     if (!ver.empty())
@@ -359,7 +332,7 @@ void MeshObj::charger_obj(QString file_obj)
     }
 
     ///Boite englobante
-    // Leger offset pour eviter que la boite englobante ne soit considéré comme une surface
+    // Leger offset pour eviter que la boite englobante ne soit considérée comme une surface
     m_min-=0.01;
     m_max+=0.01;
     // Création des points
@@ -418,7 +391,6 @@ void MeshObj::charger_obj(QString file_obj)
         m_vecteurFace.push_back(vecteur(m_vertex[i], m_vertex[i+2]));
     }
 
-   // m_nbData = m_vert.size();
 
     // nettoyage
     ver.clear();

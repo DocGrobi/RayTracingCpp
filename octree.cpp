@@ -8,17 +8,13 @@ Octree::Octree()
 {
 }
 
-// Il faudra mettre estunefeuille = true de base et estunefeuille = false pour les boites qui passent au decoupage
-
-
-
 
 Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
 {
-
+    qDebug()<< "Octree";
     // Declaration
     m_seuil = nbFaceFeuille;
-    int k(0), i(0), j(0), nbBoiteNew(0), nbBoiteOld(0);
+    int k(0), i(0), nbBoiteNew(0), nbBoiteOld(0);
 
     // création du cube racine
     std::vector<CoordVector> vertex = monMesh.getVert();
@@ -34,17 +30,6 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     boiteRacine.m_max = Max;
     boiteRacine.m_coinMin = (Min+Max)/2 - coordMax(Max - Min)/2;
 
-    /*
-    //I- Création de la boite root (double)
-    Boite boiteRacine;
-    boiteRacine.m_arrete = (double)coordMax(Max - Min);
-    boiteRacine.m_indicePere = -1;
-    boiteRacine.m_indiceBoite = 0;
-    boiteRacine.m_min = Min;
-    boiteRacine.m_max = Max;
-    boiteRacine.m_coinMin = ((Min + Max)/2).CoordVector2CoordDouble() - boiteRacine.m_arrete/2;
-    */
-
     for (k = 0 ; k < vertex.size() ; k+=3)
     {
         boiteRacine.m_numElt.push_back(k);
@@ -53,12 +38,7 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     // II- Stockage de la boite racine
     m_vectBoite.push_back(boiteRacine);
 
-
-
-    // ANCIENNE VERSION : Tant que le nombre de boite augmente
-    //while (m_vectBoite.size() > nbBoiteOld)
-
-    // NOUVELLE VERSION : tant qu'il existe au moins une boite >seuil on continue de descendre
+    // III- Tant qu'il existe au moins une boite >seuil on continue de descendre
     bool DessusSeuil = true;
     while (DessusSeuil)
     {
@@ -76,7 +56,7 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
             }
             if(DessusSeuil) {
                 for(i = nbBoiteOld - nbBoiteNew ; i <nbBoiteOld ; i++ ) {
-                    // III- Si la boite n'est pas une feuille : Découpage de la boite courante en huit
+                    // IV- Si la boite n'est pas une feuille : Découpage de la boite courante en huit
                     etagesuivant(vertex, i);
                 }
             }
@@ -94,27 +74,19 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
         }
     }
 
-    // Vérifier s'il y a besoin de faire baver
-
     // Vérification
-    int nbEltFeuille(0), nbFeuille(0);
+    int nbEltFeuille(0);
     for (i = 0 ; i< m_vectBoite.size() ; i++)
     {
         if (m_vectBoite[i].estUneFeuille)
         {
             nbEltFeuille+= m_vectBoite[i].m_numElt.size();
-            //nbFeuille++;
         }
-
         else if (!m_vectBoite[i].m_numElt.empty())
             qDebug() << "non feuille non vide n°: " << i;
     }
     if(vertex.size()/3 != nbEltFeuille)
         QMessageBox::critical(NULL,"Erreur","Mauvaise mise en boite des faces");
-
-    //qDebug() << "nb feuille : " << nbFeuille;
-
-
 }
 
 Octree::~Octree()
@@ -140,9 +112,6 @@ int Octree::getSeuil() const{
 
 Boite::Boite()
 {
-    //estUneFeuille = false; // Sinon ne fonctionne pas en mode release
-
-    // NOUVELLE VERSION
     estUneFeuille = true;
 }
 
@@ -201,21 +170,11 @@ void Boite::supprRay(int position) {
     m_numRayon.erase(m_numRayon.begin()+position);
 }
 
-//Methodes
 
 void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
 { 
 
-    // ANCIENNE VERSION
-    /*
-    if (m_vectBoite[indiceBoite].m_numElt.size() < m_seuil)
-    {
-        m_vectBoite[indiceBoite].estUneFeuille = true;
-    }
-    else // Si la boite n'est pas une feuille
-     */
-
-    // NOUVELLE VERSION : si la boite possede au moins 1 elt
+    // Si la boite possede au moins 1 elt
     if(!m_vectBoite[indiceBoite].m_numElt.empty())
     {
         m_vectBoite[indiceBoite].estUneFeuille = false; // Alors on la decoupe et ce n'est plus une feuille
@@ -224,11 +183,11 @@ void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
         std::vector<int> elt;
         bool premierElt;
 
-        // IV- Création des 8 boites filles à partir de la boite actuelle
+        // V- Création des 8 boites filles à partir de la boite actuelle
         std::vector<Boite> boitesFilles;
         decoupage(m_vectBoite[indiceBoite], boitesFilles);
 
-        // V- Pour chaque nouvelle boite :
+        // VI- Pour chaque nouvelle boite :
         for (i = 0 ; i<8 ; i++)
         {
             elt = m_vectBoite[indiceBoite].getVectNumElt();
@@ -238,18 +197,6 @@ void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
             for (k = elt.size()-1; k >=0  ; k--)
             {
                 ind = elt[k];
-
-                /*
-                if (ind == 6666 && indiceBoite == 31567)
-                {
-                   //float c = boitesFilles[i].m_arrete;
-                   CoordVector bla = vert[ind];
-                   //CoordVector bli = m_coinMin;
-
-                    qDebug() << "stop";
-
-                }
-                */
 
                 if (appartientBoite(boitesFilles[i], vert, ind))
                 {
@@ -267,16 +214,6 @@ void Octree::etagesuivant(std::vector<CoordVector> const& vert, int indiceBoite)
             boitesFilles[i].m_indiceBoite = m_vectBoite.size();
             m_vectBoite.push_back(boitesFilles[i]); // Ajout de la boite fille            
         }
-
-        /*
-        // Test si une boite pere n'a pas été entierement vidée
-        if(!m_vectBoite[indiceBoite].m_numElt.empty())
-        {
-            qDebug() << "indice boite : " << indiceBoite;
-            qDebug() << "indice vertex : " << m_vectBoite[indiceBoite].m_numElt[0];
-            qDebug() << "num premier boite fille : " << boitesFilles[0].m_indiceBoite;
-        }
-        */
     }
 }
 
@@ -286,24 +223,6 @@ void decoupage(Boite &boitePere, std::vector<Boite>& boitesFilles)
     // Initialisation du vecteur de boites filles
     boitesFilles.resize(8, Boite());
 
-
-/*
-    // double
-    // Recuperation des données du père
-    CoordDouble coinMin = boitePere.m_coinMin;
-    double arrete = boitePere.m_arrete/2;
-
-    boitesFilles[0].m_coinMin = CoordDouble(coinMin.x           , coinMin.y          , coinMin.z         );
-    boitesFilles[1].m_coinMin = CoordDouble(coinMin.x + arrete  , coinMin.y          , coinMin.z         );
-    boitesFilles[2].m_coinMin = CoordDouble(coinMin.x           , coinMin.y + arrete , coinMin.z         );
-    boitesFilles[3].m_coinMin = CoordDouble(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z         );
-    boitesFilles[4].m_coinMin = CoordDouble(coinMin.x           , coinMin.y          , coinMin.z + arrete);
-    boitesFilles[5].m_coinMin = CoordDouble(coinMin.x + arrete  , coinMin.y          , coinMin.z + arrete);
-    boitesFilles[6].m_coinMin = CoordDouble(coinMin.x           , coinMin.y + arrete , coinMin.z + arrete);
-    boitesFilles[7].m_coinMin = CoordDouble(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z + arrete);
-*/
-
-    // float
     // Recuperation des données du père avec leger offset pour eviter les pb d'arrondi
     CoordVector coinMin = boitePere.m_coinMin - 0.001;
     float arrete = boitePere.m_arrete/2 + 0.002;
@@ -317,19 +236,15 @@ void decoupage(Boite &boitePere, std::vector<Boite>& boitesFilles)
     boitesFilles[6].m_coinMin = CoordVector(coinMin.x           , coinMin.y + arrete , coinMin.z + arrete);
     boitesFilles[7].m_coinMin = CoordVector(coinMin.x + arrete  , coinMin.y + arrete , coinMin.z + arrete);
 
-
     for (int i = 0 ; i< 8 ; i++)
     {
         boitesFilles[i].m_arrete     = arrete;
         boitesFilles[i].m_indicePere = boitePere.m_indiceBoite;
     }
-
 }
 
 bool appartientBoite(Boite &boite, std::vector<CoordVector> const& vert, int indice)
 {
-   //*
-    // Version avec le centre
     CoordVector centreFace;
     for (int i = 0 ; i < 3 ; i++)
     {
@@ -342,16 +257,7 @@ bool appartientBoite(Boite &boite, std::vector<CoordVector> const& vert, int ind
     if (centreFace.y/3 > boite.m_coinMin.y + boite.m_arrete)  return false;
     if (centreFace.z/3 < boite.m_coinMin.z)                   return false;
     if (centreFace.z/3 > boite.m_coinMin.z + boite.m_arrete)  return false;
-    //*/
-/*
-    // Version avec le premier point de la face
-    if (vert[indice].x < boite.m_coinMin.x)                   return false;
-    if (vert[indice].x > boite.m_coinMin.x + boite.m_arrete)  return false;
-    if (vert[indice].y < boite.m_coinMin.y)                   return false;
-    if (vert[indice].y > boite.m_coinMin.y + boite.m_arrete)  return false;
-    if (vert[indice].z < boite.m_coinMin.z)                   return false;
-    if (vert[indice].z > boite.m_coinMin.z + boite.m_arrete)  return false;
-*/
+
     return true;
 }
 
@@ -370,7 +276,6 @@ void Octree::chargerRayonRacine(int nbRay)
 void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<CoordVector> const& dir, std::vector<bool> const& RayVivant)
 {
     int i, j, ind, numPere;
-   // std::vector<CoordVector> orig2 = orig; std::vector<bool> RayVivant2 = RayVivant;
 
     // Pour chaque boite : chargement de l'indice des rayons qui intersectent avec elle
     for (i = 1 ; i < m_vectBoite.size() ; i++)
@@ -392,22 +297,12 @@ void Octree::chargerRayon(std::vector<CoordVector> const& orig, std::vector<Coor
                     // test intersection entre rayon ind et boite i
                     if (intersecBoiteRay(m_vectBoite[i], orig[ind], inverse(dir[ind])))
                     {
-                        //m_vectBoite[i].chargerRay(ind); // Ajout des rayons à la boite courante
                         m_vectBoite[i].m_numRayon.push_back(ind); // Ajout des rayons à la boite courante
                     }
                 }
             }
         }
     }
-/*
-    // Vérification
-    int nbRay(0);
-    for (i = 0 ; i< m_vectBoite.size() ; i++)
-    {
-        nbRay+= m_vectBoite[i].m_numRayon.size();
-    }
-    qDebug() << "Nombre total de rayon stocké :" << nbRay;
-*/
 }
 
 
@@ -416,47 +311,6 @@ bool intersecBoiteRay(const Boite &boite, const CoordVector &orig, const CoordVe
     // Ref : http://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
 
     float tmin, tmax, tymin, tymax;
-
-    // utiliser plutot les min et max de la boite plutot que la boite redimentionnée
-    /*
-    if (invDir.x >=0) {
-        tmin = (boite.m_coinMin.x                  - orig.x) * invDir.x;
-        tmax = (boite.m_coinMin.x + boite.m_arrete - orig.x) * invDir.x;
-    }
-    else {
-        tmax = (boite.m_coinMin.x                  - orig.x) * invDir.x;
-        tmin = (boite.m_coinMin.x + boite.m_arrete - orig.x) * invDir.x;
-    }
-
-    if (invDir.y >=0) {
-        tymin = (boite.m_coinMin.y                  - orig.y) * invDir.y;
-        tymax = (boite.m_coinMin.y + boite.m_arrete - orig.y) * invDir.y;
-    }
-    else {
-        tymax = (boite.m_coinMin.y                  - orig.y) * invDir.y;
-        tymin = (boite.m_coinMin.y + boite.m_arrete - orig.y) * invDir.y;
-    }
-
-   if ((tmin > tymax) || (tymin > tmax)) return false;
-
-   if (tymin > tmin) tmin = tymin;
-   if (tymax < tmax) tmax = tymax;
-
-   float tzmin, tzmax;
-
-   if(invDir.z >= 0) {
-       tzmin = (boite.m_coinMin.z                   - orig.z) * invDir.z;
-       tzmax = (boite.m_coinMin.z + boite.m_arrete  - orig.z) * invDir.z;
-   }
-   else {
-       tzmax = (boite.m_coinMin.z                   - orig.z) * invDir.z;
-       tzmin = (boite.m_coinMin.z + boite.m_arrete  - orig.z) * invDir.z;
-   }
-
-   if ((tmin > tzmax) || (tzmin > tmax)) return false;
-
-   return true;
-   */
 
     if (invDir.x >=0) {
         tmin = (boite.m_min.x - orig.x) * invDir.x;

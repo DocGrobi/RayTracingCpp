@@ -85,7 +85,6 @@ void plotWindow::makePlot()
         ui->customPlot->addGraph();
         ui->customPlot->graph(k+buf)->setData(vectX, courbe[k]);
         QString nom = QString::number(62.5*pow(2,k)) + "Hz";
-        //QString nom = QString::number(-10+k*10) + "°C";
         ui->customPlot->graph(k+buf)->setName(nom);
         ui->customPlot->graph(k+buf)->setPen(QPen(QColor::fromHsv(360/courbe.size()*(k+buf),255,255)));
 
@@ -110,7 +109,6 @@ void plotWindow::makePlot()
         ui->customPlot->yAxis->setLabel("Energie nomalisée (lineaire)");
 
     // Regalges des plages des axes
-    //xMax = 40; //pour les tests
     ui->customPlot->xAxis->setRange(xMin, xMax);
     ui->customPlot->yAxis->setRange(yMin,yMax);
     ui->customPlot->replot();

@@ -40,8 +40,8 @@ public:
     int getNbRay() const;
     int getRayMorts() const;
 
-    bool rebondSansMemoire(MeshObj mesh, float seuil);
-    bool rebondSansMemoire(MeshObj &mesh, float seuil,Octree &oct); // fonction surchargée avec octree
+    bool rebondSansMemoire(MeshObj mesh);
+    bool rebondSansMemoire(MeshObj &mesh, Octree &oct); // fonction surchargée avec octree
 
     void stockage();
 
@@ -67,6 +67,7 @@ private:
     std::vector<bool> m_rayVivant;  // longueur du dernier segment de rayon
     std::vector<bool> m_rayVivantBackup;
     int m_nbRayMort;
+    std::vector<bool> m_rayColineaire;
 
 };
 

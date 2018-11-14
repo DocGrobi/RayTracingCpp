@@ -26,14 +26,13 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void suppFichier();// Suppression des fichiers d'export existant
-    void tests();
-    void test2();
-    void test3();
+    void saveParameters();
+    void loadParameters();
+    void courbeAtmo();
 
 
 
 private slots:
-    //void on_bouton_normales_clicked();
 
     void on_bouton_rayons_clicked();
 
@@ -43,25 +42,21 @@ private slots:
 
     void on_spinBox_nbRebond_valueChanged(int arg1);
 
-    void on_checkBox__rebFixe_toggled(bool checked);
+    //void on_checkBox_rebFixe_toggled(bool checked);
 
     void on_spinBox_attenuation_valueChanged(int arg1);
 
     void on_bouton_sourcesImages_clicked();
 
-    void on_radioButton_vertexSource_toggled(bool checked);
+    //void on_radioButton_vertexSource_toggled(bool checked);
 
-    void on_radioButton_Fibonacci_toggled(bool checked);
-
-    //void on_spinBox_nbRay_valueChanged(int arg1);
+    //void on_radioButton_Fibonacci_toggled(bool checked);
 
     void on_bouton_RIR_clicked();
 
     void on_checkBox_rayAuto_toggled(bool checked);
 
-    void on_bouton_octree_clicked();
-
-    void on_checkBox_methodeRapide_toggled(bool checked);
+    //void on_checkBox_methodeRapide_toggled(bool checked);
 
     void on_bouton_audioFile_clicked();
 
@@ -73,11 +68,7 @@ private slots:
 
     void on_durationChanged(qint64 position);
 
-    void on_spinBox_humidite_editingFinished();
-
-    void on_spinBox_temperature_editingFinished();
-
-    void on_spinBox_nbFaceFeuille_editingFinished();
+    //void on_spinBox_nbFaceFeuille_editingFinished();
 
     void on_spinBox_freqEchan_editingFinished();
 
@@ -89,7 +80,6 @@ private slots:
 
     void on_bouton_projection_clicked();
 
-    void on_bouton_test_clicked();
 
     void handleStateChanged(QAudio::State newState);
 
@@ -113,6 +103,26 @@ private slots:
     void on_radioButton_tpsSI_toggled(bool checked);
 
 
+    void on_doubleSpinBox_siTps_editingFinished();
+
+    void on_doubleSpinBox_siTps_erreur_editingFinished();
+
+    void on_spinBox_numSource_editingFinished();
+
+    void on_actionInfo_triggered();
+
+    void on_radioButton_rebFixe_clicked();
+
+    void on_radioButton_seuildB_clicked();
+
+    void on_radioButton_Fibonacci_clicked();
+
+    void on_radioButton_vertexSource_clicked();
+
+    void on_spinBox_temperature_valueChanged(int arg1);
+
+    void on_spinBox_humidite_valueChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
@@ -124,9 +134,8 @@ private:
     Octree m_octree;
     QElapsedTimer m_timer; 
     QString m_fichierExport, m_fichierAudio;
-    float m_seuilAttenuation, m_gain;
-    //, m_longueurRayMax;
-    int m_temperature, m_humidite, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille, m_numListener;
+    float m_seuilAttenuation, m_gain, m_tpsDiff;
+    int m_temperature, m_humidite, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille, m_numListener, m_numSource;
     bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe;
     QMediaPlayer *player;
     std::vector<float> m_longueurRayMax;
@@ -145,5 +154,8 @@ private:
 
     //QScrollArea scrollArea ;
 };
+
+// Autres methodes
+void supprLayoutContent(QGridLayout *layout);
 
 #endif // MAINWINDOW_H

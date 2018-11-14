@@ -52,6 +52,7 @@ class SourceImage
         std::vector<CoordVector> m_raySIvec;
         std::vector<float> m_raySIlong;
         std::vector<float> m_raySITps;
+        int m_nbIteration;
 };
 
 #endif // RIR_H

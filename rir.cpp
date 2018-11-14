@@ -98,11 +98,11 @@ std::vector<float> toucheListener2(Ray &rayon, Listener &listener)
                        //else
                        if (alpha <= asin(r/normeAL)) resultat.push_back(normeAL);
 
-                       else resultat.push_back(-1);
-                   }   else resultat.push_back(-1);
-               }       else resultat.push_back(-1);
+                       else resultat.push_back(-1e-6);
+                   }   else resultat.push_back(-1e-6);
+               }       else resultat.push_back(-1e-6);
             }          else resultat.push_back(normeAL);
-        }              else {resultat.push_back(-1); ray_mort++;}
+        }              else {resultat.push_back(-1e-6); ray_mort++;}
     }
 
     qDebug() << "rayons morts :" << ray_mort;
@@ -183,26 +183,24 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
     std::vector<float> longueurRayonLast = rayon.getLong();
     std::vector<CoordVector> vec = rayon.getDir();
     std::vector<float> nrg = rayon.getNRGbackup();
+    std::vector<bool> vivant = rayon.getRayVivant();
     CoordVector A, vect;
     float temps;
 
     int i, k, j;
-    int tailleSI = m_sourcesImages.size();
     bool SI_trouvee = false;
+    int tailleSi = m_sourcesImages.size();
 
-    std::vector<float> nbRaySI;
-    nbRaySI.resize(m_sourcesImages.size(), 1);
+    //std::vector<float> nbRaySI;
+    //nbRaySI.resize(m_sourcesImages.size(), 1);
 
-    //bool SI_supSeuil = false;
-
-    //qDebug() << "seuil : " << seuil;
     if(!m_nrgSI.empty() && seuil >0) seuil*= *std::max_element(m_nrgSI.begin(), m_nrgSI.end()); // Normalisation du seuil
     //qDebug() << "seuil : " << seuil;
 
 
     for (i = 0 ; i< touche.size() ; i++) // rayon par rayon
     {
-        if ((longueurRayonTot[i]+touche[i])>longueurMax) {rayon.killRay(i);}
+        if ((longueurRayonTot[i]+touche[i])>longueurMax && vivant[i]) {rayon.killRay(i);}
         else
         {
             //if ((rayAuto && longueurRayonTot[i]<longueurMax && touche[i]) || (!rayAuto && touche[i]) ) // si le rayon touche le listener
@@ -226,7 +224,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                            m_nrgSI[8*j+k]+=(nrg[8*i+k] * exp(-absAir[k]*longueurRayonTot[i]));
                            //if (m_nrgSI[8*j+k]>seuil) SI_supSeuil = true; // NEW !
                        }
-                       nbRaySI[j]++;
+                       //nbRaySI[j]++;
                        SI_trouvee = true; // on a trouvé une SI en doublons
                        break; // et on sort de la boucle
                    }
@@ -245,13 +243,12 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                         //if (*m_nrgSI.end()>seuil) SI_supSeuil = true; // NEW !
                     }
 
-                    temps = 1000 * longueurRayonTot[i] / VITESSE_SON; // en ms //  A FAIRE : utiliser longueurRayonTot
-
+                    temps = 1000 * longueurRayonTot[i] / VITESSE_SON; // en ms
                     // On créé le vecteur des valeurs en temps
                     m_sourcesImages_Tps.push_back(temps);
 
                     //On ajoute une case à nbRaySi
-                    nbRaySI.push_back(0);
+                    //nbRaySI.push_back(0);
 
                     //Recupération trajectoire rayon
                     m_raySI.push_back(point2[i]);
@@ -262,6 +259,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
             }
         }
     }
+
     // suppression des si inférieurs au seuil
     if (longueurMax<1e6) // dans le cas ou on n'est pas en mode rebond fixe.
     {
@@ -282,11 +280,10 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
             }
         }
     }
-    // On garde le temps max
-    m_xMax = *std::max_element(m_sourcesImages_Tps.begin(), m_sourcesImages_Tps.end());
 
-    //if (m_sourcesImages.size()>tailleSI) return true;
-    if(rayon.getRayMorts()<rayon.getNbRay()) return true;// on arrete la boucle en fonction de la longueur des rayons
+    if (m_sourcesImages.size()>tailleSi) m_nbIteration = 0;
+    else m_nbIteration++; // s'il n'y a pas de nouvelle source images
+    if(rayon.getRayMorts()<rayon.getNbRay() && m_nbIteration<10) return true;// on arrete la boucle en fonction de la longueur des rayons ou si on a fait 10 itération sans sources images
     else return false;
 
    // return SI_supSeuil;
@@ -298,8 +295,10 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
 {
     float freq = (float)f_ech/1000; // car on a des temps en ms (convertion en float)
 
-    int nb_ech = ceil(m_xMax*freq);
-    //std::vector<double> x;
+    // On garde le temps max
+    m_xMax = *std::max_element(m_sourcesImages_Tps.begin(), m_sourcesImages_Tps.end());
+
+    float nb_ech = ceil(m_xMax*freq);
 
     double max(0), maxbuf(0);
     if (nb_ech > 0)
@@ -314,7 +313,6 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
         for (float i = 0 ; i <nb_ech ; i++)
        {
            m_x[i] = i/freq; // valeurs en ms
-           //x.push_back((double)i/freq);
        }
 
         // Ordonnées
@@ -335,15 +333,12 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
         // mise à l'échelle du son direct
         float sondirect = *std::min_element(m_sourcesImages_Tps.begin(), m_sourcesImages_Tps.end())*VITESSE_SON/1000; // en m
 
-        //std::vector<float> attair;
-
         m_curve.clear();
         m_curve.resize(m_y.size());
 
         double aa, bb;
         std::vector<double> y_buf;
         std::vector<double> x_buf;
-        //double new_y, new_x;
         int size_max(0);
 
         for (int k = 0 ; k < 8 ; k++) // pour chaque bande
@@ -354,7 +349,7 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
             {
                 m_y[k][i]/=max;// normalisation
 
-                if (sondirect>0) // -31dB à 10m
+                if (sondirect>0 && gain >=0) // -31dB à 10m
                 {
                     m_y[k][i]*= pow(10,(gain-31)/10)*100*exp(-absR[k]*sondirect)/pow(sondirect,2); // on retire l'offset du son direct (ok si le premier son n'a pas touché de paroi)
                 }
@@ -385,12 +380,10 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
             aa=pente(x_buf, y_buf, y_buf.size());
             bb=ordonnee(x_buf, y_buf, y_buf.size());
 
-            //qDebug() << "pente" << aa;
-            //qDebug() << "ordonnée" << bb;
             double new_y(0), j(nb_ech);
 
             maxbuf = *std::max_element(m_y[0].begin(), m_y[0].end());
-            qDebug() << "seuil" << 10*(log10(seuil)+log10(maxbuf));
+            //qDebug() << "seuil" << 10*(log10(seuil)+log10(maxbuf));
             while(new_y>10*(log10(seuil)+log10(maxbuf)))
             {
                 new_y = aa*j + bb;
@@ -422,12 +415,6 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
             if (curve) m_y.push_back(m_curve[k]);
         }
 
-        /*
-        for (int k = 0 ; k < 8 ; k++) // pour chaque bande
-        {
-             if (curve) m_y.push_back(m_curve[k]);
-        }
-        */
         return true;
     }
     else return false;

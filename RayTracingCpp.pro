@@ -12,6 +12,7 @@ TARGET   = RayTracingCpp
 TEMPLATE = app
 
 
+
 SOURCES  += main.cpp\
             objreader.cpp \
             objwriter.cpp \
@@ -27,12 +28,9 @@ SOURCES  += main.cpp\
     fftext.cpp \
     fftlib.cpp \
     matlib.cpp \
-    XFir.cpp \
-    XHRir.cpp \
-    XUtils.cpp \
-    XSpatFir.cpp \
     data.cpp \
-    reglin.cpp
+    reglin.cpp \
+    analytique.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -49,12 +47,9 @@ HEADERS  += mainwindow.h \
     fftext.h \
     fftlib.h \
     matlib.h \
-    XFir.hpp \
-    XHRir.hpp \
-    XUtils.hpp \
-    XSpatFir.hpp \
     data.h \
-    reglin.h
+    reglin.h \
+    analytique.h
 
 
 
@@ -62,6 +57,7 @@ FORMS    += mainwindow.ui \
             plotwindow.ui \
     data.ui
 
+ICON = Just4RIR_logo.icns
 
 
 # remove possible other optimization flags
@@ -71,4 +67,7 @@ QMAKE_CXXFLAGS_RELEASE -= -O2
 
 # add the desired -O3 if not present
 QMAKE_CXXFLAGS_RELEASE *= -O3
+
+RESOURCES += \
+    material.qrc
 

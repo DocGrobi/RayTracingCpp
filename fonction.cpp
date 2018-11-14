@@ -4,6 +4,7 @@
 
 // Méthodes
 
+
 void debugStdVect(std::vector<float>& vect)//pour le debug
 {
     QVector<float> vector = QVector<float>::fromStdVector(vect);
@@ -125,17 +126,17 @@ CoordVector produitVectoriel(const CoordVector &a,const CoordVector &b)
 
 CoordVector produitVectoriel(const std::vector<float> &a,int i, const CoordVector &b)
 {
-    /*
-    CoordVector resultat;
-    resultat.x = a.y*b.z - a.z*b.y;
-    resultat.y = a.z*b.x - a.x*b.z;
-    resultat.z = a.x*b.y - a.y*b.x;
-
-    return resultat;
-    */
     return CoordVector(a[i+1]*b.z - a[i+2]*b.y, a[i+2]*b.x - a[i]*b.z, a[i]*b.y - a[i+1]*b.x);
 }
 
+bool colineaire(CoordVector &a, CoordVector &b)
+{
+    CoordVector resultat= produitVectoriel(a,b);
+    if(fabs(resultat.x)<1e-6
+            &&fabs(resultat.y)<1e-6
+            &&fabs(resultat.z)<1e-6) return true;
+    else return false;
+}
 
 float angle(const CoordVector &a,const CoordVector &b) // angle entre les deux vecteurs
 {
@@ -441,3 +442,6 @@ CoordDouble CoordVector::CoordVector2CoordDouble()
 {
     return CoordDouble((double)x,(double)y,(double)z);
 }
+
+
+
