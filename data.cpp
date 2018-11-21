@@ -1,3 +1,13 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Display perceptive factors
+*/////////////////////////////////////////////////////////////////////////////////////
+
 #include "data.h"
 #include "ui_data.h"
 #include "QDebug"
@@ -17,8 +27,6 @@ Data::Data(QWidget *parent) :
         text->setFrameShape(QFrame::WinPanel);
         text->setFrameShadow(QFrame::Raised);
         ui->layout->addWidget(text,0,i+1, Qt::AlignCenter);
-        //qDebug() << i << f << text->text();
-
     }
 }
 

@@ -1,3 +1,13 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Audio
+*/////////////////////////////////////////////////////////////////////////////////////
+
 #include "audio.h"
 #include "QFile"
 #include "QDebug"
@@ -8,41 +18,34 @@
 #include "fftext.h"
 
 
-void bandFilters(std::vector< std::vector<float> >& output)
+bool bandFilters(std::vector< std::vector<float> >& output)
 {
-     QFile fichier(QCoreApplication::applicationDirPath() + "/bandFilters.txt");
+    QFile fichier(":/bandFilter/bandFilters.txt");
 
      if(fichier.open(QIODevice::ReadOnly | QIODevice::Text)) // Si on peut ouvrir le fichier
      {
          std::vector<float> filtre;
          QTextStream flux(&fichier);
 
-         //float cptr(1);
-
          while (!flux.atEnd()) {
               if (filtre.size() < 257) filtre.push_back(flux.readLine().toFloat());
-             //if (cptr > 127 && cptr < 257) filtre.push_back(flux.readLine().toFloat());
-              //else if (cptr >256)
              else {
                  output.push_back(filtre);
                  filtre.clear();
-                 //cptr=0;
                 }
-             //else flux.readLine();
-             //cptr++;
           }
          output.push_back(filtre);
          fichier.close();
-
+         return true;
      }
-     else QMessageBox::critical(NULL,"Erreur","Veuillez placer le fichier bandFilter.txt dans le repertoire de l'executable' !");
-
+     else QMessageBox::critical(NULL,"Error","Error by loading bandFilter.txt file !");
+return false;
 
 }
 
 void zeroPadding(std::vector<float>& vecteur, int taille)
 {
-    if (vecteur.size() > taille) QMessageBox::warning(NULL,"Attention","problème ZeroPadding");
+    if (vecteur.size() > taille) QMessageBox::warning(NULL,"Beware","ZeroPadding issue !");
     else {
         while(vecteur.size() < taille) vecteur.push_back(0);
     }
@@ -165,8 +168,6 @@ std::vector<float> convolution_temporelle(std::vector<float> &a,std::vector<floa
 
 #include <qendian.h>
 #include <QVector>
-// il y a peut-etre des choses utiles dans utilis.h
-
 
 struct chunk
 {
@@ -276,7 +277,6 @@ bool WavFile::readHeader()
 
 
 /// http://www.cplusplus.com/forum/beginner/166954/
-
 #include <fstream>
 #include <iostream>
 using namespace std;
@@ -295,34 +295,23 @@ using namespace little_endian_io;
 
 void WavFile::writeNewWav(std::vector<int> &donnees)
 {
-    ofstream f( "resultat.wav", ios::binary );
-
-    // (Sample Rate * BitsPerSample * Channels) / 8
+    ofstream f( "result.wav", ios::binary );
     int val = (m_fileFormat.sampleRate() * m_fileFormat.sampleSize() * m_fileFormat.channelCount()) / 8;
-    qDebug() << "sampleRate : " << m_fileFormat.sampleRate();
-    qDebug() << "sampleSize : " << m_fileFormat.sampleSize();
-    qDebug() << "channelCount : " << m_fileFormat.channelCount();
-    qDebug() << "val : " << val;
-
 
       // Write the file headers
       f << "RIFF----WAVEfmt ";     // (chunk size to be filled in later)
       write_word( f,     16, 4 );  // no extension data
       write_word( f,      1, 2 );  // PCM - integer samples
       write_word( f, m_fileFormat.channelCount(), 2 );  // number of channels
-      //write_word( f, 2, 2 );  // two channels (stereo file)
       write_word( f, m_fileFormat.sampleRate(), 4 );  // samples per second (Hz)
       write_word( f,    val, 4 );  // (Sample Rate * BitsPerSample * Channels) / 8
       write_word( f, 2*m_fileFormat.channelCount(), 2 );  // data block size (size of two integer samples, one for each channel, in bytes)
       write_word( f, m_fileFormat.sampleSize(), 2 );  // number of bits per sample (use a multiple of 8)
 
 
-
       // Write the data chunk header
       size_t data_chunk_pos = f.tellp();
       f << "data----";  // (chunk size to be filled in later)
-
-      //for(auto &a : donnees) { write_word(f, (int)a, 2);}
 
       // recupération du maximum
       for(auto &a : donnees) { write_word(f, a, 2);}

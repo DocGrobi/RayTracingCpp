@@ -1,3 +1,13 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Rays propagation
+*/////////////////////////////////////////////////////////////////////////////////////
+
 #include "raytracing.h"
 #include "fonction.h"
 #include "QDebug"
@@ -396,7 +406,6 @@ bool Ray::rebondSansMemoire(MeshObj &mesh, Octree &oct)
             if (compteur == 8)
             {
                 m_rayVivant[j] = false;
-                qDebug() << "ray mort";
                 //comptage des rayons morts pour la progress bar
                 m_nbRayMort++;
             }

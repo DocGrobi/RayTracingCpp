@@ -14,6 +14,7 @@
 #include <QAudioDeviceInfo>
 #include <QAudioOutput>
 
+
 namespace Ui {
 class MainWindow;
 }
@@ -29,7 +30,7 @@ public:
     void saveParameters();
     void loadParameters();
     void courbeAtmo();
-
+    void courbeAudioInput();
 
 
 private slots:
@@ -81,9 +82,7 @@ private slots:
     void on_bouton_projection_clicked();
 
 
-    void handleStateChanged(QAudio::State newState);
-
-    void on_bouton_faisceau_clicked();
+   // void handleStateChanged(QAudio::State newState);
 
     void on_bouton_saveRir_clicked();
 
@@ -96,12 +95,6 @@ private slots:
     void on_spinBox_numListener_editingFinished();
 
     void on_spinBox_nbRay_editingFinished();
-
-
-
-    void on_radioButton_coordSI_toggled(bool checked);
-    void on_radioButton_tpsSI_toggled(bool checked);
-
 
     void on_doubleSpinBox_siTps_editingFinished();
 
@@ -123,6 +116,11 @@ private slots:
 
     void on_spinBox_humidite_valueChanged(int arg1);
 
+    void on_radioButton_tpsSI_clicked();
+
+    void on_radioButton_initSource_clicked();
+
+
 private:
     Ui::MainWindow *ui;
     MeshObj m_meshObj;
@@ -132,23 +130,22 @@ private:
     //SourceImage m_sourceImage;
     std::vector<SourceImage> m_sourceImage;
     Octree m_octree;
-    QElapsedTimer m_timer; 
-    QString m_fichierExport, m_fichierAudio;
+    QString m_fichierExport, m_fichierAudio, m_audioInput;
     float m_seuilAttenuation, m_gain, m_tpsDiff;
     int m_temperature, m_humidite, m_nbRebond, m_freq, m_nbRayon, m_seuilArret, m_nbFaceFeuille, m_numListener, m_numSource;
-    bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe;
+    bool m_fibonacci, m_rayAuto, m_methodeRapide, m_nbRebondFixe, m_rayFromSI;
     QMediaPlayer *player;
-    std::vector<float> m_longueurRayMax;
+    std::vector<float> m_longueurRayMax, m_vectWav;
 
     plotWindow *plot, *audioPlot, *audioPlot2, *firPlot, *filtrePlot, *plotcumsum;
     Data *fenetre;
 
-    QBuffer *buffer;
-    QByteArray *arr;
-    QAudioOutput *audio;
+  //  QBuffer *buffer;
+    //QByteArray *arr;
+   // QAudioOutput *audio;
 
     QFile raw;
-    QBuffer *raw_buf;
+   // QBuffer *raw_buf;
 
     QLabel *text, *text2;
 

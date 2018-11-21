@@ -1,3 +1,13 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Creation of image-sources
+*/////////////////////////////////////////////////////////////////////////////////////
+
 #include "rir.h"
 #include "math.h"
 #include <QMessageBox>
@@ -5,57 +15,8 @@
 #include "reglin.h"
 
 // les méthodes
-std::vector<float> toucheListener(Ray &rayon, Listener &listener) // par equ parametrique
-{
-    std::vector<float> resultat;
 
-    std::vector<CoordVector> posOld, posNew, u;
-    posOld = rayon.getPos();
-    posNew = rayon.getRay();
-    u = rayon.getDir();
-
-    std::vector<bool> vivant = rayon.getRayVivant();
-
-    float alpha, normeAL;
-
-    CoordVector L(listener.getCentre()); // Point au centre du Listener
-    float r(listener.getRayon()); // Rayon du Listener
-
-    CoordVector AL;
-
-
-    float delta, lambda1, lambda2, a, b, c;
-
-    for(int i = 0; i<posOld.size() ; i++)
-    {
-        if (vivant[i]) // on ne prend pas les rayons morts
-        {
-            //AB = vecteur(posOld[i], posNew[i]);
-            AL = vecteur(L, posOld[i]);
-
-           //alpha = angle(AB,AL);
-           normeAL = norme(AL);
-
-            a=pow(norme(u[i]), 2);
-            b= 2*produitScalaire(u[i], AL);
-            c= pow(normeAL,2) - pow(r,2);
-            delta = pow(b,2)-4*a*c;
-            if(delta >=0)
-            {
-                lambda1 = (-b-sqrt(delta))/(2*a);
-                lambda2 = (-b+sqrt(delta))/(2*a);
-                if(lambda1 >= 0 || lambda2 >= 0) resultat.push_back(normeAL);
-                else resultat.push_back(-1);
-            }
-           else resultat.push_back(-1);
-        }
-        else resultat.push_back(-1);
-    }
-
-    return resultat;
-}
-
-std::vector<float> toucheListener2(Ray &rayon, Listener &listener)
+std::vector<float> toucheListener(Ray &rayon, Listener &listener)
 {
     std::vector<float> resultat, ray_long;
     ray_long = rayon.getLong();
@@ -87,15 +48,11 @@ std::vector<float> toucheListener2(Ray &rayon, Listener &listener)
                {
                alpha = angle(dir[i],AL);
                // test sur la direction
-               //if (produitScalaire(dir[i],AL) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
                if (cos(alpha) >= 0) // on peut mettre alpha tout court car acos (dans la fonction angle) renvoi la partie positive
                {
                    // test sur la distance
                    if (ray_long[i] >= normeAL)
                    {
-                       // test sur l'angle
-                       //if (normeAL == 0)                  resultat.push_back(normeAL);
-                       //else
                        if (alpha <= asin(r/normeAL)) resultat.push_back(normeAL);
 
                        else resultat.push_back(-1e-6);
@@ -104,8 +61,6 @@ std::vector<float> toucheListener2(Ray &rayon, Listener &listener)
             }          else resultat.push_back(normeAL);
         }              else {resultat.push_back(-1e-6); ray_mort++;}
     }
-
-    qDebug() << "rayons morts :" << ray_mort;
     return resultat;
 }
 
@@ -172,12 +127,10 @@ std::vector<float> &SourceImage::getRaySITps(){
 
 bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, const std::vector<float>& absAir, float seuil)
 {
-    //std::vector<bool> touche = toucheListener(rayon,listener);
-    std::vector<float> touche = toucheListener2(rayon,listener);
+    std::vector<float> touche = toucheListener(rayon,listener);
     CoordVector C; // la source image
 
     std::vector<float> longueurRayonTot = rayon.getDist(); // Distance parcourue avant le dernier rebond
-    //std::vector<float> longueurRayonFin = rayon.getLong();
     std::vector<CoordVector> point = rayon.getPos();
     std::vector<CoordVector> point2 = rayon.getRay();
     std::vector<float> longueurRayonLast = rayon.getLong();
@@ -191,19 +144,14 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
     bool SI_trouvee = false;
     int tailleSi = m_sourcesImages.size();
 
-    //std::vector<float> nbRaySI;
-    //nbRaySI.resize(m_sourcesImages.size(), 1);
 
     if(!m_nrgSI.empty() && seuil >0) seuil*= *std::max_element(m_nrgSI.begin(), m_nrgSI.end()); // Normalisation du seuil
-    //qDebug() << "seuil : " << seuil;
-
 
     for (i = 0 ; i< touche.size() ; i++) // rayon par rayon
     {
         if ((longueurRayonTot[i]+touche[i])>longueurMax && vivant[i]) {rayon.killRay(i);}
         else
         {
-            //if ((rayAuto && longueurRayonTot[i]<longueurMax && touche[i]) || (!rayAuto && touche[i]) ) // si le rayon touche le listener
             if (touche[i]>=0) // si le rayon touche le listener
             {
                 A = point[i];
@@ -220,11 +168,8 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                    {
                        for (k = 0 ; k<8 ; k ++) // On ajoute les énérgies
                        {
-                           //m_nrgSI[8*j+k]+=nrg[8*i+k];
                            m_nrgSI[8*j+k]+=(nrg[8*i+k] * exp(-absAir[k]*longueurRayonTot[i]));
-                           //if (m_nrgSI[8*j+k]>seuil) SI_supSeuil = true; // NEW !
                        }
-                       //nbRaySI[j]++;
                        SI_trouvee = true; // on a trouvé une SI en doublons
                        break; // et on sort de la boucle
                    }
@@ -238,17 +183,12 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                     // Pour chaque nouvelle source image on enregistre les energies des 8 bandes
                     for (k = 0 ; k<8 ; k ++)
                     {
-                        //m_nrgSI.push_back(nrg[8*i+k]);
                         m_nrgSI.push_back(nrg[8*i+k] * exp(-absAir[k]*longueurRayonTot[i]));
-                        //if (*m_nrgSI.end()>seuil) SI_supSeuil = true; // NEW !
                     }
 
                     temps = 1000 * longueurRayonTot[i] / VITESSE_SON; // en ms
                     // On créé le vecteur des valeurs en temps
                     m_sourcesImages_Tps.push_back(temps);
-
-                    //On ajoute une case à nbRaySi
-                    //nbRaySI.push_back(0);
 
                     //Recupération trajectoire rayon
                     m_raySI.push_back(point2[i]);
@@ -268,7 +208,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
         {
             b = true;
             for(k=0 ; k<8 ; k++) if(m_nrgSI[8*i+k] > seuil) b =false; // s'il y a une energie au dessus du seuil
-            if(b)// || nbRaySI[i]<1) // ou si la source image n'est générée que par un rayon
+            if(b)
             {
                 m_sourcesImages.erase(m_sourcesImages.begin()+i);
                 m_sourcesImages_Tps.erase(m_sourcesImages_Tps.begin()+i);
@@ -285,8 +225,6 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
     else m_nbIteration++; // s'il n'y a pas de nouvelle source images
     if(rayon.getRayMorts()<rayon.getNbRay() && m_nbIteration<10) return true;// on arrete la boucle en fonction de la longueur des rayons ou si on a fait 10 itération sans sources images
     else return false;
-
-   // return SI_supSeuil;
 }
 
 
@@ -359,7 +297,6 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
 
 
             // creation des decay curve
-
             m_curve[k] = m_y[k];
             for (int i = m_curve[k].size()-2; i >= 0 ; i--)
             {
@@ -383,7 +320,6 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
             double new_y(0), j(nb_ech);
 
             maxbuf = *std::max_element(m_y[0].begin(), m_y[0].end());
-            //qDebug() << "seuil" << 10*(log10(seuil)+log10(maxbuf));
             while(new_y>10*(log10(seuil)+log10(maxbuf)))
             {
                 new_y = aa*j + bb;
@@ -418,40 +354,6 @@ bool SourceImage::calculerRIR(int f_ech, std::vector<float> &absR, float gain, b
         return true;
     }
     else return false;
-}
-
-
-void SourceImage::partitionnage(int taille)
-{
-
-    int j, k;
-    int i(0), l(0);
-    int n = taille/2;
-    int firsize = m_FIR[0].size();
-
-    int nPart = ceil((float)firsize/(float)n)*m_FIR.size();
-
-    m_firPart.resize(nPart);
-
-    for (k = 0 ; k < nPart ; k++) // pour chaque fir de taille n
-    {
-        m_firPart[k].resize(2*n, 0); // On met des zero partout
-
-        for (j = n ; j <2*n ; j++) // on remplit la deuxième partie de chaque m_firPart
-        {
-            if (i == firsize) // si on arrive à la fin de la fir
-            {
-                i=0; // on remet à 0 le comtpeur
-                l++; // on passe à la fir suivante
-                j = 2*n; // on change de m_firPart (met fin à la boucle)
-            }
-            else
-            {
-                m_firPart[k][j] = m_FIR[l][i]; // on range les valeurs
-                i++; // puis on décale
-            }
-        }
-    }
 }
 
 void partitionnage(std::vector< std::vector<float> > &fir, std::vector< std::vector<float> > &firPart, int taille)

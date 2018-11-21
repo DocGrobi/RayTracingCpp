@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Données acoustiques</string>
+   <string>Acoustic data</string>
   </property>
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
@@ -221,7 +221,7 @@
        <enum>QFrame::Raised</enum>
       </property>
       <property name="text">
-       <string>Paramètres</string>
+       <string>Parameters</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>

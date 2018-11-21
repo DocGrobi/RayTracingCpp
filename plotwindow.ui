@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Room Impulse Response</string>
+   <string>Echograms</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>false</bool>

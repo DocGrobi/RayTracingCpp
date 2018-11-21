@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>635</width>
-    <height>649</height>
+    <width>658</width>
+    <height>520</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -445,7 +445,7 @@
     </sizepolicy>
    </property>
    <layout class="QGridLayout" name="gridLayout_5">
-    <item row="3" column="0">
+    <item row="3" column="0" colspan="2">
      <widget class="QScrollArea" name="scrollArea">
       <property name="palette">
        <palette>
@@ -870,11 +870,176 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>615</width>
-         <height>607</height>
+         <width>638</width>
+         <height>478</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_9">
+        <item row="3" column="1">
+         <widget class="QLabel" name="label_tpsCalcul">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Computation time (s)</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" rowspan="2">
+         <widget class="QPushButton" name="bouton_sourcesImages">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="palette">
+           <palette>
+            <active>
+             <colorrole role="Button">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>231</red>
+                <green>17</green>
+                <blue>31</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Base">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>231</red>
+                <green>17</green>
+                <blue>31</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Window">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>231</red>
+                <green>17</green>
+                <blue>31</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </active>
+            <inactive>
+             <colorrole role="Button">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>231</red>
+                <green>17</green>
+                <blue>31</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Base">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>231</red>
+                <green>17</green>
+                <blue>31</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Window">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>231</red>
+                <green>17</green>
+                <blue>31</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </inactive>
+            <disabled>
+             <colorrole role="Button">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>231</red>
+                <green>17</green>
+                <blue>31</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>125</red>
+                <green>126</green>
+                <blue>127</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Base">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>231</red>
+                <green>17</green>
+                <blue>31</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Window">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>231</red>
+                <green>17</green>
+                <blue>31</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </disabled>
+           </palette>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>-1</pointsize>
+            <weight>75</weight>
+            <italic>false</italic>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(231, 17, 31);
+border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: noir;
+    font: bold 14px;
+    min-width: 10em;
+    padding: 6px;</string>
+          </property>
+          <property name="text">
+           <string>Compute !</string>
+          </property>
+         </widget>
+        </item>
         <item row="4" column="1">
          <widget class="QLCDNumber" name="lcd_timer">
           <property name="autoFillBackground">
@@ -1328,15 +1493,15 @@
            <enum>QFrame::Plain</enum>
           </property>
           <property name="currentIndex">
-           <number>3</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>597</width>
-             <height>396</height>
+             <width>606</width>
+             <height>284</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1770,7 +1935,7 @@
                <bool>true</bool>
               </property>
               <property name="currentIndex">
-               <number>0</number>
+               <number>2</number>
               </property>
               <widget class="QWidget" name="tab_4">
                <attribute name="title">
@@ -1786,11 +1951,11 @@
                    </sizepolicy>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true">background-color: rgb(254, 181, 108);
+                   <string notr="true">background-color: rgb(253, 140, 64);
     border-style: outset;
-    border-width: 2px;
+    border-width: 1px;
     border-radius: 10px;
-    border-color: beige;
+    border-color: black;
     font: bold 14px;
     padding: 6px;</string>
                   </property>
@@ -2230,8 +2395,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>476</width>
-                     <height>160</height>
+                     <width>487</width>
+                     <height>104</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_8"/>
@@ -2250,11 +2415,11 @@
                    <bool>false</bool>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true">background-color: rgb(254, 181, 108);
+                   <string notr="true">background-color: rgb(253, 140, 64);
     border-style: outset;
-    border-width: 2px;
+    border-width: 1px;
     border-radius: 10px;
-    border-color: beige;
+    border-color: black;
     font: bold 14px;
     padding: 6px;
 image: url(:/images/listener.png);</string>
@@ -2701,8 +2866,8 @@ image: url(:/images/listener.png);</string>
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>476</width>
-                     <height>160</height>
+                     <width>487</width>
+                     <height>104</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout">
@@ -2960,7 +3125,7 @@ image: url(:/images/listener.png);</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="2" column="0">
+                   <item row="3" column="0">
                     <widget class="QLabel" name="label_tpsmax">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -2969,11 +3134,11 @@ image: url(:/images/listener.png);</string>
                       </sizepolicy>
                      </property>
                      <property name="text">
-                      <string>RIR duration (s):</string>
+                      <string>Response duration (s):</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="2" column="1">
+                   <item row="3" column="1">
                     <widget class="QLCDNumber" name="lcdTempsmax">
                      <property name="enabled">
                       <bool>true</bool>
@@ -3033,7 +3198,7 @@ image: url(:/images/listener.png);</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="4" column="1">
+                   <item row="5" column="1">
                     <widget class="QSpinBox" name="spinBox_nbRebond">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -3049,7 +3214,7 @@ image: url(:/images/listener.png);</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="3" column="0">
+                   <item row="4" column="0">
                     <widget class="QLabel" name="label_7">
                      <property name="text">
                       <string/>
@@ -3066,7 +3231,7 @@ image: url(:/images/listener.png);</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="4" column="0">
+                   <item row="5" column="0">
                     <widget class="QRadioButton" name="radioButton_rebFixe">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -3085,6 +3250,29 @@ image: url(:/images/listener.png);</string>
                      </property>
                     </widget>
                    </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_6">
+                     <property name="text">
+                      <string>Listener radius (m) :</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1">
+                    <widget class="QLCDNumber" name="lcdNumber_ListenerRadius">
+                     <property name="autoFillBackground">
+                      <bool>true</bool>
+                     </property>
+                     <property name="frameShape">
+                      <enum>QFrame::NoFrame</enum>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Raised</enum>
+                     </property>
+                     <property name="segmentStyle">
+                      <enum>QLCDNumber::Flat</enum>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </widget>
                 </item>
@@ -3099,8 +3287,8 @@ image: url(:/images/listener.png);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>597</width>
-             <height>396</height>
+             <width>620</width>
+             <height>267</height>
             </rect>
            </property>
            <attribute name="label">
@@ -3122,8 +3310,16 @@ image: url(:/images/listener.png);</string>
             </item>
             <item row="10" column="0">
              <widget class="QPushButton" name="bouton_saveRir">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(253, 140, 64);    border-style: outset;
+    border-width: 1px;
+    border-radius: 10px;
+    border-color: black;
+    font:  12px;
+    padding: 6px;</string>
+              </property>
               <property name="text">
-               <string>SaveRIR</string>
+               <string>Save</string>
               </property>
              </widget>
             </item>
@@ -3193,20 +3389,45 @@ image: url(:/images/listener.png);</string>
             </item>
             <item row="10" column="1">
              <widget class="QPushButton" name="bouton_diffRir">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(253, 140, 64);    border-style: outset;
+    border-width: 1px;
+    border-radius: 10px;
+    border-color: black;
+    font:  12px;
+    padding: 6px;</string>
+              </property>
               <property name="text">
-               <string>Difference RIR</string>
+               <string>Difference</string>
               </property>
              </widget>
             </item>
             <item row="2" column="0">
              <widget class="QPushButton" name="bouton_RIR">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(253, 140, 64);    border-style: outset;
+    border-width: 1px;
+    border-radius: 10px;
+    border-color: black;
+    font: bold 14px;
+    padding: 6px;</string>
+              </property>
               <property name="text">
-               <string>Display RIR</string>
+               <string>Display Echogram</string>
               </property>
              </widget>
             </item>
             <item row="15" column="0" colspan="2">
              <widget class="QPushButton" name="bouton_data">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(253, 140, 64);
+    border-style: outset;
+    border-width: 1px;
+    border-radius: 10px;
+    border-color: black;
+    font: bold 14px;
+    padding: 6px;</string>
+              </property>
               <property name="text">
                <string>Perceptive factors</string>
               </property>
@@ -3232,93 +3453,15 @@ image: url(:/images/listener.png);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>597</width>
-             <height>396</height>
+             <width>620</width>
+             <height>267</height>
             </rect>
            </property>
            <attribute name="label">
             <string>Audio</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_22">
-            <item row="3" column="1">
-             <widget class="QPushButton" name="bouton_ecouter">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Play</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QPushButton" name="bouton_audioFile">
-              <property name="text">
-               <string>Audio file</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QSlider" name="AudioSlider">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <spacer name="verticalSpacer_5">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="0">
-             <widget class="QTextEdit" name="textEdit_AudioFile">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>29</height>
-               </size>
-              </property>
-              <property name="autoFillBackground">
-               <bool>false</bool>
-              </property>
-              <property name="sizeAdjustPolicy">
-               <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
-              </property>
-              <property name="html">
-               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.SF NS Text'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;//&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0" colspan="2">
+            <item row="4" column="0" colspan="2">
              <widget class="QPushButton" name="bouton_convolution">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -3341,6 +3484,58 @@ border-style: outset;
               </property>
              </widget>
             </item>
+            <item row="5" column="0">
+             <widget class="QSlider" name="AudioSlider">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QPushButton" name="bouton_ecouter">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Play</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="bouton_audioFile">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Audio file</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_fichierAudio">
+              <property name="text">
+               <string>/home</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QCustomPlot" name="inputAudio" native="true"/>
+            </item>
            </layout>
           </widget>
           <widget class="QWidget" name="page_4">
@@ -3348,310 +3543,98 @@ border-style: outset;
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>599</width>
-             <height>382</height>
+             <width>620</width>
+             <height>267</height>
             </rect>
            </property>
            <attribute name="label">
             <string>Export</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_3">
-            <item row="6" column="5">
-             <spacer name="horizontalSpacer_6">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+            <item row="2" column="4" rowspan="3" colspan="2">
+             <widget class="QGroupBox" name="groupBox_3">
+              <property name="title">
+               <string>Selection</string>
               </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="2" column="2">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_regrouperSI">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="decimals">
-               <number>5</number>
-              </property>
+              <layout class="QGridLayout" name="gridLayout_10">
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>N° Source :</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QSpinBox" name="spinBox_numSource">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="toolTip">
+                  <string>Use 0 for all sources</string>
+                 </property>
+                 <property name="toolTipDuration">
+                  <number>-1</number>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                 <property name="minimum">
+                  <number>0</number>
+                 </property>
+                 <property name="value">
+                  <number>1</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_5">
+                 <property name="text">
+                  <string>N° Listener :</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QSpinBox" name="spinBox_numListener">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="value">
+                  <number>1</number>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
-            <item row="6" column="4">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_z">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="decimals">
-               <number>5</number>
-              </property>
-              <property name="minimum">
-               <double>-999.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>999.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="3">
-             <widget class="QLabel" name="label_6">
+            <item row="8" column="1" colspan="2">
+             <widget class="QRadioButton" name="radioButton_initSource">
               <property name="text">
-               <string>to</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="3">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_y">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="decimals">
-               <number>5</number>
-              </property>
-              <property name="minimum">
-               <double>-999.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>999.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="9" column="0">
-             <widget class="QPushButton" name="bouton_faisceau">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">background-color: rgb(254, 181, 108);
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: beige;
-    font: bold 14px;
-    padding: 6px;</string>
-              </property>
-              <property name="text">
-               <string>Beam</string>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="4">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_siTps_erreur">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="minimum">
-               <double>0.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>100000.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>0.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0" rowspan="2">
-             <widget class="QPushButton" name="bouton_projection">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">background-color: rgb(254, 181, 108);
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: beige;
-    font: bold 14px;
-    padding: 6px;</string>
-              </property>
-              <property name="text">
-               <string>Image-sources</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QLabel" name="label">
-              <property name="font">
-               <font>
-                <pointsize>12</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Merge (m) :</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="0" rowspan="2">
-             <widget class="QPushButton" name="bouton_rayons">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="autoFillBackground">
-               <bool>false</bool>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">background-color: rgb(254, 181, 108);
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: beige;
-    font: bold 14px;
-    padding: 6px;</string>
-              </property>
-              <property name="text">
-               <string>Rays</string>
-              </property>
-              <property name="autoDefault">
-               <bool>false</bool>
-              </property>
-              <property name="flat">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="1">
-             <widget class="QRadioButton" name="radioButton_coordSI">
-              <property name="text">
-               <string>SI coord (m)</string>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="3">
-             <widget class="QLabel" name="label_5">
-              <property name="text">
-               <string>N° Listener :</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="3">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>N° Source :</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="2">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_x">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="prefix">
-               <string/>
-              </property>
-              <property name="decimals">
-               <number>5</number>
-              </property>
-              <property name="minimum">
-               <double>-999.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>999.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="4">
-             <widget class="QSpinBox" name="spinBox_numListener">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="minimum">
-               <number>1</number>
-              </property>
-              <property name="value">
-               <number>1</number>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="1">
-             <widget class="QRadioButton" name="radioButton_tpsSI">
-              <property name="text">
-               <string>SI temps (ms)</string>
+               <string>From initial source</string>
               </property>
               <property name="checked">
                <bool>true</bool>
               </property>
              </widget>
             </item>
-            <item row="7" column="2">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_siTps">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="maximum">
-               <double>100000.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
+            <item row="2" column="1">
              <widget class="QCheckBox" name="checkBox_projeter">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -3675,32 +3658,38 @@ border-style: outset;
               </property>
              </widget>
             </item>
-            <item row="1" column="4">
-             <widget class="QSpinBox" name="spinBox_numSource">
+            <item row="3" column="2">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_regrouperSI">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="toolTip">
-               <string>Use 0 for all sources</string>
-              </property>
-              <property name="toolTipDuration">
-               <number>-1</number>
-              </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
               </property>
-              <property name="minimum">
-               <number>0</number>
-              </property>
-              <property name="value">
-               <number>1</number>
+              <property name="decimals">
+               <number>5</number>
               </property>
              </widget>
             </item>
-            <item row="10" column="0">
+            <item row="3" column="1">
+             <widget class="QLabel" name="label">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Merge (m) :</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="0">
              <spacer name="verticalSpacer_7">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3713,173 +3702,131 @@ border-style: outset;
               </property>
              </spacer>
             </item>
+            <item row="9" column="5">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_siTps_erreur">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="minimum">
+               <double>0.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>100000.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>0.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="1" colspan="2">
+             <widget class="QRadioButton" name="radioButton_tpsSI">
+              <property name="text">
+               <string>From image-sources (ms)</string>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="3">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_siTps">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="maximum">
+               <double>100000.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="4">
+             <widget class="QLabel" name="label_to">
+              <property name="text">
+               <string>to</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" rowspan="3">
+             <widget class="QPushButton" name="bouton_projection">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(253, 140, 64);    border-style: outset;
+    border-width: 1px;
+    border-radius: 10px;
+    border-color: black;
+    font: bold 14px;
+    padding: 6px;</string>
+              </property>
+              <property name="text">
+               <string>Image-sources</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0" rowspan="4">
+             <widget class="QPushButton" name="bouton_rayons">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(253, 140, 64);
+    border-style: outset;
+     border-width: 1px;
+    border-radius: 10px;
+    border-color: black;
+    font: bold 14px;
+    padding: 6px;</string>
+              </property>
+              <property name="text">
+               <string>Rays</string>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+              <property name="flat">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="6">
+             <spacer name="horizontalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
            </layout>
           </widget>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLabel" name="label_tpsCalcul">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Computation time (s)</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0" rowspan="2">
-         <widget class="QPushButton" name="bouton_sourcesImages">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="palette">
-           <palette>
-            <active>
-             <colorrole role="Button">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>231</red>
-                <green>17</green>
-                <blue>31</blue>
-               </color>
-              </brush>
-             </colorrole>
-             <colorrole role="ButtonText">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>255</red>
-                <green>255</green>
-                <blue>255</blue>
-               </color>
-              </brush>
-             </colorrole>
-             <colorrole role="Base">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>231</red>
-                <green>17</green>
-                <blue>31</blue>
-               </color>
-              </brush>
-             </colorrole>
-             <colorrole role="Window">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>231</red>
-                <green>17</green>
-                <blue>31</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </active>
-            <inactive>
-             <colorrole role="Button">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>231</red>
-                <green>17</green>
-                <blue>31</blue>
-               </color>
-              </brush>
-             </colorrole>
-             <colorrole role="ButtonText">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>255</red>
-                <green>255</green>
-                <blue>255</blue>
-               </color>
-              </brush>
-             </colorrole>
-             <colorrole role="Base">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>231</red>
-                <green>17</green>
-                <blue>31</blue>
-               </color>
-              </brush>
-             </colorrole>
-             <colorrole role="Window">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>231</red>
-                <green>17</green>
-                <blue>31</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </inactive>
-            <disabled>
-             <colorrole role="Button">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>231</red>
-                <green>17</green>
-                <blue>31</blue>
-               </color>
-              </brush>
-             </colorrole>
-             <colorrole role="ButtonText">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>125</red>
-                <green>126</green>
-                <blue>127</blue>
-               </color>
-              </brush>
-             </colorrole>
-             <colorrole role="Base">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>231</red>
-                <green>17</green>
-                <blue>31</blue>
-               </color>
-              </brush>
-             </colorrole>
-             <colorrole role="Window">
-              <brush brushstyle="SolidPattern">
-               <color alpha="255">
-                <red>231</red>
-                <green>17</green>
-                <blue>31</blue>
-               </color>
-              </brush>
-             </colorrole>
-            </disabled>
-           </palette>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>-1</pointsize>
-            <weight>75</weight>
-            <italic>false</italic>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: rgb(231, 17, 31);
-border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: noir;
-    font: bold 14px;
-    min-width: 10em;
-    padding: 6px;</string>
-          </property>
-          <property name="text">
-           <string>Compute !</string>
-          </property>
          </widget>
         </item>
        </layout>
@@ -3893,7 +3840,7 @@ border-style: outset;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>635</width>
+     <width>658</width>
      <height>22</height>
     </rect>
    </property>

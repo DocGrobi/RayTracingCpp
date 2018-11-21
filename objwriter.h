@@ -20,10 +20,6 @@ class ObjWriter
     void display_octree(const std::vector<Boite> &oct);
     void display_coloredTriangle(std::vector<CoordVector> &point, std::vector<float> &nrg, const CoordVector &dirNormal, const CoordVector &posSource, float seuil);
 
-    void display_Beam_init();
-    void display_Beam_vert(Ray &rayon, Listener &listener);
-    void display_Beam_line();
-
     void rec_Vert(Ray &monRay);
     void rec_Vert(Ray &monRay, int ind, CoordVector source);
     void rec_Vert_init(std::vector<CoordVector> &si);

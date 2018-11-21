@@ -1,6 +1,15 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Display plot
+*/////////////////////////////////////////////////////////////////////////////////////
+
 #include "plotwindow.h"
 #include "ui_plotwindow.h"
-//#include <math.h>
 
 plotWindow::plotWindow(QWidget *parent) :
     QDialog(parent),
@@ -63,21 +72,6 @@ void plotWindow::setX(int min, int max)
 
 void plotWindow::makePlot()
 {
-    // Normalisation sur les y et repartition sur les 8 courbes
-    //QVector<QVector<double> > courbe;
-    //courbe.resize(8);
-/*
-    int i(0), n(vectY.size()/8);
-
-    for (int k = 0 ; k < 8 ; k++) // pour chaque bande
-    {
-        for (i = 0 ; i < n ; i++)
-        {
-            //courbe[k].push_back(vectY[i+k*n]/yMax);
-            courbe[k].push_back(vectY[i+k*n]);
-        }
-    }
-*/
     int buf=0;
     // Création graphique des courbes
     for (int k = 0 ; k < courbe.size() ; k++) // pour chaque bande

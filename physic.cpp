@@ -1,3 +1,13 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Absorption from materials and atmosphere
+*/////////////////////////////////////////////////////////////////////////////////////
+
 #include "physic.h"
 #include "QFile"
 #include "QIODevice"
@@ -11,8 +21,6 @@
 
 Material::Material()
 {
-    // LECTURE FICHIER ODEON
-    //QFile fichier(QCoreApplication::applicationDirPath() + "/Material.Li8"); // fichier de materiaux odeon
     QFile fichier(":/mat/Material.Li8"); // fichier de materiaux odeon
 
     if(fichier.open(QIODevice::ReadOnly | QIODevice::Text)) // Si on peut ouvrir le fichier
@@ -43,14 +51,13 @@ Material::Material()
     }
     else
     {
-        QMessageBox::critical(NULL,"Erreur","Le fichier Material.Li8 n'est pas placé dans le même dossier que l'executable de l'application. \nLa valeur d'absorption des materiaux sera par défault de 0.5");
+        QMessageBox::critical(NULL,"Error","File Material.Li8 not found. \nThe default absoption value for all faces is 0.5");
         m_nomMat.push_back("materiauNonReference");
         for (int i = 0 ; i<64 ; i++) // la ligne du fichier Odéon avec des coefficient à 50% est la 7-eme, on inscrit donc les (7+1)*8 permiers terme du tableau
         {
             m_indMat.push_back(0.5);
         }
     }
-
 }
 
 Material::~Material()

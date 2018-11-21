@@ -1,9 +1,16 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Generic functions
+*/////////////////////////////////////////////////////////////////////////////////////
+
 #include "fonction.h"
 #include "QDebug"
 #include <math.h>
-
-// Méthodes
-
 
 void debugStdVect(std::vector<float>& vect)//pour le debug
 {
@@ -70,29 +77,16 @@ float produitScalaire(const CoordVector &a,const CoordVector &b)
     if(resultat< 1e-8 && resultat > -1e-8)
     {
         return 0;
-        //qDebug() << "vecteurs colinéaires";
     }
 
     return resultat;
-
-    //return (a.x*b.x + a.y*b.y + a.z*b.z);
 }
 
 float produitScalaire(const std::vector<float>& a, int indA,const CoordVector &b)
 {
-    /*
-    float resultat = a[indA]*b.x + a[indA+1]*b.y + a[indA+2]*b.z;
-    if(resultat< 0.000001 && resultat > -0.000001)
-    {
-        return 0;
-    }
-    return resultat;
-    */
     return (a[indA]*b.x + a[indA+1]*b.y + a[indA+2]*b.z);
 }
 
-
-// produit scalaire qui prend l'adresse de gros vecteurs ansi que l'indice du x
 float produitScalaire(std::vector<float>& a, int indA, std::vector<float>& b, int indB)
 {
 
@@ -104,7 +98,6 @@ float produitScalaire(std::vector<float>& a, int indA, std::vector<float>& b, in
     if(resultat< 0.000001 && resultat > -0.000001)
     {
         return 0;
-        //qDebug() << "vecteurs colinéaires";
     }
     return resultat;
 
@@ -113,14 +106,6 @@ float produitScalaire(std::vector<float>& a, int indA, std::vector<float>& b, in
 
 CoordVector produitVectoriel(const CoordVector &a,const CoordVector &b)
 {
-    /*
-    CoordVector resultat;
-    resultat.x = a.y*b.z - a.z*b.y;
-    resultat.y = a.z*b.x - a.x*b.z;
-    resultat.z = a.x*b.y - a.y*b.x;
-
-    return resultat;
-    */
     return CoordVector(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
 }
 
@@ -153,53 +138,29 @@ float norme(const CoordVector &a)
 
 bool proche(float a, float b)
 {
-    float seuil = 0.001;
-
-    if (fabs(a-b) < seuil)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    proche(a,b,0.001);
 }
 
 bool proche(float a, float b, float seuil)
 {
-    if (fabs(a-b) < seuil)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    if (fabs(a-b) < seuil) return true;
+    else return false;
 }
 
 bool proche(CoordVector a, CoordVector b)
 {
-    float seuil = 0.0001;
-    if (fabs(a.x-b.x) > seuil) return false;
-    if (fabs(a.y-b.y) > seuil) return false;
-    if (fabs(a.z-b.z) > seuil) return false;
-    return true;
+    proche(a,b,0.0001);
 }
 bool proche(CoordVector a, CoordVector b, float seuil)
 {
-    if (fabs(a.x-b.x) > seuil) return false;
-    if (fabs(a.y-b.y) > seuil) return false;
-    if (fabs(a.z-b.z) > seuil) return false;
-    return true;
+    if (sqrt(pow(a.x-b.x,2)+pow(a.y-b.y,2)+pow(a.z-b.z,2))<seuil)
+        return true;
+    else return false;
 }
 
 void arrondir(CoordVector &a)
 {
-    a = a*10E4;
-    a.x = round(a.x);
-    a.y = round(a.y);
-    a.z = round(a.z);
-    a = a/10E4;
+    arrondir(a,4);
 }
 
 void arrondir(CoordVector &a, float nbDecimales)
@@ -418,7 +379,6 @@ QVector<float> CoordVector::CoordVector2Qvector(CoordVector coord)
 
 void CoordVector::debug()
 {
-
     QString Mx,My,Mz;
     Mx.setNum(x);
     My.setNum(y);

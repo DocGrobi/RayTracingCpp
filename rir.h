@@ -7,7 +7,6 @@
 
 // les méthodes
 std::vector<float> toucheListener(Ray &rayon, Listener &listener);
-std::vector<float> toucheListener2(Ray &rayon, Listener &listener);
 void partitionnage(std::vector<std::vector<float> > &fir, std::vector<std::vector<float> > &firPart, int taille);
 void unite(std::vector< CoordVector> &si_in, std::vector< CoordVector> &si_out, std::vector<float> &nrg_in, std::vector<float> &nrg_out, float distance);
 
@@ -27,7 +26,7 @@ class SourceImage
         std::vector<std::vector<double> > &getCurve();
         bool addSourcesImages(Ray &rayon, Listener &listener, float longueurMax, const std::vector<float> &absAir, float seuil);
         bool calculerRIR(int f_ech, std::vector<float> &absR, float gain, bool curve, float seuil);
-        void partitionnage(int taille);
+       // void partitionnage(int taille);
         std::vector< std::vector<float> >&getFIR();
         std::vector< std::vector<float> >&getFirPart();
         std::vector<CoordVector> &getRaySI();

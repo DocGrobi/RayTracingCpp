@@ -1,3 +1,13 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Read a .OBJ file and classify the mesh, the sources and the listeners
+*/////////////////////////////////////////////////////////////////////////////////////
+
 #include "objreader.h"
 #include "QFile"
 #include "QIODevice"
@@ -46,7 +56,7 @@ CoordVector Source::getCentre() {
 CoordVector Source::getCentre(unsigned int n) {
     if (n < m_centresSources.size())
         return m_centresSources[n];
-    else qDebug() << "Erreur sur le numéro de source demandée";
+    else qDebug() << "Wrong source number";
 }
 
 std::vector<float>& Source::getVert() {
@@ -86,7 +96,7 @@ void Listener::chargerListener()
    m_centreListener = m_centreListener/(m_vert.size()/3);
    CoordVector point(m_vert[0], m_vert[1], m_vert[2]);
    m_rayon = norme(vecteur(m_centreListener, point));
-   if (m_rayon < 0.001) QMessageBox::warning(NULL,"Attention","Le rayon du Listener est inférieur à 1mm. Veuillez recharger un Listener", "OK");
+   if (m_rayon < 0.001) QMessageBox::warning(NULL,"Beware","Listener radius is below 1mm. Please load a new Listener.", "OK");
 }
 
 QString Listener::afficher()

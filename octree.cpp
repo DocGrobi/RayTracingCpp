@@ -1,3 +1,13 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Divide and conquer method for acceleration process
+*/////////////////////////////////////////////////////////////////////////////////////
+
 #include "octree.h"
 #include "QDebug"
 #include <math.h>
@@ -11,7 +21,6 @@ Octree::Octree()
 
 Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
 {
-    qDebug()<< "Octree";
     // Declaration
     m_seuil = nbFaceFeuille;
     int k(0), i(0), nbBoiteNew(0), nbBoiteOld(0);
@@ -64,7 +73,6 @@ Octree::Octree(MeshObj monMesh, int nbFaceFeuille)
     }
 
     // Mise à jour taille des boites
-
     for (i = 0 ; i< m_vectBoite.size() ; i++) // pour chaque boite qui n'est pas une feuille vide
     {
         if (!m_vectBoite[i].estUneFeuille || !m_vectBoite[i].m_numElt.empty())
