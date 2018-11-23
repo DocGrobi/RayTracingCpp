@@ -36,7 +36,7 @@ Ray::Ray(int Nray, Source S, int nSrc, bool fibonacci)
             m_ray.push_back((m_src));
 
             // creation des vecteurs directeurs normalisés
-            theta = fmod((i*2*M_PI/OR) , (2*M_PI));
+            theta = fmod((i*2*PI/OR) , (2*PI));
             phi = asin(-1 + 2*i/(N));
 
             coord = sph2cart(1,theta,phi);

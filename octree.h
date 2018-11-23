@@ -1,3 +1,14 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Divide and conquer method for acceleration process
+*/////////////////////////////////////////////////////////////////////////////////////
+
+
 #ifndef OCTREE_H
 #define OCTREE_H
 

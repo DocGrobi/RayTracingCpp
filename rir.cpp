@@ -34,7 +34,6 @@ std::vector<float> toucheListener(Ray &rayon, Listener &listener)
 
     CoordVector AL;
 
-    int ray_mort(0);
     for(int i = 0; i<posOld.size() ; i++)
     {
         if (vivant[i]) // on ne prend pas les rayons morts
@@ -59,7 +58,7 @@ std::vector<float> toucheListener(Ray &rayon, Listener &listener)
                    }   else resultat.push_back(-1e-6);
                }       else resultat.push_back(-1e-6);
             }          else resultat.push_back(normeAL);
-        }              else {resultat.push_back(-1e-6); ray_mort++;}
+        }              else {resultat.push_back(-1e-6);}
     }
     return resultat;
 }
@@ -164,7 +163,7 @@ bool SourceImage::addSourcesImages(Ray &rayon, Listener &listener, float longueu
                /// Nouvelle méthode
                for (j= m_sourcesImages.size()-1 ; j>=0; j--) // balayage des source images deja existante depuis la fin
                {
-                   if (proche(C, m_sourcesImages[j])) // si la nouvelle SI est proche d'une ancienne
+                   if (proche(C, m_sourcesImages[j],0.0001)) // si la nouvelle SI est proche d'une ancienne
                    {
                        for (k = 0 ; k<8 ; k ++) // On ajoute les énérgies
                        {

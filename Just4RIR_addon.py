@@ -19,8 +19,8 @@ from bpy.types import (Panel,
                        )
 
 bl_info = {
-    "name": "RayTracing",
-    "description": "Lauch Ray Tracing calculation for RIR generation and display results",
+    "name": "Just4RIR",
+    "description": "Launch Ray Tracing calculation for acoustic Room Impulse Response generation and display results",
     "author": "Robin GUEGUEN",
     "version": (0, 0),
     "blender": (2, 77, 0),
@@ -122,7 +122,7 @@ class Settings(PropertyGroup):
 #    )  
 
 class RayTracingPanel(bpy.types.Panel):
-    bl_label = "Ray Tracing"
+    bl_label = "Just4RIR"
     #bl_idname = "OBJECT_PT_hello"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
@@ -162,12 +162,12 @@ class RayTracingPanel(bpy.types.Panel):
 
 class runRayTracing(bpy.types.Operator):
     bl_idname = "run.rt"
-    bl_label = "Lauch Ray Tracing algorytme"
+    bl_label = "Launch Ray Tracing algorythme"
 
     def invoke(self, context, event):
         T = context.scene.my_tool
         inFile = T.file # recupération du répertoire de l'app
-        objFile = T.file[:-13] + "meshForRayTracing.obj"
+        objFile = T.file[:-8] + "mesh4RIR.obj"
         #print ("le repertoire est :" + folder)
         try:            
             #bpy.ops.export_scene.obj(filepath = objFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True, axis_forward='Y', axis_up='Z')
@@ -189,7 +189,7 @@ class expSource(bpy.types.Operator):
     def invoke(self, context, event):
         T = context.scene.my_tool
         inFile = T.file # recupération du répertoire de l'app
-        srcFile = T.file[:-13] + "srcForRayTracing.obj"
+        srcFile = T.file[:-8] + "src4RIR.obj"
         #print ("le repertoire est :" + folder)
         try:            
             bpy.ops.export_scene.obj(filepath = srcFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True)          
@@ -205,7 +205,7 @@ class expListener(bpy.types.Operator):
     def invoke(self, context, event):
         T = context.scene.my_tool
         inFile = T.file # recupération du répertoire de l'app
-        ltnFile = T.file[:-13] + "listenerForRayTracing.obj"
+        ltnFile = T.file[:-8] + "listener4RIR.obj"
         #print ("le repertoire est :" + folder)
         try:            
             bpy.ops.export_scene.obj(filepath = ltnFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True)          
@@ -222,7 +222,7 @@ class impRayTracing(bpy.types.Operator):
         T = context.scene.my_tool
         
         inFile = T.file2 # recupération du répertoire de l'app
-#        objFile = T.file[:-13] + "meshForRayTracing.obj"
+#        objFile = T.file[:-8] + "mesh4RIR.obj"
 #        #print ("le repertoire est :" + folder)
         try:            
 #            #bpy.ops.export_scene.obj(filepath = objFile,use_selection=True,use_mesh_modifiers=True,use_triangles=True, axis_forward='Y', axis_up='Z')

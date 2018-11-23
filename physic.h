@@ -1,3 +1,13 @@
+/*/////////////////////////////// INFORMATIONS ///////////////////////////////////////
+Software name : Just4RIR
+Creation date : November 30th 2018
+Last modification : November 30th 2018
+Author : Robin Gueguen
+License : GPL 3.0 2018
+Property : Institut des Sciences du Calcul et des Données - Sorbonne Université
+Function : Absorption from materials and atmosphere
+*/////////////////////////////////////////////////////////////////////////////////////
+
 #ifndef PHYSIC_H
 #define PHYSIC_H
 
@@ -6,6 +16,7 @@
 
 // Definition de constantes
 const float VITESSE_SON = 340; // m/s
+const double PI = 3.141592653589793 ;
 
 // Classes
 class Material

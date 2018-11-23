@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport multimedia
 
-TARGET   = RayTracingCpp
+TARGET   = Just4RIR
 TEMPLATE = app
 
 
@@ -59,6 +59,8 @@ FORMS    += mainwindow.ui \
 
 ICON = Just4RIR_logo.icns
 
+RC_FILE += Just4RIR.rc
+
 
 # remove possible other optimization flags
 QMAKE_CXXFLAGS_RELEASE -= -O
@@ -72,3 +74,4 @@ RESOURCES += \
     material.qrc \
     bandfilter.qrc
 
+CONFIG +=c++11

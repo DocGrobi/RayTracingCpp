@@ -45,7 +45,7 @@ void MainWindow::saveParameters()
     setting.setValue("freq", m_freq);
     setting.setValue("nbRayon", m_nbRayon);
     setting.setValue("seuilArret", m_seuilArret);
-    setting.setValue("seuilAttenuation", -10*log10(m_seuilAttenuation));
+    setting.setValue("seuilAttenuation", (int)(-10*log10(m_seuilAttenuation)));
     setting.setValue("gain", m_gain);
     setting.setValue("numListener", m_numListener+1);
     setting.setValue("numSource", m_numSource+1);
@@ -93,7 +93,7 @@ void MainWindow::loadParameters()
     ui->checkBox_rayAuto->setChecked(setting.value("rayAuto", ui->checkBox_rayAuto->isChecked()).toBool());
     ui->radioButton_rebFixe->setChecked(setting.value("nbRebondFixe", ui->radioButton_rebFixe->isChecked()).toBool());
     ui->radioButton_tpsSI->setChecked(setting.value("rayFromSI", ui->radioButton_tpsSI->isChecked()).toBool());
-    m_fichierAudio = setting.value("audioInput", ui->label_fichierAudio->text()).toString();
+    m_fichierAudio = setting.value("audioInput", QDir::homePath()).toString();
     m_audioInput = m_fichierAudio;
 
     ui->tabWidget->setCurrentIndex(setting.value("tab",ui->tabWidget->currentIndex()).toInt());
@@ -122,7 +122,7 @@ void MainWindow::loadParameters()
    m_numListener = ui->spinBox_numListener->value()-1;
    m_numSource = ui->spinBox_numSource->value()-1;
 
-   m_fichierExport = QCoreApplication::applicationDirPath() + "/meshForRayTracingEXPORT.obj";
+   m_fichierExport = QCoreApplication::applicationDirPath() + "/mesh4RIR_EXPORT.obj";
    on_checkBox_rayAuto_toggled(ui->checkBox_rayAuto->isChecked());
    QStringList list = m_fichierAudio.split("/");
    ui->label_fichierAudio->setText(list[list.size()-1]);
@@ -143,7 +143,7 @@ void MainWindow::loadParameters()
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_meshObj(QCoreApplication::applicationDirPath() + "/meshForRayTracing.obj"),
+    ui(new Ui::MainWindow), m_meshObj(QCoreApplication::applicationDirPath() + "/mesh4RIR.obj"),
     m_source(m_meshObj.getSource()), m_listener(m_meshObj.getListener())
 {
    // AFFICHAGE FENETRE
@@ -216,7 +216,7 @@ void MainWindow::suppFichier()
 void MainWindow::on_bouton_source_clicked()
 {
     // IMPORT
-    QString fichierObj = QCoreApplication::applicationDirPath() + "/srcForRayTracing.obj";
+    QString fichierObj = QCoreApplication::applicationDirPath() + "/src4RIR.obj";
     MeshObj monMeshObj(fichierObj);
     m_source = monMeshObj.getSource();
 
@@ -237,7 +237,7 @@ void MainWindow::on_bouton_source_clicked()
 void MainWindow::on_bouton_listener_clicked()
 {
     // IMPORT
-   QString fichierObj = QCoreApplication::applicationDirPath() + "/listenerForRayTracing.obj";
+   QString fichierObj = QCoreApplication::applicationDirPath() + "/listener4RIR.obj";
      MeshObj monMeshObj(fichierObj);
     m_listener = monMeshObj.getListener();
 
@@ -632,8 +632,8 @@ void MainWindow::on_bouton_RIR_clicked()
         plot->XY(m_sourceImage[m_numListener].getX(), m_sourceImage[m_numListener].getY(), max*m_seuilAttenuation);
         plot->makePlot();
         plot->setYLabel("SPL (dB)");
-        plot->setTitle("Source position : " + CoordVector2QString2(m_source.getCentre())+
-                                            "\nListener position : " + CoordVector2QString2(m_listener[m_numListener].getCentre()));
+        plot->setTitle(" Source position : " + CoordVector2QString2(m_source.getCentre())+
+                                            "\n Listener position : " + CoordVector2QString2(m_listener[m_numListener].getCentre()));
         QPoint position = QApplication::desktop()->screenGeometry().topLeft();
         plot->move(position);
         plot->show();
@@ -1290,6 +1290,7 @@ void MainWindow::on_radioButton_rebFixe_clicked()
     ui->lcdTempsmax->setEnabled(false);
     ui->spinBox_seuilArret->setEnabled(false);
     ui->label_tpsmax->setEnabled(false);
+    ui->label_ListenerRadius->setEnabled(false);
 }
 
 void MainWindow::on_radioButton_seuildB_clicked()
@@ -1302,6 +1303,8 @@ void MainWindow::on_radioButton_seuildB_clicked()
     ui->lcdTempsmax->setEnabled(true);
     ui->spinBox_seuilArret->setEnabled(true);
     ui->label_tpsmax->setEnabled(true);
+    ui->label_ListenerRadius->setEnabled(true);
+
 
 
 }

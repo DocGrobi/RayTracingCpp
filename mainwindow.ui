@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>658</width>
-    <height>520</height>
+    <width>660</width>
+    <height>537</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -870,8 +870,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>638</width>
-         <height>478</height>
+         <width>640</width>
+         <height>495</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_9">
@@ -1500,7 +1500,7 @@ border-style: outset;
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>606</width>
+             <width>622</width>
              <height>284</height>
             </rect>
            </property>
@@ -1960,7 +1960,7 @@ border-style: outset;
     padding: 6px;</string>
                   </property>
                   <property name="text">
-                   <string>Source</string>
+                   <string>Load new sources</string>
                   </property>
                  </widget>
                 </item>
@@ -2395,7 +2395,7 @@ border-style: outset;
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>487</width>
+                     <width>430</width>
                      <height>104</height>
                     </rect>
                    </property>
@@ -2425,7 +2425,7 @@ border-style: outset;
 image: url(:/images/listener.png);</string>
                   </property>
                   <property name="text">
-                   <string>Listener</string>
+                   <string>Load new listeners</string>
                   </property>
                   <property name="iconSize">
                    <size>
@@ -2866,7 +2866,7 @@ image: url(:/images/listener.png);</string>
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>487</width>
+                     <width>430</width>
                      <height>104</height>
                     </rect>
                    </property>
@@ -3251,7 +3251,7 @@ image: url(:/images/listener.png);</string>
                     </widget>
                    </item>
                    <item row="2" column="0">
-                    <widget class="QLabel" name="label_6">
+                    <widget class="QLabel" name="label_ListenerRadius">
                      <property name="text">
                       <string>Listener radius (m) :</string>
                      </property>
@@ -3287,8 +3287,8 @@ image: url(:/images/listener.png);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>620</width>
-             <height>267</height>
+             <width>298</width>
+             <height>189</height>
             </rect>
            </property>
            <attribute name="label">
@@ -3453,8 +3453,8 @@ image: url(:/images/listener.png);</string>
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>620</width>
-             <height>267</height>
+             <width>192</width>
+             <height>124</height>
             </rect>
            </property>
            <attribute name="label">
@@ -3543,8 +3543,8 @@ border-style: outset;
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>620</width>
-             <height>267</height>
+             <width>594</width>
+             <height>200</height>
             </rect>
            </property>
            <attribute name="label">
@@ -3840,7 +3840,7 @@ border-style: outset;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>658</width>
+     <width>660</width>
      <height>22</height>
     </rect>
    </property>

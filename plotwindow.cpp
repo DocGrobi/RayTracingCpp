@@ -96,11 +96,11 @@ void plotWindow::makePlot()
 
 
     // Noms des axes
-    ui->customPlot->xAxis->setLabel("Temps (ms)");
+    ui->customPlot->xAxis->setLabel("Time (ms)");
     if(m_echelleLog)
-        ui->customPlot->yAxis->setLabel("Energie nomalisée (log)");
+        ui->customPlot->yAxis->setLabel("Normalized energy (log)");
     else
-        ui->customPlot->yAxis->setLabel("Energie nomalisée (lineaire)");
+        ui->customPlot->yAxis->setLabel("Noormalized energy (linear)");
 
     // Regalges des plages des axes
     ui->customPlot->xAxis->setRange(xMin, xMax);
@@ -124,6 +124,8 @@ void plotWindow::XY(std::vector<float> &x, std::vector<std::vector<double> > &y,
     courbe.resize(y.size());
     yMin = 10*log10(seuil);
     yMax = 0;
+
+    if (yMin >=yMax) yMin=-60; // Valeur par défault si le seuil est mal réglé.
 
     for (k=0 ; k < y.size() ; k++) // créaction de y.size courbes
     {

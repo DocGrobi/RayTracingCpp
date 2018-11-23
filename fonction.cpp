@@ -138,7 +138,7 @@ float norme(const CoordVector &a)
 
 bool proche(float a, float b)
 {
-    proche(a,b,0.001);
+    return proche(a,b,0.001);
 }
 
 bool proche(float a, float b, float seuil)
@@ -149,7 +149,7 @@ bool proche(float a, float b, float seuil)
 
 bool proche(CoordVector a, CoordVector b)
 {
-    proche(a,b,0.0001);
+    return proche(a,b,0.0001);
 }
 bool proche(CoordVector a, CoordVector b, float seuil)
 {

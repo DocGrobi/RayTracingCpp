@@ -14,6 +14,8 @@ Function : Read a .OBJ file and classify the mesh, the sources and the listeners
 #include "QTextStream"
 #include "QDebug"
 #include <QMessageBox>
+#include <QFileDialog>
+#include "mainwindow.h"
 
 
 Source::Source() {
@@ -175,6 +177,12 @@ void MeshObj::charger_obj(QString file_obj)
     QFile fichier(file_obj); // fichier .obj
     QStringList coord, materiau, indice;
 
+    if(!fichier.exists()) // Si on ne peut pas ouvrir le fichier
+    {
+       QMessageBox::warning(NULL,"Mesh file not found","Mesh file not found in the current folder. Please select a .obj mesh file.");
+       file_obj = QFileDialog::getOpenFileName(NULL, "Select mesh file", QDir::homePath(), "Mesh (*.obj)");
+       fichier.setFileName(file_obj);
+    }
     if(fichier.open(QIODevice::ReadOnly | QIODevice::Text)) // Si on peut ouvrir le fichier
     {
         QTextStream flux(&fichier);
@@ -295,6 +303,10 @@ void MeshObj::charger_obj(QString file_obj)
             }
         }
         fichier.close();
+    }
+    else
+    {
+        QMessageBox::critical(NULL,"Error","No valid .obj mesh file selected", "OK");
     }
 
 
